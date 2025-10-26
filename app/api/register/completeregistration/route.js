@@ -8,6 +8,7 @@ const getRoleFromEmail = (email) => {
   const normalizedEmail = email.toLowerCase();
 
   const emailRoleMappings = {
+    "user@example.com": "payroll",
     "user@example.com": "hr",
     "user@example.com": "cc",
     "user@example.com": "bi",
