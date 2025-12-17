@@ -87,6 +87,9 @@ export default function Footer() {
             >
               user@example.com
             </a>
+            <div className="mt-4 block w-22 sm:hidden">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
 
