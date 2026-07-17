@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, X, Calendar } from "lucide-react";
+import { basePath } from "@/public/assets";
 
 // Date formatting helper function to format dates for the ui
 const formatDate = (dateString) => {
@@ -40,7 +41,7 @@ const ChangeLogModal = ({ changelogs, isModalOpen, setIsModalOpen }) => {
     setIsModalOpen(false); //Close ui immediately for better UX
     try {
       // Tell the backend user has seen the updates
-      await fetch("/api/changelog", { method: "PUT" });
+      await fetch(`${basePath}/api/changelog`, { method: "PUT" });
     } catch (error) {
       console.error("Failed to mark changelogs as read:", error);
     }

@@ -1,4 +1,5 @@
 "use client";
+import { basePath } from "@/public/assets";
 import {
   createContext,
   useContext,
@@ -20,7 +21,7 @@ export const PurchaseProvider = ({ id, children }) => {
   const fetchPurchaseDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/generalviewpurchases/${id}`);
+      const res = await fetch(`${basePath}/api/generalviewpurchases/${id}`);
       if (!res.ok) throw new Error("Failed to fetch purchase");
       const data = await res.json();
       setPurchase(data);

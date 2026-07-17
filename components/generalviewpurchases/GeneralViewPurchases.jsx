@@ -19,7 +19,7 @@ import PurchaseDetailSkeleton from "../skeletons/PurchaseDetailsSkeleton";
 import DetailField from "../Reusables/DetailField";
 import { generateClientPDF } from "@/utils/returnPurchasePDF";
 import { LoadingBar } from "../Reusables/LoadingBar";
-import { formatDateLong } from "@/public/assets";
+import { basePath, formatDateLong } from "@/public/assets";
 import { UseHandleEditClick } from "@/utils/HandleActionClicks/UseHandleEditClick";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
@@ -60,7 +60,7 @@ export default function GeneralViewPurchases({ id }) {
     setShowConfirmationDialog(false);
     setUpdating(true);
     try {
-      const response = await fetch(`/api/closepurchase/${id}`, {
+      const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
         method: "PUT",
       });
       const result = await response.json();

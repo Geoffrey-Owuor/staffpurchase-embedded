@@ -5,6 +5,7 @@ import { useUser } from "@/context/UserContext";
 import ClientPortal from "../ClientPortal/ClientPortal";
 import { useState } from "react";
 import FormAsterisk from "../FormAsterisk/FormAsterisk";
+import { basePath } from "@/public/assets";
 
 export default function DeleteConfirmation({ onConfirm, onCancel }) {
   const { email } = useUser();
@@ -21,7 +22,7 @@ export default function DeleteConfirmation({ onConfirm, onCancel }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch("/api/confirmdeletion", {
+      const response = await fetch(`${basePath}/api/confirmdeletion`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

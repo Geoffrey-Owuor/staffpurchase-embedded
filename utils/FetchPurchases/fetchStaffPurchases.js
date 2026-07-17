@@ -1,6 +1,8 @@
+import { basePath } from "@/public/assets";
+
 export async function fetchStaffPurchases(fetchAllData) {
   try {
-    let url = `/api/staffpurchaseshistory?filterType=approval`;
+    let url = `${basePath}/api/staffpurchaseshistory?filterType=approval`;
 
     //Telling the api if we should fetch all the data or if biApproval is true
     if (fetchAllData) {

@@ -8,6 +8,7 @@ import Alert from "../Alert";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import ChangeEmail from "./ChangeEmail";
+import { basePath } from "@/public/assets";
 
 export default function SecuritySettingsPage() {
   const { email } = useUser();
@@ -49,7 +50,7 @@ export default function SecuritySettingsPage() {
     setUpdating(true);
 
     try {
-      const response = await fetch("/api/reset-password", {
+      const response = await fetch(`${basePath}/api/reset-password`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, currentPassword, newPassword }),

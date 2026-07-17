@@ -6,6 +6,7 @@ import Link from "next/link";
 import AuthBackground from "./Reusables/Images/AuthBackground";
 import { Eye, EyeClosed } from "lucide-react";
 import Alert from "./Alert";
+import { basePath } from "@/public/assets";
 
 export default function ResetPasswordClient({ token }) {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function ResetPasswordClient({ token }) {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/reset-password", {
+      const res = await fetch(`${basePath}/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, newPassword: password }),

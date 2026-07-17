@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AlertPopup from "../Reusables/AlertPopup";
 import AuthBackground from "../Reusables/Images/AuthBackground";
+import { basePath } from "@/public/assets";
 
 export default function VerifyCodeComponent({ email }) {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function VerifyCodeComponent({ email }) {
       setError("");
 
       try {
-        const response = await fetch("/api/register/verifycode", {
+        const response = await fetch(`${basePath}/api/register/verifycode`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, code: codeToSubmit }),
@@ -113,7 +114,7 @@ export default function VerifyCodeComponent({ email }) {
     if (coolDown > 0) return;
     setCoolDown(60);
     try {
-      await fetch("/api/register/verifyemail", {
+      await fetch(`${basePath}/api/register/verifyemail`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

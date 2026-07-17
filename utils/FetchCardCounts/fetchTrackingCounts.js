@@ -1,3 +1,5 @@
+import { basePath } from "@/public/assets";
+
 export const defaultClosureCounts = {
   open: 0,
   closed: 0,
@@ -6,7 +8,7 @@ export const defaultClosureCounts = {
 
 export async function fetchTrackingCounts() {
   try {
-    const response = await fetch("/api/closure-counts");
+    const response = await fetch(`${basePath}/api/closure-counts`);
     if (!response.ok) throw new Error("Failed to fetch closure counts");
 
     const data = await response.json();
