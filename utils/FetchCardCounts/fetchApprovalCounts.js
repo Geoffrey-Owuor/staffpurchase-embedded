@@ -1,3 +1,5 @@
+import { basePath } from "@/public/assets";
+
 export const defaultCounts = {
   pending: 0,
   declined: 0,
@@ -9,7 +11,7 @@ export const defaultCounts = {
 
 export async function fetchApprovalCounts() {
   try {
-    const response = await fetch("/api/approval-counts");
+    const response = await fetch(`${basePath}/api/approval-counts`);
     if (!response.ok) throw new Error("Failed to fetch approval counts");
 
     const data = await response.json();

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import Alert from "../Alert";
-import { baseDepartments } from "@/public/assets";
+import { baseDepartments, basePath } from "@/public/assets";
 
 export default function CompleteRegistrationComponent({ email }) {
   const [formData, setFormData] = useState({
@@ -36,17 +36,20 @@ export default function CompleteRegistrationComponent({ email }) {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/register/completeregistration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          name: formData.name,
-          password: formData.password,
-          payrollNo: formData.payrollNo,
-          department: formData.department,
-        }),
-      });
+      const response = await fetch(
+        `${basePath}/api/register/completeregistration`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            name: formData.name,
+            password: formData.password,
+            payrollNo: formData.payrollNo,
+            department: formData.department,
+          }),
+        },
+      );
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Registration failed");
@@ -59,7 +62,7 @@ export default function CompleteRegistrationComponent({ email }) {
       else if (data.role === "staff") dashboardPath = "/staffdashboard";
       else dashboardPath = "/login";
 
-      window.location.href = dashboardPath;
+      window.location.href = `${basePath}${dashboardPath}`;
     } catch (err) {
       setError(err.message);
       setLoading(false);

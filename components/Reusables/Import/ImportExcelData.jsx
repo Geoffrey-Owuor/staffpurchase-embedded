@@ -1,4 +1,5 @@
 "use client";
+import { basePath } from "@/public/assets";
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -10,7 +11,7 @@ const ImportExcelData = ({ exportAll = false, fromDate, toDate }) => {
     setIsExporting(true);
 
     try {
-      let apiurl = "/api/exportpurchases";
+      let apiurl = `${basePath}/api/exportpurchases`;
       if (exportAll) {
         apiurl += `?exportAll=true`;
       } else {

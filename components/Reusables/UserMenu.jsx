@@ -8,6 +8,7 @@ import { useUser } from "@/context/UserContext";
 import ThemeToggle from "./ThemeProviders/ThemeToggle";
 import { LoggingOutOverlay } from "./LoadingBar";
 import { useSidebarStore } from "@/store/useSidebarStore";
+import { basePath } from "@/public/assets";
 
 export default function UserMenu({ hideMobileMenu, menuOpen }) {
   const showTopbar = useSidebarStore((state) => state.showTopbar);
@@ -58,16 +59,16 @@ export default function UserMenu({ hideMobileMenu, menuOpen }) {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      const response = await fetch("/api/logout", {
+      const response = await fetch(`${basePath}/api/logout`, {
         method: "POST",
       });
 
       if (response.ok) {
         // Notify other tabs to redirect to login
         const authChannel = new BroadcastChannel("auth_session_sync");
-        authChannel.postMessage({ action: "LOGOUT" });
+        authChannel.postMessage({ action: "LOGOUTEMBED" });
         authChannel.close();
-        window.location.href = "/login";
+        window.location.href = `${basePath}/login`;
       }
     } catch (error) {
       console.error("Logout failed:", error);

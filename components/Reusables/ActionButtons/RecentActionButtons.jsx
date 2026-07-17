@@ -14,6 +14,7 @@ import ConfirmationDialog from "../ConfirmationDialog";
 import { DeletingOverlay } from "../LoadingBar";
 import { LoadingBarWave } from "../LoadingBar";
 import { useUser } from "@/context/UserContext";
+import { basePath } from "@/public/assets";
 
 // Reusable style for the dropdown menu items
 const menuItemStyles =
@@ -63,7 +64,7 @@ export const RecentActionButtons = ({
     setShowCloseConfirmation(false);
     setIsClosing(true);
     try {
-      const response = await fetch(`/api/closepurchase/${id}`, {
+      const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
         method: "PUT",
       });
       const result = await response.json();
@@ -85,7 +86,7 @@ export const RecentActionButtons = ({
     setShowConfirmation(false);
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/deletepurchases/${id}`, {
+      const response = await fetch(`${basePath}/api/deletepurchases/${id}`, {
         method: "DELETE",
       });
       const result = await response.json();

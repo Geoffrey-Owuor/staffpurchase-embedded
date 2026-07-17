@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ChangeLogModal from "./ChangeLogModal";
 import { X } from "lucide-react";
+import { basePath } from "@/public/assets";
 
 const ChangeLogAlert = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,7 @@ const ChangeLogAlert = () => {
   useEffect(() => {
     const fetchChangelogs = async () => {
       try {
-        const response = await fetch("/api/changelog");
+        const response = await fetch(`${basePath}/api/changelog`);
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data) && data.length > 0) {

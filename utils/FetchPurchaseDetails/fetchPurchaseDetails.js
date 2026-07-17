@@ -1,6 +1,8 @@
+import { basePath } from "@/public/assets";
+
 export async function fetchPurchaseDetails(id) {
   try {
-    const res = await fetch(`/api/generalviewpurchases/${id}`);
+    const res = await fetch(`${basePath}/api/generalviewpurchases/${id}`);
     if (!res.ok) throw new Error("Failed to fetch purchase");
     const data = await res.json();
 

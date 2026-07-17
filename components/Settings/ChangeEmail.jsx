@@ -7,6 +7,7 @@ import Alert from "../Alert";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { LoggingOutOverlay } from "../Reusables/LoadingBar";
+import { basePath } from "@/public/assets";
 
 export default function ChangeEmail({ onClose }) {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function ChangeEmail({ onClose }) {
     e.preventDefault();
     setSending(true);
     try {
-      const response = await fetch("/api/register/verifyemail", {
+      const response = await fetch(`${basePath}/api/register/verifyemail`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: newEmail }),
@@ -85,7 +86,7 @@ export default function ChangeEmail({ onClose }) {
       setError("");
 
       try {
-        const response = await fetch("/api/register/verifycode", {
+        const response = await fetch(`${basePath}/api/register/verifycode`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -103,7 +104,7 @@ export default function ChangeEmail({ onClose }) {
           setOtp(new Array(6).fill(""));
 
           //Call the logout api endpoint
-          await fetch("/api/logout", { method: "POST" });
+          await fetch(`${basePath}/api/logout`, { method: "POST" });
 
           //Redirect to login page after a short delay
           setTimeout(() => {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
+import { basePath } from "@/public/assets";
 
 export default function Step1Page() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function Step1Page() {
     setError("");
 
     try {
-      const response = await fetch("/api/register/verifyemail", {
+      const response = await fetch(`${basePath}/api/register/verifyemail`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

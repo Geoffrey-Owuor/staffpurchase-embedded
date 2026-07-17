@@ -20,6 +20,7 @@ import TopBarButtons from "../Reusables/TopBarButtons/TopBarButtons";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
+import { basePath } from "@/public/assets";
 
 // The initial state for a single product
 const initialProductState = {
@@ -174,7 +175,7 @@ export default function NewPurchase({ approversPurchasing }) {
     };
 
     try {
-      const response = await fetch("/api/staffposts", {
+      const response = await fetch(`${basePath}/api/staffposts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

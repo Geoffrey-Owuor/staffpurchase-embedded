@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSession } from "@/app/lib/auth";
 import { getCurrentUser } from "@/app/lib/auth";
 import crypto from "crypto";
-import { REDIRECT_DASHBOARD_LINKS } from "@/public/assets";
+import { basePath, REDIRECT_DASHBOARD_LINKS } from "@/public/assets";
 import pool from "@/lib/db";
 
 export async function GET(request) {
@@ -27,7 +27,7 @@ export async function GET(request) {
 
     if (!email || !timestamp || !signature) {
       console.log("Some required fields are missing");
-      return NextResponse.redirect(new URL("/login", baseUrl));
+      return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 
     // 1. Prevent Replay Attacks (link expires in 2 minutes - 120000 milliseconds)
@@ -36,7 +36,7 @@ export async function GET(request) {
     const timeDiff = now - parseInt(timestamp, 10);
     if (timeDiff > 120000 || timeDiff < 0) {
       console.log("There is a timestamp difference");
-      return NextResponse.redirect(new URL("/login", baseUrl));
+      return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 
     // 2. Recreate the signature using the shared secret
@@ -50,7 +50,7 @@ export async function GET(request) {
     // 3. Compare signatures
     if (signature !== expectedSignature) {
       console.log("Signatures are not matching");
-      return NextResponse.redirect(new URL("/login", baseUrl));
+      return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 
     // If there is already a valid session of the user available,
@@ -58,7 +58,8 @@ export async function GET(request) {
     const existingSession = await getCurrentUser();
     if (existingSession.valid) {
       const redirectLink =
-        `/${REDIRECT_DASHBOARD_LINKS[existingSession.role]}` || "/login";
+        `${basePath}/${REDIRECT_DASHBOARD_LINKS[existingSession.role]}` ||
+        `${basePath}/login`;
 
       return NextResponse.redirect(new URL(redirectLink, baseUrl));
     }
@@ -71,7 +72,7 @@ export async function GET(request) {
 
     // No user found
     if (user.length === 0) {
-      return NextResponse.redirect(new URL("/login", baseUrl));
+      return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 
     // User exists assign the user object
@@ -79,7 +80,7 @@ export async function GET(request) {
 
     // User account is disabled
     if (!userObject.is_active) {
-      return NextResponse.redirect(new URL("/login", baseUrl));
+      return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 
     //Create the user session
@@ -94,10 +95,11 @@ export async function GET(request) {
 
     // Success: redirect the user to their designated dashboard
     const redirectLink =
-      `/${REDIRECT_DASHBOARD_LINKS[userObject.role]}` || "/login";
+      `${basePath}/${REDIRECT_DASHBOARD_LINKS[userObject.role]}` ||
+      `${basePath}/login`;
     return NextResponse.redirect(new URL(redirectLink, baseUrl));
   } catch (error) {
     console.error("Error while trying to create the user session:", error);
-    return NextResponse.redirect(new URL("/login", baseUrl));
+    return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
   }
 }

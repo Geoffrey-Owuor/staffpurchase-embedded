@@ -1,10 +1,12 @@
+import { basePath } from "@/public/assets";
+
 export async function fetchPaymentTrackingPurchases() {
   try {
     // This endpoint should return only fully-approved purchases
     // (i.e. those visible in the Payment Tracking / Invoicing view).
     // Adjust the URL/params to match your existing API contract.
     const response = await fetch(
-      `/api/tablesdata/purchaseshistorydata?filterType=staff&fetchAll=true&biApproval=true`,
+      `${basePath}/api/tablesdata/purchaseshistorydata?filterType=staff&fetchAll=true&biApproval=true`,
     );
 
     if (!response.ok)

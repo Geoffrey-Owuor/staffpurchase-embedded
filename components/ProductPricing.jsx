@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
 import { X, Search } from "lucide-react";
+import { basePath } from "@/public/assets";
 
 const ProductPricing = ({
   formData,
@@ -26,7 +27,7 @@ const ProductPricing = ({
     setFetchedDetails(null); // Clear previous results
 
     try {
-      const response = await fetch("/api/getpurchasedetails", {
+      const response = await fetch(`${basePath}/api/getpurchasedetails`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productCode: code }),

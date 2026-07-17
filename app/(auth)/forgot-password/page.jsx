@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Alert from "@/components/Alert";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
+import { basePath } from "@/public/assets";
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1); // step 1 = form, step 2 = message
@@ -37,7 +38,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/forgot-password", {
+      const res = await fetch(`${basePath}/api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -63,7 +64,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/forgot-password", {
+      const res = await fetch(`${basePath}/api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

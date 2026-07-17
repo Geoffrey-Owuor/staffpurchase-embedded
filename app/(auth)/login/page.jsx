@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
+import { basePath } from "@/public/assets";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ export default function LoginPage() {
     setLoginError("");
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(`${basePath}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -37,11 +38,6 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-
-        // Broadcast the new login to other tabs
-        const authChannel = new BroadcastChannel("auth_session_sync");
-        authChannel.postMessage({ action: "LOGIN", userId: data.id });
-        authChannel.close();
 
         // Determine dashboard path based on role
         let dashboardPath;
@@ -60,7 +56,7 @@ export default function LoginPage() {
         }
 
         // Redirect with page reload
-        window.location.href = dashboardPath;
+        window.location.href = `${basePath}${dashboardPath}`;
       } else {
         const data = await response.json();
         setLoginError(data.message || "Login Failed");

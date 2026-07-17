@@ -20,6 +20,7 @@ import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useRouter } from "next/navigation";
+import { basePath } from "@/public/assets";
 
 // The initial state for a single product
 const initialProductState = {
@@ -261,13 +262,16 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       products: products,
     };
     try {
-      const response = await fetch(`/api/generaleditpurchases/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${basePath}/api/generaleditpurchases/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(fullFormData),
         },
-        body: JSON.stringify(fullFormData),
-      });
+      );
 
       const result = await response.json();
 
