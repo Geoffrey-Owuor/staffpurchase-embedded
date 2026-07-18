@@ -22,6 +22,7 @@ import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRout
 import { UseHandleHistoryRoute } from "@/utils/HandleActionClicks/UseHandleHistoryRoute";
 import { UseHandlePurchaseRoute } from "@/utils/HandleActionClicks/UseHandlePurchaseRoute";
 import { useUser } from "@/context/UserContext";
+import Link from "next/link";
 
 export default function MobileHeader() {
   // --- State and logic for Mobile Sidebar ---
@@ -117,16 +118,15 @@ export default function MobileHeader() {
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <a
-              href="https://drive.google.com/drive/folders/1GdDpICwn6nA-51uKcubAa3YiNDrxqcAi?usp=drive_link"
+            <Link
+              href="/usermanual"
               target="_blank"
               title="Check manual"
               aria-label="Check manual"
-              rel="noopener noreferrer"
               className="rounded-full p-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
             >
               <NotebookText className="h-5 w-5" />
-            </a>
+            </Link>
           </div>
         </div>
       </div>

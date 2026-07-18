@@ -2,6 +2,7 @@
 import { ShoppingBag } from "lucide-react";
 import ThemeToggle from "../Reusables/ThemeProviders/ThemeToggle";
 import Link from "next/link";
+import { basePath } from "@/public/assets";
 
 export default function Footer() {
   return (
@@ -30,7 +31,7 @@ export default function Footer() {
               {["Features", "How It Works"].map((item, idx) => (
                 <li key={idx}>
                   <a
-                    href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    href={`${basePath}#${item.toLowerCase().replace(/\s+/g, "-")}`}
                     className="text-gray-600 transition hover:text-red-600 dark:text-gray-400 dark:hover:text-white"
                   >
                     {item}
@@ -70,7 +71,7 @@ export default function Footer() {
               ].map((item, idx) => (
                 <li key={idx}>
                   <a
-                    href="#"
+                    href={`${basePath}#`}
                     className="text-gray-600 transition hover:text-red-600 dark:text-gray-400 dark:hover:text-white"
                   >
                     {item}

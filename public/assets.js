@@ -53,7 +53,7 @@ export const AuthPagesLogo = () => {
 
 export const LandingPageLogo = () => {
   return (
-    <a href="/#">
+    <a href={`${basePath}#`}>
       <div className="relative flex items-center gap-1 text-2xl font-semibold">
         {/* <Image
           src={assets.hat}
