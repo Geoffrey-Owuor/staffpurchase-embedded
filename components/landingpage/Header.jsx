@@ -1,7 +1,7 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import ThemeToggleCompact from "../Reusables/ThemeProviders/ThemeToggleCompact";
 import Link from "next/link";
-import { LandingPageLogo } from "@/public/assets";
+import { basePath, LandingPageLogo } from "@/public/assets";
 
 export default function Header() {
   return (
@@ -13,13 +13,13 @@ export default function Header() {
         {/* Navigation */}
         <nav className="navigation:flex hidden space-x-8 px-6">
           <a
-            href="/#features"
+            href={`${basePath}#features`}
             className="text-gray-600 transition hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400"
           >
             Features
           </a>
           <a
-            href="/#how-it-works"
+            href={`${basePath}#how-it-works`}
             className="text-gray-600 transition hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400"
           >
             How It Works

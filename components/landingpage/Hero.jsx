@@ -2,6 +2,7 @@
 import { ShoppingBag, ArrowRight, Check, BookMarked } from "lucide-react";
 import Link from "next/link";
 import LandingLogo from "./LandingLogo";
+import { basePath } from "@/public/assets";
 
 export default function Hero() {
   return (
@@ -32,7 +33,7 @@ export default function Hero() {
                 Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <a
-                href="#how-it-works"
+                href={`${basePath}#how-it-works`}
                 className="flex w-full items-center justify-center rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 How It Works <BookMarked className="ml-2 h-5 w-5" />

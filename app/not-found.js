@@ -2,6 +2,7 @@
 import { Home, FileQuestion } from "lucide-react";
 import GoBackButton from "@/components/Reusables/GoBackButton";
 import { AuthPagesLogo } from "@/public/assets";
+import { basePath } from "@/public/assets";
 
 export const metadata = {
   title: "Page Not Found | Hotpoint Staff Portal",
@@ -30,7 +31,7 @@ export default function NotFound() {
 
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         <a
-          href="/"
+          href={`${basePath}`}
           className="flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 hover:bg-gray-50 dark:border-gray-700 dark:text-white dark:hover:bg-gray-800"
         >
           <Home className="h-4 w-4" />
