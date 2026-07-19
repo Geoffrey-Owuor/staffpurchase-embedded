@@ -1,17 +1,16 @@
 import {
   LogIn,
-  UserPlus,
   ShoppingCart,
   Bell,
   GitPullRequest,
   LifeBuoy,
   CheckCircle2,
   CreditCard,
-  BrainCog,
   Banknote,
   AlertCircle,
+  UserRoundPlus,
 } from "lucide-react";
-import ThemeToggle from "../Reusables/ThemeProviders/ThemeToggle";
+import PagesFooter from "../Reusables/PagesFooter/PagesFooter";
 import Header from "../landingpage/Header";
 
 // --- STATIC DATA ---
@@ -29,7 +28,7 @@ const manualSteps = [
   {
     id: 2,
     title: "New User Registration",
-    icon: UserPlus,
+    icon: UserRoundPlus,
     content: [
       "Fill in the required details on the registration page.",
       "Check your email for a verification code.",
@@ -101,11 +100,11 @@ const manualSteps = [
 
 const UserManual = () => {
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       {/* Header */}
       <Header />
 
-      <section className="min-h-screen w-full bg-white px-4 py-20 md:px-8 dark:bg-gray-950">
+      <section className="w-full flex-1 bg-white px-4 py-20 md:px-8 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl">
           {/* Header */}
           <div className="mb-16 text-center">
@@ -118,12 +117,12 @@ const UserManual = () => {
           </div>
 
           {/* Vertical Timeline */}
-          <div className="relative ml-3 border-l-2 border-gray-200 md:ml-6 dark:border-gray-800">
+          <div className="relative ml-3 border-l border-gray-200 md:ml-6 dark:border-gray-800">
             {manualSteps.map((step) => (
               <div key={step.id} className="relative mb-12 ml-8 md:ml-12">
                 {/* Timeline Dot / Icon */}
-                <span className="absolute -left-[52px] flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 ring-8 ring-white md:-left-[68px] dark:bg-blue-950 dark:ring-gray-950">
-                  <step.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <span className="absolute -left-[52px] flex h-10 w-10 items-center justify-center rounded-full bg-red-50 ring-8 ring-white md:-left-[68px] dark:bg-red-950 dark:ring-gray-950">
+                  <step.icon className="h-5 w-5 text-red-600 dark:text-red-300" />
                 </span>
 
                 {/* Content Card */}
@@ -140,7 +139,7 @@ const UserManual = () => {
                           key={idx}
                           className="flex items-start gap-3 text-gray-600 dark:text-gray-300"
                         >
-                          <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green-500" />
+                          <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-gray-500" />
                           <span className="text-base leading-relaxed">
                             {point}
                           </span>
@@ -189,29 +188,9 @@ const UserManual = () => {
           </div>
         </div>
       </section>
-      <div className="relative px-10 py-14 dark:border-gray-800">
-        {/* Centered Part */}
-        <div className="absolute inset-0 top-0 flex items-center justify-center space-x-1 text-sm md:top-7">
-          <span className="text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} Hotpoint Appliances Ltd. Built by
-          </span>
-          <a
-            href="https://jeff-portfolio-web.vercel.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-gray-500 hover:text-gray-600 hover:underline dark:hover:text-gray-400"
-          >
-            <span className="font-semibold">Jeff</span>
-            <BrainCog className="h-3.5 w-3.5" />
-          </a>
-        </div>
-
-        {/* ThemeToggle pinned right */}
-        <div className="absolute top-18.5 right-4 md:top-18 md:-translate-y-1/2">
-          <ThemeToggle />
-        </div>
-      </div>
-    </>
+      {/* Footer */}
+      <PagesFooter />
+    </div>
   );
 };
 

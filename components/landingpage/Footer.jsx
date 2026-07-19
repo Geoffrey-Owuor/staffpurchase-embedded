@@ -1,8 +1,8 @@
 // app/components/Footer.js
 import { ShoppingBag } from "lucide-react";
 import ThemeToggle from "../Reusables/ThemeProviders/ThemeToggle";
-import { BrainCog } from "lucide-react";
 import Link from "next/link";
+import { basePath } from "@/public/assets";
 
 export default function Footer() {
   return (
@@ -31,7 +31,7 @@ export default function Footer() {
               {["Features", "How It Works"].map((item, idx) => (
                 <li key={idx}>
                   <a
-                    href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    href={`${basePath}#${item.toLowerCase().replace(/\s+/g, "-")}`}
                     className="text-gray-600 transition hover:text-red-600 dark:text-gray-400 dark:hover:text-white"
                   >
                     {item}
@@ -44,6 +44,14 @@ export default function Footer() {
                   className="text-gray-600 transition hover:text-red-600 dark:text-gray-400 dark:hover:text-white"
                 >
                   User Manual
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/changelog"
+                  className="text-gray-600 transition hover:text-red-600 dark:text-gray-400 dark:hover:text-white"
+                >
+                  Changelog
                 </Link>
               </li>
             </ul>
@@ -63,7 +71,7 @@ export default function Footer() {
               ].map((item, idx) => (
                 <li key={idx}>
                   <a
-                    href="#"
+                    href={`${basePath}#`}
                     className="text-gray-600 transition hover:text-red-600 dark:text-gray-400 dark:hover:text-white"
                   >
                     {item}
@@ -87,6 +95,9 @@ export default function Footer() {
             >
               helpdesk@hotpoint.co.ke
             </a>
+            <div className="mt-4 block w-22 sm:hidden">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
 
@@ -94,21 +105,12 @@ export default function Footer() {
           {/* Centered Part */}
           <div className="flex items-center justify-center space-x-1 text-sm">
             <span className="text-gray-500 dark:text-gray-400">
-              © {new Date().getFullYear()} Hotpoint Appliances Ltd. Built by
+              © {new Date().getFullYear()} Hotpoint Appliances Ltd.
             </span>
-            <a
-              href="https://jeff-portfolio-web.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-gray-500 hover:text-gray-600 hover:underline dark:hover:text-gray-400"
-            >
-              <span className="font-semibold">Jeff</span>
-              <BrainCog className="h-3.5 w-3.5" />
-            </a>
           </div>
 
           {/* ThemeToggle pinned right */}
-          <div className="absolute top-14.5 right-0 md:top-11.5 md:-translate-y-1/2">
+          <div className="absolute top-10.5 right-0 hidden -translate-y-1/2 sm:block">
             <ThemeToggle />
           </div>
         </div>

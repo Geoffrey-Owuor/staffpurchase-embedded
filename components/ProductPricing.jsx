@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
 import { X, Search } from "lucide-react";
+import { basePath } from "@/public/assets";
 
 const ProductPricing = ({
   formData,
@@ -10,6 +11,7 @@ const ProductPricing = ({
   userRole,
   paymentTerms,
   productNumber,
+  approversPurchasing,
 }) => {
   const [fetchedDetails, setFetchedDetails] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ const ProductPricing = ({
     setFetchedDetails(null); // Clear previous results
 
     try {
-      const response = await fetch("/api/getpurchasedetails", {
+      const response = await fetch(`${basePath}/api/getpurchasedetails`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productCode: code }),
@@ -68,8 +70,8 @@ const ProductPricing = ({
 
   //useEffect for automatic policy and rate selection
   useEffect(() => {
-    // Guard clause to make sure this useEffect only runs when the user is staff or credit control
-    if (!["staff", "cc"].includes(userRole)) {
+    // Guard clause to make sure this useEffect only runs when the user is staff or credit control or there is an approver purchasing
+    if (!["staff", "cc"].includes(userRole) && !approversPurchasing) {
       return;
     }
 
@@ -133,6 +135,14 @@ const ProductPricing = ({
   ]);
 
   useEffect(() => {
+    // Guard clause to make sure this useEffect only runs when the user is staff or credit control or there is an approver purchasing
+    if (!["staff", "cc"].includes(userRole) && !approversPurchasing) {
+      return;
+    }
+
+    // Guard clause to make sure it only runs after we have all the required information
+    if (!formData.tdPrice || !formData.discountRate) return;
+
     const tdPrice = parseFloat(formData.tdPrice) || 0;
     const discountRate = parseFloat(formData.discountRate) || 0;
 
@@ -144,13 +154,14 @@ const ProductPricing = ({
   }, [formData.tdPrice, formData.discountRate]);
 
   const editableRoles = ["staff", "cc"];
-  const staffReadOnly = userRole !== "staff";
+  const staffReadOnly = userRole !== "staff" && !approversPurchasing;
   const ccReadOnly = userRole !== "cc";
-  const isReadonlyGeneral = !editableRoles.includes(userRole);
+  const isReadonlyGeneral =
+    !editableRoles.includes(userRole) && !approversPurchasing;
 
   return (
-    <div className="bg-gradient-classes relative mb-8 rounded-xl border border-gray-200 dark:border-gray-700">
-      <div className="rounded-t-xl px-6 py-3 text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="relative rounded-xl">
+      <div className="rounded-t-xl px-2 py-3 text-lg font-semibold text-gray-900 dark:text-white">
         Product {productNumber}
       </div>
 
@@ -185,7 +196,7 @@ const ProductPricing = ({
           </div>
         </div>
       )}
-      <div className="space-y-6 overflow-x-auto px-6 py-4">
+      <div className="space-y-6 overflow-x-auto px-2 py-4">
         {/* Grouped Inputs - 2 columns on md+ */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           {/* Product Code */}
@@ -207,7 +218,9 @@ const ProductPricing = ({
                 required
                 readOnly={isReadonlyGeneral}
               />
-              {(userRole === "staff" || userRole === "cc") && (
+              {(userRole === "staff" ||
+                userRole === "cc" ||
+                approversPurchasing) && (
                 <button
                   type="button"
                   onClick={fetchDetails}

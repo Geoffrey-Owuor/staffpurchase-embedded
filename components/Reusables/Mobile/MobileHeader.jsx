@@ -7,44 +7,37 @@ import {
   MessageCircleQuestion,
   History,
   Link2,
-  ChevronsLeft,
+  ChevronLeft,
   BookOpenCheck,
-  LifeBuoy,
   Menu,
+  NotebookText,
 } from "lucide-react";
 import HotpointLogo from "../HotpointLogo";
-import { useLoadingLine } from "@/context/LoadingLineContext";
+import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import UserMenu from "../UserMenu";
 import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
 import { UseHandleHistoryRoute } from "@/utils/HandleActionClicks/UseHandleHistoryRoute";
+import { UseHandlePurchaseRoute } from "@/utils/HandleActionClicks/UseHandlePurchaseRoute";
 import { useUser } from "@/context/UserContext";
+import Link from "next/link";
 
 export default function MobileHeader() {
-  // --- State for header scroll effect ---
-  const [isScrolled, setIsScrolled] = useState(false);
   // --- State and logic for Mobile Sidebar ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { role } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const { startLoading } = useLoadingLine();
 
+  const startLoading = useLoadingLineStore((state) => state.startLoading);
+  const stopLoading = useLoadingLineStore((state) => state.stopLoading);
+
+  // useEffect to stop Loading when pathname changes
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+    stopLoading();
+  }, [pathname]);
 
   // UseEffect to disable scrolling when sidebar is open (for screens wider than 640px)
   useEffect(() => {
@@ -62,6 +55,7 @@ export default function MobileHeader() {
 
   const { handleHomeRoute, homePath } = UseHandleHomeRoute();
   const { handleHistoryRoute, historyPath } = UseHandleHistoryRoute();
+  const { handlePurchaseRoute, purchasePath } = UseHandlePurchaseRoute();
 
   const handleHomeClick = () => {
     const isSameRoute = homePath === pathname;
@@ -81,6 +75,15 @@ export default function MobileHeader() {
     setIsMobileMenuOpen(false); // Close menu on click
   };
 
+  const handlePurchaseClick = () => {
+    const isSameRoute = purchasePath === pathname;
+    if (!isSameRoute) {
+      startLoading();
+      handlePurchaseRoute();
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   // Generic handler for other links
   const handleNavClick = (path) => {
     const isSameRoute = path === pathname;
@@ -94,14 +97,8 @@ export default function MobileHeader() {
   return (
     <>
       {/* Mobile Header Bar */}
-      <div
-        className={`custom:hidden fixed right-0 left-0 z-50 transition-all duration-200 ease-in-out ${
-          isScrolled
-            ? "custom-blur bg-white/50 shadow-xs dark:bg-gray-950/50"
-            : "bg-white dark:bg-gray-950"
-        }`}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
+      <div className="custom:hidden fixed right-0 left-0 z-50 transition-all duration-200 ease-in-out">
+        <div className="flex items-center justify-between border-gray-800 p-3">
           <div className="flex items-center justify-center space-x-3">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -109,28 +106,27 @@ export default function MobileHeader() {
               title="Open menu"
               className="rounded-full p-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-5 w-5" />
             </button>
             <HotpointLogo />
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
               className="rounded-full p-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
               aria-label="Go back"
             >
-              <ChevronsLeft className="h-6 w-6" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
-            <a
-              href="https://drive.google.com/drive/folders/1GdDpICwn6nA-51uKcubAa3YiNDrxqcAi?usp=drive_link"
+            <Link
+              href="/usermanual"
               target="_blank"
               title="Check manual"
               aria-label="Check manual"
-              rel="noopener noreferrer"
               className="rounded-full p-2 text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
             >
-              <LifeBuoy className="h-6 w-6" />
-            </a>
+              <NotebookText className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </div>
@@ -139,7 +135,7 @@ export default function MobileHeader() {
 
       {/* Sidebar Backdrop */}
       <div
-        className={`custom:hidden fixed inset-0 z-60 bg-black/50 transition-opacity duration-200 ease-in-out dark:bg-black/60 ${
+        className={`custom:hidden fixed inset-0 z-60 bg-black/50 transition-opacity duration-200 ease-in-out dark:bg-black/70 ${
           isMobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setIsMobileMenuOpen(false)}
@@ -147,7 +143,7 @@ export default function MobileHeader() {
 
       {/* Sidebar Content */}
       <div
-        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-64 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:border-r dark:border-gray-700 dark:bg-gray-950 ${
+        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-64 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -176,17 +172,15 @@ export default function MobileHeader() {
               </div>
             </li>
 
-            {role === "staff" && (
-              <li>
-                <div
-                  onClick={() => handleNavClick("/staffdashboard/new-purchase")}
-                  className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-                >
-                  <ShoppingBagIcon className="h-5 w-5 shrink-0" />
-                  <span>New Purchase</span>
-                </div>
-              </li>
-            )}
+            <li>
+              <div
+                onClick={handlePurchaseClick}
+                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
+              >
+                <ShoppingBagIcon className="h-5 w-5 shrink-0" />
+                <span>New Purchase</span>
+              </div>
+            </li>
 
             <li>
               <div
@@ -235,8 +229,8 @@ export default function MobileHeader() {
 
           <div className="ml-1">
             <UserMenu
-              isSidebarOpen={true}
               hideMobileMenu={() => setIsMobileMenuOpen(false)}
+              menuOpen={true}
             />
           </div>
         </div>

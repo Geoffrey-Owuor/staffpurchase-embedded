@@ -1,12 +1,12 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import StaffInformation from "../StaffInformation";
+import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing";
 import Alert from "../Alert";
 import { LoadingBarWave } from "../Reusables/LoadingBar";
-import { useLoadingLine } from "@/context/LoadingLineContext";
+import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
 import {
   ClipboardList,
   PackagePlus,
@@ -19,7 +19,8 @@ import PaymentDetails from "../PaymentDetails";
 import TopBarButtons from "../Reusables/TopBarButtons/TopBarButtons";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useUser } from "@/context/UserContext";
-import { useApprovalCounts } from "@/context/ApprovalCountsContext";
+import MpesaTillNumber from "./MpesaTillNumber";
+import { basePath } from "@/public/assets";
 
 // The initial state for a single product
 const initialProductState = {
@@ -32,12 +33,10 @@ const initialProductState = {
   discountedValue: "",
 };
 
-export default function NewPurchase() {
-  const { stopLoading } = useLoadingLine();
+export default function NewPurchase({ approversPurchasing }) {
   const user = useUser();
-  const router = useRouter();
-
-  const { refetchCounts } = useApprovalCounts();
+  const queryClient = useQueryClient();
+  const { handleHomeRoute } = UseHandleHomeRoute();
 
   const [discountPolicies, setDiscountPolicies] = useState([]);
   const [staffInfo, setStaffInfo] = useState(() => ({
@@ -88,11 +87,6 @@ export default function NewPurchase() {
     };
     fetchData();
   }, []);
-
-  // Set showing loading line to false
-  useEffect(() => {
-    stopLoading();
-  }, [stopLoading]);
 
   //Handler for staff change
   const handleStaffChange = (e) => {
@@ -181,7 +175,7 @@ export default function NewPurchase() {
     };
 
     try {
-      const response = await fetch("/api/staffposts", {
+      const response = await fetch(`${basePath}/api/staffposts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -199,12 +193,14 @@ export default function NewPurchase() {
       setAlertType("success");
       setShowAlert(true);
 
-      // Refetch Approval Counts
-      refetchCounts();
+      // Invalidate query data
+      queryClient.invalidateQueries({ queryKey: ["staffPurchases", true] });
+      queryClient.invalidateQueries({ queryKey: ["staffPurchases", false] });
+      queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
 
-      // Redirect to staff dashboard after 0.7 seconds
+      // Redirect to designated dashboard after 0.7 seconds
       setTimeout(() => {
-        router.push("/staffdashboard");
+        handleHomeRoute();
       }, 700);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -220,14 +216,17 @@ export default function NewPurchase() {
 
   return (
     <>
-      <div className="mx-auto p-2 leading-relaxed dark:text-white">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="mx-auto leading-relaxed dark:text-white">
+        <div className="flex items-center justify-between px-2 pt-2 pb-4">
           <div className="flex items-center justify-center gap-2 text-gray-900 dark:text-gray-200">
             <ClipboardList className="h-6 w-6" />
             <h1 className="text-xl font-semibold">Request Form</h1>
           </div>
           <TopBarButtons />
         </div>
+
+        {/* Till Number Area*/}
+        <MpesaTillNumber />
 
         <form
           id="staffInformation"
@@ -240,6 +239,7 @@ export default function NewPurchase() {
             formData={staffInfo}
             handleChange={handleStaffChange}
             userRole={user.role}
+            approversPurchasing={approversPurchasing}
           />
 
           {/* New Payment Details Component */}
@@ -248,15 +248,16 @@ export default function NewPurchase() {
             handleChange={handlePaymentChange}
             userRole={user.role}
             periods={periods}
+            approversPurchasing={approversPurchasing}
           />
 
           {/* Main Product Pricing title */}
-          <div className="mt-8 mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <div className="mt-8 mb-4 flex items-center gap-2 px-2 text-gray-900 dark:text-white">
             <PackagePlus className="h-6 w-6" />
             <span className="text-xl">Product & Pricing Details</span>
           </div>
-          {user.role === "staff" && (
-            <p className="mb-4 text-xs">
+          {(user.role === "staff" || approversPurchasing) && (
+            <p className="mb-4 px-2 text-xs">
               <span className="font-semibold text-red-500 dark:text-red-400">
                 Please note:
               </span>{" "}
@@ -278,6 +279,7 @@ export default function NewPurchase() {
                 discountPolicies={discountPolicies}
                 productNumber={index + 1}
                 userRole={user.role}
+                approversPurchasing={approversPurchasing}
                 paymentTerms={paymentInfo.employee_payment_terms}
               />
               {products.length > 1 && (
@@ -293,7 +295,7 @@ export default function NewPurchase() {
             </div>
           ))}
 
-          <div className="my-4 flex flex-col items-center space-y-3 md:flex-row md:justify-between md:space-y-0">
+          <div className="my-4 flex flex-col items-center space-y-3 px-2 md:flex-row md:justify-between md:space-y-0">
             {purchaseTotal > 0 && (
               <span className="text-lg">
                 Total Purchase Value:{" "}
@@ -306,7 +308,7 @@ export default function NewPurchase() {
               className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
             >
               <PlusCircle className="h-5 w-5" />
-              Add Product
+              Add <span className="hidden sm:block">Product</span>
             </button>
           </div>
 
@@ -330,19 +332,17 @@ export default function NewPurchase() {
         />
       )}
 
-      <AnimatePresence>
-        {showConfirmDialog && (
-          <ConfirmationDialog
-            message="Are you sure you want to submit this purchase request? (You cannot edit after submission)"
-            onConfirm={() => {
-              setShowConfirmDialog(false);
-              handleSubmit();
-            }}
-            onCancel={() => setShowConfirmDialog(false)}
-            title="Submit Purchase"
-          />
-        )}
-      </AnimatePresence>
+      {showConfirmDialog && (
+        <ConfirmationDialog
+          message="Are you sure you want to submit this purchase request? (You cannot edit after submission)"
+          onConfirm={() => {
+            setShowConfirmDialog(false);
+            handleSubmit();
+          }}
+          onCancel={() => setShowConfirmDialog(false)}
+          title="Submit Purchase"
+        />
+      )}
     </>
   );
 }

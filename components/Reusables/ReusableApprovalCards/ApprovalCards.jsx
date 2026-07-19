@@ -7,34 +7,43 @@ import {
   MessageCircleX,
   CheckCheck,
   RotateCcw,
+  ClockFading,
 } from "lucide-react";
 import ApprovalCardsSkeleton from "@/components/skeletons/ApprovalCardsSkeleton";
 import { StatCard } from "../StatCard";
 import CardHeadings from "../Headings/CardHeadings";
 import { useUser } from "@/context/UserContext";
+import { useQuery } from "@tanstack/react-query";
+import {
+  defaultCounts,
+  fetchApprovalCounts,
+} from "@/utils/FetchCardCounts/fetchApprovalCounts";
 import SkeletonBox from "@/components/skeletons/SkeletonBox";
-import { useEffect } from "react";
-import { useLoadingLine } from "@/context/LoadingLineContext";
-import { useApprovalCounts } from "@/context/ApprovalCountsContext";
 
 export default function ApprovalCards() {
-  const { stopLoading } = useLoadingLine();
-
-  useEffect(() => {
-    stopLoading();
-  }, [stopLoading]);
-
   const { role: userRole } = useUser();
-  const { counts, loading, refetchCounts } = useApprovalCounts();
+
+  const {
+    data: counts = defaultCounts,
+    isLoading: loading,
+    refetch: refetchCounts,
+  } = useQuery({
+    queryKey: ["ApprovalCardCounts"],
+    queryFn: fetchApprovalCounts,
+  });
+
+  // Calculating the total pending purchases from returned counts data
+  const totalPending =
+    counts.total - counts.totalDeclined - counts.totalApproved;
 
   return (
-    <div className="bg-gradient-classes mx-2 mt-4 mb-8 rounded-xl border border-gray-200 px-2 pt-2 pb-3 dark:border-gray-700">
+    <div className="mb-8 rounded-xl px-2">
       {/* Render Heading Dynamically */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-5">
           {userRole === "staff" ? (
             <div className="mt-3 mb-2 px-1 pb-3">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Approval status
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -45,8 +54,8 @@ export default function ApprovalCards() {
             <CardHeadings />
           )}
           <button
-            className="hidden rounded-full bg-slate-200/50 p-2 transition-colors duration-200 hover:bg-slate-200 md:flex dark:bg-gray-800 dark:hover:bg-gray-700"
-            onClick={refetchCounts}
+            className="hidden rounded-full bg-gray-100 p-2 transition-colors duration-200 hover:bg-gray-200 md:flex dark:bg-gray-900 dark:hover:bg-gray-800"
+            onClick={() => refetchCounts()}
             title="refresh"
           >
             <RotateCcw />
@@ -57,8 +66,8 @@ export default function ApprovalCards() {
           <>
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
-                {[...Array(3)].map((_, i) => (
-                  <SkeletonBox key={i} className="mr-2 h-12 w-25 md:flex" />
+                {[...Array(4)].map((_, i) => (
+                  <SkeletonBox key={i} className="mr-2 h-12 w-20 md:flex" />
                 ))}
               </div>
             )}
@@ -66,22 +75,28 @@ export default function ApprovalCards() {
         ) : (
           <>
             {userRole !== "staff" && (
-              <div className="mr-2 hidden items-center space-x-2 lg:flex">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-200 p-3 dark:bg-slate-900">
+              <div className="hidden items-center space-x-2 lg:flex">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-200 p-3 shadow-sm hover:shadow-md dark:bg-slate-900">
                   <span className="font-mono text-xl font-semibold">
-                    {counts.total}
+                    {counts.total > 500 ? "500+" : counts.total}
                   </span>{" "}
                   <TrendingUp />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 dark:bg-slate-700">
+                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 shadow-sm hover:shadow-md dark:bg-slate-700">
                   <span className="font-mono text-xl font-semibold">
-                    {counts.totalDeclined}
+                    {counts.totalDeclined > 500 ? "500+" : counts.totalDeclined}
                   </span>{" "}
                   <MessageCircleX />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-blue-50 p-3 dark:bg-slate-800">
+                <div className="flex items-center gap-2 rounded-xl bg-yellow-50 p-3 shadow-sm hover:shadow-md dark:bg-gray-800">
                   <span className="font-mono text-xl font-semibold">
-                    {counts.totalApproved}
+                    {totalPending > 500 ? "500+" : totalPending}
+                  </span>{" "}
+                  <ClockFading />
+                </div>
+                <div className="flex items-center gap-2 rounded-xl bg-blue-50 p-3 shadow-sm hover:shadow-md dark:bg-slate-800">
+                  <span className="font-mono text-xl font-semibold">
+                    {counts.totalApproved > 500 ? "500+" : counts.totalApproved}
                   </span>{" "}
                   <CheckCheck />
                 </div>
@@ -96,11 +111,11 @@ export default function ApprovalCards() {
       {loading ? (
         <ApprovalCardsSkeleton />
       ) : (
-        <div className="grid grid-cols-1 gap-4 p-2 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Pending Card */}
           <StatCard
             title="Pending"
-            count={counts.pending}
+            count={counts.pending > 500 ? "500+" : counts.pending}
             description={
               userRole === "staff"
                 ? "Awaiting invoicing approval"
@@ -111,7 +126,7 @@ export default function ApprovalCards() {
           {/* Declined Card */}
           <StatCard
             title="Declined"
-            count={counts.declined}
+            count={counts.declined > 500 ? "500+" : counts.declined}
             description={
               userRole === "staff"
                 ? "Declined Requests"
@@ -123,7 +138,7 @@ export default function ApprovalCards() {
           {/* Approved Card */}
           <StatCard
             title="Approved"
-            count={counts.approved}
+            count={counts.approved > 500 ? "500+" : counts.approved}
             description={
               userRole === "staff"
                 ? "Approved by invoicing"

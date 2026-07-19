@@ -1,24 +1,41 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { ChevronsUpDown, LogOutIcon, Palette, Settings } from "lucide-react";
 import SettingsPage from "../Settings/SettingsPage";
 import { useUser } from "@/context/UserContext";
 import ThemeToggle from "./ThemeProviders/ThemeToggle";
 import { LoggingOutOverlay } from "./LoadingBar";
+import { useSidebarStore } from "@/store/useSidebarStore";
+import { basePath } from "@/public/assets";
 
-export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
+export default function UserMenu({ hideMobileMenu, menuOpen }) {
+  const showTopbar = useSidebarStore((state) => state.showTopbar);
+  const sidebarOpen = useSidebarStore((state) => state.sidebarOpen);
+
+  const dynamicWidth = menuOpen
+    ? "w-40"
+    : sidebarOpen && !showTopbar
+      ? "w-40"
+      : "w-0";
+
+  const dynamicOpen = menuOpen
+    ? 20
+    : (sidebarOpen || !sidebarOpen) && !showTopbar
+      ? 20
+      : -20;
+
+  const dynamicPositioning = menuOpen
+    ? "bottom-full left-1"
+    : (sidebarOpen || !sidebarOpen) && !showTopbar
+      ? "bottom-full left-1"
+      : "top-full right-0";
+
   const user = useUser();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-
-  // 2. Add mounted state for Next.js SSR safety
-  const [mounted, setMounted] = useState(false);
 
   const menuRef = useRef(null);
 
@@ -30,8 +47,6 @@ export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
   };
   // Close when clicking outside
   useEffect(() => {
-    // Set mounted to true once on client
-    setMounted(true);
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsOpen(false);
@@ -44,12 +59,16 @@ export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      const response = await fetch("/api/logout", {
+      const response = await fetch(`${basePath}/api/logout`, {
         method: "POST",
       });
 
       if (response.ok) {
-        router.push("/login");
+        // Notify other tabs to redirect to login
+        const authChannel = new BroadcastChannel("auth_session_sync");
+        authChannel.postMessage({ action: "LOGOUTEMBED" });
+        authChannel.close();
+        window.location.href = `${basePath}/login`;
       }
     } catch (error) {
       console.error("Logout failed:", error);
@@ -59,12 +78,6 @@ export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
 
   return (
     <>
-      {/* Logout display overlay in a portal */}
-      {mounted &&
-        createPortal(
-          <LoggingOutOverlay isLoggingOut={loggingOut} />,
-          document.body,
-        )}
       <div className="relative" ref={menuRef}>
         {/* Toggle button */}
         <div
@@ -77,9 +90,7 @@ export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
             </span>
           </div>
           <div
-            className={`flex flex-col whitespace-nowrap transition-all duration-200 ${
-              isSidebarOpen ? "w-40" : "w-0"
-            }`}
+            className={`flex flex-col whitespace-nowrap transition-all duration-200 ${dynamicWidth}`}
           >
             <span className="max-w-[100px] truncate text-sm font-semibold">
               {user.name.toLowerCase()}
@@ -92,17 +103,17 @@ export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
         <AnimatePresence>
           {isOpen && user && (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: dynamicOpen }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              exit={{ scale: 0.95, opacity: 0, y: dynamicOpen }}
               transition={{
                 type: "spring",
                 stiffness: 300,
                 damping: 30,
               }}
-              className="absolute bottom-full -left-0.5 z-50 mt-2 mb-2 w-52.5 rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900"
+              className={`absolute ${dynamicPositioning} bg-user-menu z-50 mt-2 mb-2 w-52.5 rounded-2xl border border-gray-200 shadow-lg dark:border-gray-700`}
             >
-              <div className="border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+              <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
                 <p className="max-w-40 truncate text-sm font-semibold text-gray-900 dark:text-white">
                   {user.name}
                 </p>
@@ -148,16 +159,13 @@ export default function UserMenu({ isSidebarOpen, hideMobileMenu }) {
           )}
         </AnimatePresence>
       </div>
-      {/* 4. Use createPortal to move the modal outside the sidebar div */}
-      {mounted &&
-        createPortal(
-          <AnimatePresence>
-            {showUserSettings && (
-              <SettingsPage onClose={() => setShowUserSettings(false)} />
-            )}
-          </AnimatePresence>,
-          document.body, // Render this at the end of the <body> tag
+      {/* Logging out overlay */}
+      <LoggingOutOverlay isLoggingOut={loggingOut} />
+      <AnimatePresence>
+        {showUserSettings && (
+          <SettingsPage onClose={() => setShowUserSettings(false)} />
         )}
+      </AnimatePresence>
     </>
   );
 }

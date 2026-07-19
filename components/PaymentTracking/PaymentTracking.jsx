@@ -1,39 +1,92 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import TableSkeleton from "../skeletons/TableSkeleton";
 import { LoadingBar } from "../Reusables/LoadingBar";
 import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButtons";
 import { UseHandleViewClick } from "@/utils/HandleActionClicks/UseHandleViewClick";
 import { UseHandleEditClick } from "@/utils/HandleActionClicks/UseHandleEditClick";
 import { formatDateLong } from "@/public/assets";
-import { PaymentStatus } from "../Reusables/TableApprovalStatus";
-import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
+import {
+  PaymentStatus,
+  TableApprovalStatus,
+} from "../Reusables/TableApprovalStatus";
 import Alert from "../Alert";
 import Pagination from "../pagination/Pagination";
 import ColumnToggle from "../Reusables/ColumnToggle";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
-import { useApproversPurchases } from "@/context/ApproversPurchaseContext";
-import { useTrackingApprovalCards } from "@/context/TrackingApprovalCardsContext";
-import { Search, SearchX } from "lucide-react";
+import { RotateCcw, Search, SearchX, X } from "lucide-react";
+import { useLoadingLineStore } from "@/store/useLoadingLineStore";
+import Link from "next/link";
+import { fetchPaymentTrackingPurchases } from "@/utils/FetchPurchases/fetchPaymentTrackingPurchases";
+
+// ─── Constants ─────────────────────────────────────────────────────────────────
+
+const PAYMENT_TERMS_LABELS = {
+  CASH: "Cash",
+  CREDIT: "Credit",
+  "CASH AND CREDIT": "Cash & Credit",
+};
+
+const CLOSURE_LABELS = {
+  open: "Open",
+  closed: "Closed",
+};
+
+// ─── Filter Pill Component ──────────────────────────────────────────────────────
+
+function FilterPill({ label, value, onRemove }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+      <span className="font-semibold text-blue-500 dark:text-blue-400">
+        {label}:
+      </span>
+      {value}
+      <button
+        onClick={onRemove}
+        className="ml-0.5 rounded-full p-0.5 transition-colors hover:bg-blue-200 dark:hover:bg-blue-800"
+        aria-label={`Remove ${label} filter`}
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </span>
+  );
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────────
 
 export default function PaymentTracking() {
+  const queryClient = useQueryClient();
   const [goingTo, setGoingTo] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  //Setting fetched credit periods
+  const startLoading = useLoadingLineStore((state) => state.startLoading);
+
+  // ── TanStack Query: fetch all data once ────────────────────────────────────────
+  const {
+    data: allPurchases = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["paymentTracking"],
+    queryFn: fetchPaymentTrackingPurchases,
+  });
+
+  // ── Fetch credit periods (static data, fetched once) ──────────────────────────
   const [periods, setPeriods] = useState([]);
 
-  // Get purchases details from approversContext hook
-  const { purchases, loading, fetchPurchases, refetchDefaultPurchases } =
-    useApproversPurchases();
+  useEffect(() => {
+    const fetchPeriods = async () => {
+      const { periods } = await FetchPeriodsPolicies();
+      setPeriods(periods);
+    };
+    fetchPeriods();
+  }, []);
 
-  // Getting function to refetch tracking approval cards
-  const { refetchCounts } = useTrackingApprovalCards();
-
-  //Filter States
+  // ── Filter Input States (staging — not yet "applied") ──────────────────────────
   const [filterType, setFilterType] = useState("staff");
   const [searchTerm, setSearchTerm] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -44,14 +97,19 @@ export default function PaymentTracking() {
   const [referenceNumber, setReferenceNumber] = useState("");
   const [requestClosure, setRequestClosure] = useState("");
 
-  //Alert information state
+  // ── Active (applied) Filters — drive the useMemo ─────────────────────────────
+  const [activeFilters, setActiveFilters] = useState({});
+  // Shape: { staff?, reference?, payroll?, fromDate?, toDate?,
+  //          terms?, period?, closure? }
+
+  // ── Alert State ───────────────────────────────────────────────────────────────
   const [alertInfo, setAlertInfo] = useState({
     show: false,
     type: "",
     message: "",
   });
 
-  //Toggling hiding columns
+  // ── Column Visibility ─────────────────────────────────────────────────────────
   const [visibleColumns, setVisibleColumns] = useState({
     submissionDate: true,
     nameOfStaff: true,
@@ -61,59 +119,145 @@ export default function PaymentTracking() {
     invoiceAmount: true,
   });
 
-  //Handling column toggle
   const handleColumnToggle = (columnKey) => {
-    setVisibleColumns((prev) => ({
-      ...prev,
-      [columnKey]: !prev[columnKey],
-    }));
+    setVisibleColumns((prev) => ({ ...prev, [columnKey]: !prev[columnKey] }));
   };
 
   const handleEditClick = UseHandleEditClick();
-  const handleViewClick = UseHandleViewClick();
+  const { handleViewClick, getViewPathName } = UseHandleViewClick();
 
   const gotoPurchaseEdit = (id) => {
     setGoingTo(id);
     handleEditClick(id);
   };
-
   const gotoPurchaseView = (id) => {
     setGoingTo(id);
     handleViewClick(id);
   };
 
-  //useEffect for fetching credit periods
-  useEffect(() => {
-    const fetchPeriods = async () => {
-      const { periods } = await FetchPeriodsPolicies();
-      setPeriods(periods);
-    };
-    fetchPeriods();
-  }, []);
-
-  // Button click handler
-  const applyFilters = () => {
-    fetchPurchases({
-      filterType,
-      searchTerm,
-      fromDate,
-      toDate,
-      monthPeriod,
-      paymentTerms,
-      payrollNumber,
-      referenceNumber,
-      requestClosure,
-    });
-    setCurrentPage(1); //Set to page one on new search
+  const handleTableRowClick = (id) => {
+    startLoading();
+    handleViewClick(id);
   };
 
-  //Function to return default purchases data and clear filters
-  const fetchDefaultPurchases = () => {
-    // Call refetch default purchases
-    refetchDefaultPurchases();
-    setCurrentPage(1);
+  // ── Client-side Filtering via useMemo ─────────────────────────────────────────
+  const filteredPurchases = useMemo(() => {
+    let result = allPurchases;
 
-    // Clear previous filters
+    if (activeFilters.staff) {
+      const term = activeFilters.staff.toLowerCase();
+      result = result.filter((p) => p.staffName?.toLowerCase().includes(term));
+    }
+
+    if (activeFilters.reference) {
+      const term = activeFilters.reference.toLowerCase();
+      result = result.filter((p) =>
+        p.reference_number?.toLowerCase().includes(term),
+      );
+    }
+
+    if (activeFilters.payroll) {
+      const term = activeFilters.payroll.toLowerCase();
+      result = result.filter((p) => p.payrollNo?.toLowerCase().includes(term));
+    }
+
+    if (activeFilters.fromDate && activeFilters.toDate) {
+      const from = new Date(activeFilters.fromDate);
+      const to = new Date(activeFilters.toDate);
+      to.setHours(23, 59, 59, 999); // include the full toDate day
+      result = result.filter((p) => {
+        const d = new Date(p.createdAt);
+        return d >= from && d <= to;
+      });
+    }
+
+    if (activeFilters.terms) {
+      result = result.filter(
+        (p) => p.employee_payment_terms === activeFilters.terms,
+      );
+    }
+
+    if (activeFilters.period) {
+      result = result.filter(
+        (p) => p.user_credit_period === activeFilters.period,
+      );
+    }
+
+    if (activeFilters.closure) {
+      result = result.filter(
+        (p) => p.request_closure?.toLowerCase() === activeFilters.closure,
+      );
+    }
+
+    return result;
+  }, [allPurchases, activeFilters]);
+
+  // ── Pagination ────────────────────────────────────────────────────────────────
+  const totalPages = Math.ceil(filteredPurchases.length / rowsPerPage);
+
+  const currentPurchases = useMemo(
+    () =>
+      filteredPurchases.slice(
+        (currentPage - 1) * rowsPerPage,
+        currentPage * rowsPerPage,
+      ),
+    [filteredPurchases, currentPage, rowsPerPage],
+  );
+
+  // ── Apply Filters Handler ─────────────────────────────────────────────────────
+  const applyFilters = useCallback(() => {
+    const newFilters = {};
+
+    if (filterType === "staff" && searchTerm.trim()) {
+      newFilters.staff = searchTerm.trim();
+    } else if (filterType === "reference" && referenceNumber.trim()) {
+      newFilters.reference = referenceNumber.trim();
+    } else if (filterType === "payroll" && payrollNumber.trim()) {
+      newFilters.payroll = payrollNumber.trim();
+    } else if (filterType === "date" && fromDate && toDate) {
+      newFilters.fromDate = fromDate;
+      newFilters.toDate = toDate;
+    } else if (filterType === "terms" && paymentTerms) {
+      newFilters.terms = paymentTerms;
+    } else if (filterType === "period" && monthPeriod) {
+      newFilters.period = monthPeriod;
+    } else if (filterType === "closure" && requestClosure) {
+      newFilters.closure = requestClosure;
+    }
+
+    // Merge with existing active filters (overwrite same-key filters)
+    setActiveFilters((prev) => ({ ...prev, ...newFilters }));
+    setCurrentPage(1);
+  }, [
+    filterType,
+    searchTerm,
+    referenceNumber,
+    payrollNumber,
+    fromDate,
+    toDate,
+    paymentTerms,
+    monthPeriod,
+    requestClosure,
+  ]);
+
+  // ── Remove a Single Filter Pill ───────────────────────────────────────────────
+  const removeFilter = useCallback((key) => {
+    setActiveFilters((prev) => {
+      const next = { ...prev };
+      if (key === "date") {
+        delete next.fromDate;
+        delete next.toDate;
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+    setCurrentPage(1);
+  }, []);
+
+  // ── Clear All Filters ─────────────────────────────────────────────────────────
+  const clearAllFilters = useCallback(() => {
+    setActiveFilters({});
     setSearchTerm("");
     setPaymentTerms("");
     setReferenceNumber("");
@@ -122,44 +266,88 @@ export default function PaymentTracking() {
     setToDate("");
     setMonthPeriod("");
     setPayrollNumber("");
-  };
+    setCurrentPage(1);
+  }, []);
 
-  //Functions for handling close success and close errors
-  //close success
-  const handleCloseSuccess = (message) => {
-    setAlertInfo({
-      show: true,
-      type: "success",
-      message: message || "Request successfully closed",
-    });
-    fetchDefaultPurchases(); //refetch the table data again after close success
-    refetchCounts(); //refetch counts
-  };
+  // ── Build pill descriptors from activeFilters ─────────────────────────────────
+  const filterPills = useMemo(() => {
+    const pills = [];
+    if (activeFilters.staff)
+      pills.push({ key: "staff", label: "Staff", value: activeFilters.staff });
+    if (activeFilters.reference)
+      pills.push({
+        key: "reference",
+        label: "Reference",
+        value: activeFilters.reference,
+      });
+    if (activeFilters.payroll)
+      pills.push({
+        key: "payroll",
+        label: "Payroll",
+        value: activeFilters.payroll,
+      });
+    if (activeFilters.fromDate && activeFilters.toDate)
+      pills.push({
+        key: "date",
+        label: "Date",
+        value: `${activeFilters.fromDate} → ${activeFilters.toDate}`,
+      });
+    if (activeFilters.terms)
+      pills.push({
+        key: "terms",
+        label: "Terms",
+        value: PAYMENT_TERMS_LABELS[activeFilters.terms] ?? activeFilters.terms,
+      });
+    if (activeFilters.period) {
+      // Look up the human-readable description from the fetched periods list
+      const match = periods.find(
+        (p) => p.period_value === activeFilters.period,
+      );
+      pills.push({
+        key: "period",
+        label: "Period",
+        value: match?.period_description ?? activeFilters.period,
+      });
+    }
+    if (activeFilters.closure)
+      pills.push({
+        key: "closure",
+        label: "Closure",
+        value: CLOSURE_LABELS[activeFilters.closure] ?? activeFilters.closure,
+      });
+    return pills;
+  }, [activeFilters, periods]);
 
-  // Handling close errors
-  const handleCloseError = (message) => {
+  // ── Close handlers ────────────────────────────────────────────────────────────
+  const handleCloseSuccess = useCallback(
+    (message) => {
+      setAlertInfo({
+        show: true,
+        type: "success",
+        message: message || "Request successfully closed",
+      });
+      // Invalidate to refetch fresh data reflecting the closure update
+      queryClient.invalidateQueries({ queryKey: ["paymentTracking"] });
+      queryClient.invalidateQueries({
+        queryKey: ["TrackingApprovalCardCounts"],
+      });
+    },
+    [queryClient],
+  );
+
+  const handleCloseError = useCallback((message) => {
     setAlertInfo({
       show: true,
       type: "error",
       message: message || "Error closing the request",
     });
-  };
+  }, []);
 
-  // Recalculate total pages when purchases or rowsPerPage changes
-  useEffect(() => {
-    setTotalPages(Math.ceil(purchases.length / rowsPerPage));
-  }, [rowsPerPage, purchases]);
-
-  const currentPurchases = purchases.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage,
-  );
-
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <>
       {goingTo && <LoadingBar isLoading={true} />}
 
-      {/* Alert Component for showing alerts from the recentAction close functionality */}
       {alertInfo.show && (
         <Alert
           message={alertInfo.message}
@@ -167,19 +355,26 @@ export default function PaymentTracking() {
           onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
         />
       )}
-      <div className="bg-gradient-classes m-2 rounded-xl border border-gray-200 px-2 pt-2 pb-4 dark:border-gray-700">
-        {/* Table Heading and column toggle*/}
-        <div className="flex flex-col items-center space-y-6 md:flex-row md:justify-between md:space-y-0">
+
+      <div className="rounded-xl px-2 pb-4">
+        {/* Heading & toolbar */}
+        <div className="flex flex-col space-y-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div className="mt-3 mb-2 px-1 pb-3">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Fully Approved Requests
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Purchase requests approved by all approvers
             </p>
           </div>
-
           <div className="flex items-center gap-4">
+            {/* Refetch Button */}
+            <button
+              onClick={() => refetch()}
+              className="rounded-full bg-gray-100 p-2.5 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800"
+            >
+              <RotateCcw className="h-4.5 w-4.5" />
+            </button>
             <ImportExcelData fromDate={fromDate} toDate={toDate} />
             <ColumnToggle
               visibleColumns={visibleColumns}
@@ -188,9 +383,10 @@ export default function PaymentTracking() {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="mx-auto mb-6 max-w-md">
-          <div className="mt-3 flex flex-col items-center justify-center space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+        {/* Filter Controls */}
+        <div className="mx-auto mb-3 max-w-2xl">
+          <div className="mt-3 flex flex-col justify-center space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+            {/* Filter type selector */}
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -205,12 +401,14 @@ export default function PaymentTracking() {
               <option value="terms">Filter by Payment Terms</option>
             </select>
 
+            {/* Conditional inputs */}
             {filterType === "staff" && (
               <input
                 type="text"
                 placeholder="Search staff..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyFilters()}
                 className="mt-2 rounded-md border border-gray-300 px-3 py-1 text-sm focus:border-gray-500 focus:outline-none sm:mt-0 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
               />
             )}
@@ -221,6 +419,7 @@ export default function PaymentTracking() {
                 placeholder="Enter reference number..."
                 value={referenceNumber}
                 onChange={(e) => setReferenceNumber(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyFilters()}
                 className="mt-2 rounded-md border border-gray-300 px-3 py-1 text-sm focus:border-gray-500 focus:outline-none sm:mt-0 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
               />
             )}
@@ -231,6 +430,7 @@ export default function PaymentTracking() {
                 placeholder="Enter payroll number..."
                 value={payrollNumber}
                 onChange={(e) => setPayrollNumber(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyFilters()}
                 className="mt-2 rounded-md border border-gray-300 px-3 py-1 text-sm focus:border-gray-500 focus:outline-none sm:mt-0 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
               />
             )}
@@ -281,7 +481,7 @@ export default function PaymentTracking() {
                 </option>
                 <option value="CASH">Cash</option>
                 <option value="CREDIT">Credit</option>
-                <option value="CASH AND CREDIT">Cash & Credit</option>
+                <option value="CASH AND CREDIT">Cash &amp; Credit</option>
               </select>
             )}
 
@@ -299,29 +499,67 @@ export default function PaymentTracking() {
               </select>
             )}
 
-            <button
-              onClick={applyFilters}
-              className="mt-2 flex items-center space-x-1 rounded-md bg-gray-900 px-3 py-1 text-sm text-white hover:bg-gray-700 sm:mt-0 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-300"
-            >
-              <Search className="h-3.5 w-3.5" />
-              <span>Search</span>
-            </button>
-            <button
-              onClick={fetchDefaultPurchases}
-              className="mt-2 flex items-center space-x-1 rounded-md bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-800 sm:mt-0 dark:bg-gray-300 dark:text-gray-900 dark:hover:bg-white"
-            >
-              <SearchX className="h-3.5 w-3.5" />
-              <span>Clear</span>
-            </button>
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={applyFilters}
+                className="mt-2 flex items-center space-x-1 rounded-md bg-gray-900 px-3 py-1 text-sm text-white hover:bg-gray-700 sm:mt-0 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-300"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>Search</span>
+              </button>
+              <button
+                onClick={clearAllFilters}
+                className="mt-2 flex items-center space-x-1 rounded-md bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-800 sm:mt-0 dark:bg-gray-300 dark:text-gray-900 dark:hover:bg-white"
+              >
+                <SearchX className="h-3.5 w-3.5" />
+                <span>Clear</span>
+              </button>
+            </div>
           </div>
         </div>
-        {loading ? (
+
+        {/* Active Filter Pills */}
+        {filterPills.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 px-1">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Active filters:
+            </span>
+            {filterPills.map((pill) => (
+              <FilterPill
+                key={pill.key}
+                label={pill.label}
+                value={pill.value}
+                onRemove={() => removeFilter(pill.key)}
+              />
+            ))}
+            {filterPills.length > 1 && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs text-gray-400 underline transition-colors hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                Clear all
+              </button>
+            )}
+            <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
+              {filteredPurchases.length} result
+              {filteredPurchases.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+
+        {/* Table */}
+        {isLoading ? (
           <TableSkeleton />
+        ) : isError ? (
+          <div className="py-10 text-center text-sm text-red-500">
+            Failed to load purchases. Please try refreshing the page.
+          </div>
         ) : (
           <>
             <div className="overflow-x-auto rounded-xl">
               <table className="mb-6 min-w-full">
-                <thead className="bg-gray-700 text-white">
+                <thead className="bg-gray-800 text-white">
                   <tr>
                     {visibleColumns.submissionDate && (
                       <th
@@ -377,14 +615,12 @@ export default function PaymentTracking() {
                         Invoice Amount
                       </th>
                     )}
-
                     <th
                       className="max-w-[130px] truncate px-6 py-3 text-left text-sm font-semibold"
                       title="Invoicing Approval"
                     >
                       Invoicing Approval
                     </th>
-
                     <th
                       className="max-w-[130px] truncate px-6 py-3 text-left text-sm font-semibold"
                       title="Request Closure"
@@ -399,7 +635,8 @@ export default function PaymentTracking() {
                     currentPurchases.map((purchase) => (
                       <tr
                         key={purchase.id}
-                        className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 dark:odd:bg-gray-950 dark:even:bg-gray-900 dark:hover:bg-gray-800"
+                        className="transition-colors duration-200 odd:bg-white even:bg-gray-50 hover:cursor-pointer hover:bg-blue-50 dark:odd:bg-gray-950 dark:even:bg-gray-900 dark:hover:bg-[#1a2332]"
+                        onClick={() => handleTableRowClick(purchase.id)}
                       >
                         {visibleColumns.submissionDate && (
                           <td className="max-w-[200px] overflow-hidden px-6 py-4 text-sm text-ellipsis whitespace-nowrap text-gray-900 dark:text-white">
@@ -410,7 +647,16 @@ export default function PaymentTracking() {
                           className="max-w-[200px] overflow-hidden px-6 py-4 text-sm text-ellipsis whitespace-nowrap text-gray-900 dark:text-white"
                           title={purchase.reference_number}
                         >
-                          {purchase.reference_number}
+                          <Link
+                            href={getViewPathName(purchase.id)}
+                            className="hover:text-blue-400 hover:underline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startLoading();
+                            }}
+                          >
+                            {purchase.reference_number}
+                          </Link>
                         </td>
                         {visibleColumns.nameOfStaff && (
                           <td
@@ -433,7 +679,7 @@ export default function PaymentTracking() {
                         )}
                         {visibleColumns.mpesaCode && (
                           <td
-                            className="px-6 py-4 text-sm text-gray-900 dark:text-white"
+                            className="max-w-[150px] truncate px-6 py-4 text-sm text-gray-900 dark:text-white"
                             title={purchase.mpesa_code}
                           >
                             {purchase.mpesa_code || "N/A"}
@@ -446,18 +692,16 @@ export default function PaymentTracking() {
                         )}
                         {visibleColumns.invoiceAmount && (
                           <td className="text-sm">
-                            <div className="mr-3 rounded-lg border border-gray-300 px-6 py-2 dark:border-gray-600">
+                            <div className="mr-3 rounded-xl border border-gray-300 px-6 py-2 dark:border-gray-600">
                               {purchase.invoice_amount || "N/A"}
                             </div>
                           </td>
                         )}
-
                         <td className="px-6 py-4 text-sm">
                           <TableApprovalStatus
                             status={purchase.BI_Approval || "N/A"}
                           />
                         </td>
-
                         <td className="px-6 py-4 text-sm">
                           <PaymentStatus
                             status={purchase.request_closure || "N/A"}
@@ -488,13 +732,16 @@ export default function PaymentTracking() {
                         colSpan="12"
                         className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500 dark:text-gray-400"
                       >
-                        No purchase data found
+                        {Object.keys(activeFilters).length > 0
+                          ? "No purchases match the active filters."
+                          : "No purchase data found"}
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+
             {/* Pagination */}
             <Pagination
               totalPages={totalPages}

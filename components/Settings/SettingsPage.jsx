@@ -1,4 +1,6 @@
+"use client";
 import { useState } from "react";
+import ClientPortal from "../Reusables/ClientPortal/ClientPortal";
 import { CircleUserRound, ShieldUser, X } from "lucide-react";
 import { motion } from "framer-motion"; // 1. Import motion
 import GeneralSettingsPage from "./GeneralSettingsPage";
@@ -7,14 +9,14 @@ import SecuritySettingsPage from "./SecuritySettingsPage";
 export default function SettingsPage({ onClose }) {
   const [activeTab, setActiveTab] = useState("general");
 
-  return (
+  const content = (
     // 2. Change outer div to motion.div for the Backdrop Animation
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="custom-blur fixed inset-0 z-80 flex items-center justify-center bg-white/50 md:p-4 dark:bg-gray-950/50"
+      className="custom-blur fixed inset-0 z-80 flex items-center justify-center bg-black/50 md:p-4 dark:bg-black/60"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -78,4 +80,5 @@ export default function SettingsPage({ onClose }) {
       </motion.div>
     </motion.div>
   );
+  return <ClientPortal>{content}</ClientPortal>;
 }

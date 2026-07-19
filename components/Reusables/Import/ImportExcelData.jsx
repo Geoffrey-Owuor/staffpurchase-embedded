@@ -1,4 +1,5 @@
 "use client";
+import { basePath } from "@/public/assets";
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -10,7 +11,7 @@ const ImportExcelData = ({ exportAll = false, fromDate, toDate }) => {
     setIsExporting(true);
 
     try {
-      let apiurl = "/api/exportpurchases";
+      let apiurl = `${basePath}/api/exportpurchases`;
       if (exportAll) {
         apiurl += `?exportAll=true`;
       } else {
@@ -48,7 +49,7 @@ const ImportExcelData = ({ exportAll = false, fromDate, toDate }) => {
     <button
       onClick={handleExport}
       disabled={isExporting}
-      className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+      className="flex items-center gap-2 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
       title="Export to Excel"
     >
       {isExporting ? (

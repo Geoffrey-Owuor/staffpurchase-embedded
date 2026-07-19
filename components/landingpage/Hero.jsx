@@ -2,6 +2,7 @@
 import { ShoppingBag, ArrowRight, Check, BookMarked } from "lucide-react";
 import Link from "next/link";
 import LandingLogo from "./LandingLogo";
+import { basePath } from "@/public/assets";
 
 export default function Hero() {
   return (
@@ -11,11 +12,11 @@ export default function Hero() {
           {/* Left content */}
           <div className="mb-10 w-full lg:mb-0 lg:w-1/2">
             {/* Landing Logo - Reserving a fixed height for it */}
-            <div className="">
+            <div className="h-40 md:h-50">
               <LandingLogo />
             </div>
 
-            <h1 className="mb-6 text-center text-4xl font-bold text-gray-900 md:text-5xl lg:text-start dark:text-gray-100">
+            <h1 className="mb-6 text-center text-3xl font-bold text-gray-900 sm:text-5xl lg:text-start dark:text-gray-100">
               <span className="text-red-600 dark:text-red-500">
                 Staff Purchase Portal
               </span>
@@ -24,16 +25,16 @@ export default function Hero() {
               Easily make your product purchase requisition through our Hotpoint
               Staff Purchase Portal
             </p>
-            <div className="navigation:flex-row navigation:justify-center mt-8 flex flex-col items-center gap-4 lg:justify-start">
+            <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:justify-start">
               <Link
                 href="/register"
-                className="flex w-full items-center justify-center rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-red-700 sm:w-auto dark:bg-red-500 dark:hover:bg-red-600"
+                className="flex w-full items-center justify-center rounded-full bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-red-700 sm:w-auto dark:bg-red-500 dark:hover:bg-red-600"
               >
                 Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <a
-                href="#how-it-works"
-                className="flex w-full items-center justify-center rounded-xl border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                href={`${basePath}#how-it-works`}
+                className="flex w-full items-center justify-center rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 How It Works <BookMarked className="ml-2 h-5 w-5" />
               </a>
@@ -59,25 +60,25 @@ export default function Hero() {
                 </div>
                 <ul className="space-y-4">
                   <li className="flex items-center">
-                    <Check className="mr-2 h-5 w-5 text-green-500 dark:text-green-400" />
+                    <Check className="mr-2 h-5 w-5 text-gray-950 dark:text-white" />
                     <span className="text-gray-700 dark:text-gray-300">
                       Exclusive employee discounts
                     </span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="mr-2 h-5 w-5 text-green-500 dark:text-green-400" />
+                    <Check className="mr-2 h-5 w-5 text-gray-950 dark:text-white" />
                     <span className="text-gray-700 dark:text-gray-300">
                       Easy online requisition
                     </span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="mr-2 h-5 w-5 text-green-500 dark:text-green-400" />
+                    <Check className="mr-2 h-5 w-5 text-gray-950 dark:text-white" />
                     <span className="text-gray-700 dark:text-gray-300">
                       Track your purchase status
                     </span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="mr-2 h-5 w-5 text-green-500 dark:text-green-400" />
+                    <Check className="mr-2 h-5 w-5 text-gray-950 dark:text-white" />
                     <span className="text-gray-700 dark:text-gray-300">
                       Access with your work account
                     </span>

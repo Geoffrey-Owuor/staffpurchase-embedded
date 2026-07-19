@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Font,
   pdf,
+  renderToBuffer,
 } from "@react-pdf/renderer";
 import { formatCreditPeriod } from "@/public/assets";
 
@@ -159,16 +160,17 @@ const formatCurrency = (value) =>
     .toFixed(2)
     .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 
-const biApprovalDate = new Date();
-
 const formatDate = (dateString) =>
-  dateString ? new Date(dateString).toLocaleDateString("en-GB") : "N/A";
+  dateString
+    ? new Date(dateString).toLocaleDateString("en-GB")
+    : new Date().toLocaleDateString("en-GB");
 
 const formatStatus = (status) =>
   status ? status.charAt(0).toUpperCase() + status.slice(1) : "Pending";
 
 const calculateDaysDifference = (startDate, endDate) => {
-  if (!startDate || !endDate) return "N/A";
+  if (!startDate) return "N/A";
+  endDate = endDate ? endDate : new Date();
   const start = new Date(startDate);
   const end = new Date(endDate);
   const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
@@ -200,8 +202,7 @@ const PurchasePDFDocument = ({
             <View style={styles.headerRight}>
               <Text>Reference Number: {reference || "N/A"}</Text>
               <Text>
-                Date Issued:{" "}
-                {formatDate(purchaseData.bi_approval_date || biApprovalDate)}
+                Date Issued: {formatDate(purchaseData.bi_approval_date)}
               </Text>
             </View>
           </View>
@@ -488,9 +489,7 @@ const PurchasePDFDocument = ({
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Date</Text>
                     <Text style={styles.infoValue}>
-                      {formatDate(
-                        purchaseData.bi_approval_date || biApprovalDate,
-                      )}
+                      {formatDate(purchaseData.bi_approval_date)}
                     </Text>
                   </View>
 
@@ -499,7 +498,7 @@ const PurchasePDFDocument = ({
                     <Text style={styles.infoValue}>
                       {calculateDaysDifference(
                         createdAt,
-                        purchaseData.bi_approval_date || biApprovalDate,
+                        purchaseData.bi_approval_date,
                       )}
                     </Text>
                   </View>
@@ -525,20 +524,44 @@ export async function generatePurchasePDF({
   createdAt,
   reference,
 }) {
-  const pdfStream = await pdf(
+  // OLD STREAMING METHOD
+  // const pdfStream = await pdf(
+  //   <PurchasePDFDocument
+  //     purchaseData={purchaseData}
+  //     products={products}
+  //     createdAt={createdAt}
+  //     reference={reference}
+  //   />,
+  // ).toBuffer();
+
+  // return {
+  //   filename: `Purchase_${purchaseData.staffName || purchaseData.payrollNo}_${
+  //     new Date().toISOString().split("T")[0]
+  //   }.pdf`,
+  //   content: pdfStream,
+  //   contentType: "application/pdf",
+  // };
+
+  // NEW METHOD
+  // Use renderToBuffer instead of pdf().toBuffer()
+  const pdfBuffer = await renderToBuffer(
     <PurchasePDFDocument
       purchaseData={purchaseData}
       products={products}
       createdAt={createdAt}
       reference={reference}
     />,
-  ).toBuffer();
+  );
+
+  // Convert to Base64 immediately
+  const base64Content = pdfBuffer.toString("base64");
 
   return {
     filename: `Purchase_${purchaseData.staffName || purchaseData.payrollNo}_${
       new Date().toISOString().split("T")[0]
     }.pdf`,
-    content: pdfStream,
+    // Send the base64 string directly
+    content: base64Content,
     contentType: "application/pdf",
   };
 }

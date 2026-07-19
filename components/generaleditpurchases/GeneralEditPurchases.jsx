@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { AnimatePresence } from "framer-motion";
 import { PackagePlus, PlusCircle, Trash2 } from "lucide-react";
 import Alert from "../Alert";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
 import StaffInformation from "../StaffInformation";
 import ProductPricing from "../ProductPricing";
 import PaymentDetails from "../PaymentDetails";
@@ -14,13 +15,12 @@ import BIApprovalSection from "../FormEditComponents/BIApprovalSection";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UnauthorizedEdit from "../Reusables/UnauthorizedEdit";
 import { LoadingBarWave } from "../Reusables/LoadingBar";
-import { UseHandleViewClick } from "@/utils/HandleActionClicks/UseHandleViewClick";
 import EditPurchaseHeading from "../EditPurchaseComponents/EditPurchaseHeading";
 import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
-import { usePurchase } from "@/context/PurchaseDetailsContext";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
-import { useApprovalCounts } from "@/context/ApprovalCountsContext";
+import { useRouter } from "next/navigation";
+import { basePath } from "@/public/assets";
 
 // The initial state for a single product
 const initialProductState = {
@@ -40,14 +40,28 @@ const month = (today.getMonth() + 1).toString().padStart(2, "0");
 const day = today.getDate().toString().padStart(2, "0");
 const localTodayString = `${year}-${month}-${day}`;
 
-function PurchaseForm({
-  purchase,
-  userRole,
-  name,
-  refetchCounts,
-  handleHrefLink,
-  id,
-}) {
+function PurchaseForm({ purchase, userRole, name, id }) {
+  const queryClient = useQueryClient();
+
+  const router = useRouter();
+
+  //Initially setting periods and policies to an empty array
+  const [periods, setPeriods] = useState([]);
+  const [discountPolicies, setDiscountPolicies] = useState([]);
+
+  //useEffect for fetching discount policies and credit periods on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetching credit periods and discount policies
+      const { periods, policies } = await FetchPeriodsPolicies();
+
+      //Setting the credit periods and discount policies
+      setPeriods(periods);
+      setDiscountPolicies(policies);
+    };
+    fetchData();
+  }, []);
+
   //Other formdata from hr approval - billing & invoicing (initial state)
   const [formData, setFormData] = useState(() => {
     //initial products from the purchase data and setting products
@@ -142,27 +156,10 @@ function PurchaseForm({
   );
 
   const [submitting, setIsSubmitting] = useState(false);
-  const [discountPolicies, setDiscountPolicies] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [alertType, setAlertType] = useState("success");
-
-  //Initially setting periods to an empty array
-  const [periods, setPeriods] = useState([]);
-
-  //useEffect for fetching credit periods and discount policies
-  useEffect(() => {
-    const fetchData = async () => {
-      // Fetching credit periods and discount policies
-      const { periods, policies } = await FetchPeriodsPolicies();
-
-      //Setting the credit periods and discount policies
-      setPeriods(periods);
-      setDiscountPolicies(policies);
-    };
-    fetchData();
-  }, []);
 
   //Handler for other formdata change
   const handleChange = (e) => {
@@ -265,13 +262,16 @@ function PurchaseForm({
       products: products,
     };
     try {
-      const response = await fetch(`/api/generaleditpurchases/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${basePath}/api/generaleditpurchases/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(fullFormData),
         },
-        body: JSON.stringify(fullFormData),
-      });
+      );
 
       const result = await response.json();
 
@@ -288,12 +288,15 @@ function PurchaseForm({
 
       setIsSubmitting(false);
 
-      // Refetch approval counts
-      refetchCounts();
+      // Invalidate query data
+      queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
+      queryClient.invalidateQueries({ queryKey: ["purchases", true] });
+      queryClient.invalidateQueries({ queryKey: ["purchases", false] });
 
       // Redirect back after 0.7 seconds
       setTimeout(() => {
-        handleHrefLink(id);
+        queryClient.invalidateQueries({ queryKey: ["purchaseDetails", id] });
+        router.back();
       }, 700);
     } catch (err) {
       console.error("Error updating purchase:", err);
@@ -307,10 +310,10 @@ function PurchaseForm({
 
   return (
     <>
-      <div className="mx-auto p-2">
+      <div className="mx-auto pb-6">
         <EditPurchaseHeading />
 
-        <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
           {submitting && <LoadingBarWave isLoading={true} />}
 
           {/* Staff Info Component */}
@@ -318,6 +321,7 @@ function PurchaseForm({
             formData={staffInfo}
             handleChange={handleStaffChange}
             userRole={userRole}
+            approversPurchasing={false}
           />
 
           {/* Payment Details Component */}
@@ -326,15 +330,16 @@ function PurchaseForm({
             handleChange={handlePaymentChange}
             userRole={userRole}
             periods={periods}
+            approversPurchasing={false}
           />
 
           {/* Main Product Pricing title */}
-          <div className="mt-8 mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <div className="mt-8 mb-4 flex items-center gap-2 px-2 text-gray-900 dark:text-white">
             <PackagePlus className="h-6 w-6" />
             <span className="text-xl">Product & Pricing Details</span>
           </div>
           {userRole === "cc" && (
-            <p className="text-xs">
+            <p className="px-2 text-xs">
               <span className="font-semibold text-red-500 dark:text-red-400">
                 Note:{" "}
               </span>
@@ -354,9 +359,10 @@ function PurchaseForm({
                 productNumber={index + 1}
                 userRole={userRole}
                 paymentTerms={paymentInfo.employee_payment_terms}
+                approversPurchasing={false}
               />
-              {/* Removing a product - Only when role is bi */}
-              {products.length > 1 && userRole === "bi" && (
+              {/* Removing a product - Only when role is cc */}
+              {products.length > 1 && userRole === "cc" && (
                 <button
                   type="button"
                   onClick={() => removeProduct(index)}
@@ -369,22 +375,22 @@ function PurchaseForm({
             </div>
           ))}
 
-          <div className="my-12 flex items-center justify-between">
+          <div className="my-8 flex items-center justify-between px-2">
             {purchaseTotal > 0 && (
               <span className="text-lg">
                 Total Purchase Value:{" "}
                 <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
               </span>
             )}
-            {/* Adding a product - Only when role is bi */}
-            {userRole === "bi" && (
+            {/* Adding a product - Only when role is cc */}
+            {userRole === "cc" && (
               <button
                 type="button"
                 onClick={addProduct}
                 className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
               >
                 <PlusCircle className="h-5 w-5" />
-                Add Product
+                Add <span className="hidden sm:block">Product</span>
               </button>
             )}
           </div>
@@ -426,16 +432,15 @@ function PurchaseForm({
       </div>
 
       {/* Confirmation Dialogue */}
-      <AnimatePresence>
-        {showConfirmation && (
-          <ConfirmationDialog
-            message="Are you sure you want to submit these request changes? (You can't edit once approved)"
-            onConfirm={handleConfirmSubmit}
-            onCancel={() => setShowConfirmation(false)}
-            title="Confirm Changes"
-          />
-        )}
-      </AnimatePresence>
+
+      {showConfirmation && (
+        <ConfirmationDialog
+          message="Are you sure you want to submit these request changes? (You can't edit once approved/declined)"
+          onConfirm={handleConfirmSubmit}
+          onCancel={() => setShowConfirmation(false)}
+          title="Confirm Changes"
+        />
+      )}
 
       {/* Alert Component */}
       {showAlert && (
@@ -450,12 +455,17 @@ function PurchaseForm({
 }
 
 // The Loader component
-
 export default function GeneralEditPurchases({ id }) {
   const { role: userRole, name } = useUser();
-  const { purchase, loading, error } = usePurchase();
-  const { refetchCounts } = useApprovalCounts();
-  const handleViewClick = UseHandleViewClick();
+
+  const {
+    data: purchase,
+    isLoading: loading,
+    isError: error,
+  } = useQuery({
+    queryKey: ["purchaseDetails", id],
+    queryFn: () => fetchPurchaseDetails(id),
+  });
 
   // 1. Context Loading State
   if (loading) {
@@ -502,8 +512,6 @@ export default function GeneralEditPurchases({ id }) {
       purchase={purchase}
       userRole={userRole}
       name={name}
-      refetchCounts={refetchCounts}
-      handleHrefLink={handleViewClick}
       id={id}
     />
   );

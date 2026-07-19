@@ -2,16 +2,22 @@
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
 import { formatDateLong } from "@/public/assets";
 
-const PaymentDetails = ({ formData, handleChange, userRole, periods }) => {
+const PaymentDetails = ({
+  formData,
+  handleChange,
+  userRole,
+  periods,
+  approversPurchasing,
+}) => {
   const editableRoles = ["bi", "staff"];
-  const staffReadonly = userRole !== "staff";
-  const isReadOnly = !editableRoles.includes(userRole);
+  const staffReadonly = userRole !== "staff" && !approversPurchasing;
+  const isReadOnly = !editableRoles.includes(userRole) && !approversPurchasing;
   return (
-    <div className="bg-gradient-classes relative mb-8 rounded-xl border border-gray-200 dark:border-gray-700">
-      <div className="rounded-t-xl px-6 py-3 text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="relative rounded-xl">
+      <div className="rounded-t-xl px-2 py-3 text-lg font-semibold text-gray-900 dark:text-white">
         Payment & Invoicing Details
       </div>
-      <div className="space-y-6 px-6 py-4">
+      <div className="space-y-6 px-2 py-4">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Invoicing Location */}
           <div>
@@ -99,7 +105,7 @@ const PaymentDetails = ({ formData, handleChange, userRole, periods }) => {
                 value={formData.mpesa_code}
                 onChange={handleChange}
                 readOnly={isReadOnly}
-                maxLength={20}
+                maxLength={25}
                 placeholder="Enter Mpesa reference code"
                 required
                 className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
