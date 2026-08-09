@@ -58,7 +58,7 @@ export default function ApprovalCards({ filters = {} }) {
             onClick={() => refetchCounts()}
             title="refresh"
           >
-            <RotateCcw />
+            <RotateCcw className="h-5 w-5" />
           </button>
         </div>
 
@@ -67,10 +67,7 @@ export default function ApprovalCards({ filters = {} }) {
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
                 {[...Array(4)].map((_, i) => (
-                  <SkeletonBox
-                    key={i}
-                    className="mr-2 h-10 w-20 rounded-full! md:flex"
-                  />
+                  <SkeletonBox key={i} className="mr-2 h-11 w-20 md:flex" />
                 ))}
               </div>
             )}
@@ -79,29 +76,29 @@ export default function ApprovalCards({ filters = {} }) {
           <>
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
-                <div className="flex items-center gap-2 rounded-full bg-slate-200 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-slate-900">
-                  <span className="font-mono font-semibold">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-200 px-4 py-2 shadow-sm hover:shadow-md dark:bg-slate-900">
+                  <span className="font-mono text-lg font-semibold">
                     {counts.total > 500 ? "500+" : counts.total}
                   </span>{" "}
-                  <TrendingUp className="h-4 w-4" />
+                  <TrendingUp className="h-4.5 w-4.5" />
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-slate-700">
-                  <span className="font-mono font-semibold">
+                <div className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 shadow-sm hover:shadow-md dark:bg-slate-700">
+                  <span className="font-mono text-lg font-semibold">
                     {counts.totalDeclined > 500 ? "500+" : counts.totalDeclined}
                   </span>{" "}
-                  <MessageCircleX className="h-4 w-4" />
+                  <MessageCircleX className="h-4.5 w-4.5" />
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-yellow-50 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-gray-800">
-                  <span className="font-mono font-semibold">
+                <div className="flex items-center gap-2 rounded-xl bg-yellow-50 px-4 py-2 shadow-sm hover:shadow-md dark:bg-gray-800">
+                  <span className="font-mono text-lg font-semibold">
                     {totalPending > 500 ? "500+" : totalPending}
                   </span>{" "}
-                  <ClockFading className="h-4 w-4" />
+                  <ClockFading className="h-4.5 w-4.5" />
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-slate-800">
-                  <span className="font-mono font-semibold">
+                <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 shadow-sm hover:shadow-md dark:bg-slate-800">
+                  <span className="font-mono text-lg font-semibold">
                     {counts.totalApproved > 500 ? "500+" : counts.totalApproved}
                   </span>{" "}
-                  <CheckCheck className="h-4 w-4" />
+                  <CheckCheck className="h-4.5 w-4.5" />
                 </div>
               </div>
             )}

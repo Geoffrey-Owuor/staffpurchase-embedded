@@ -48,9 +48,8 @@ const ImportExcelData = ({ exportAll = false, fromDate, toDate }) => {
   return (
     <button
       onClick={handleExport}
-      disabled={isExporting}
-      className="flex items-center gap-2 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-      title="Export to Excel"
+      disabled={isExporting || !fromDate || !toDate}
+      className="group relative z-80 flex items-center gap-2 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:disabled:text-gray-500"
     >
       {isExporting ? (
         <>
@@ -61,6 +60,12 @@ const ImportExcelData = ({ exportAll = false, fromDate, toDate }) => {
         <>
           <FileSpreadsheet className="h-4 w-4" />
           <span>Export</span>
+          {(!fromDate || !toDate) && (
+            <div className="pointer-events-none absolute top-full left-1/2 mt-2 w-56 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-center text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-100 dark:text-gray-900">
+              To export your data, first select a date range and apply your
+              filters, then click the export button.
+            </div>
+          )}
         </>
       )}
     </button>
