@@ -20,9 +20,10 @@ export default function DataTable({
   filters,
   staged,
   stagedKeys,
-  onStageField,
-  onUnstageField,
+  selectedField,
+  onSelectField,
   onStagedValueChange,
+  onClearStaged,
   onApplyFilters,
   onRemoveCommittedFilter,
   onResetAll,
@@ -82,9 +83,10 @@ export default function DataTable({
             committed={filters}
             staged={staged}
             stagedKeys={stagedKeys}
-            onStageField={onStageField}
-            onUnstageField={onUnstageField}
+            selectedField={selectedField}
+            onSelectField={onSelectField}
             onStagedValueChange={onStagedValueChange}
+            onClearStaged={onClearStaged}
             onApply={onApplyFilters}
             onRemoveCommitted={onRemoveCommittedFilter}
             onResetAll={onResetAll}

@@ -35,15 +35,15 @@ export const LoadingBarWave = ({ isLoading }) => {
       className={`fixed inset-0 z-9999 flex h-screen items-center justify-center bg-black/50 transition-all duration-200 dark:bg-black/60`}
     >
       {/* Container to align the spinner and text horizontally */}
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col items-center gap-4">
         {/* The Lucide Loader spinner */}
         <Loader2
-          className="h-9 w-9 animate-spin text-gray-900 dark:text-white"
+          className="h-14 w-14 animate-spin text-gray-900 dark:text-white"
           aria-label="loading"
         />
 
         {/* The text, styled for dark and light modes */}
-        <span className="text-xl text-gray-900 dark:text-white">Saving...</span>
+        <span className="text-gray-900 dark:text-white">Saving...</span>
       </div>
     </div>
   );
@@ -58,17 +58,15 @@ export const LoggingOutOverlay = ({ isLoggingOut }) => {
     // This main div provides the full-screen semi-transparent overlay
     <div className="fixed inset-0 z-9999 flex h-screen items-center justify-center bg-white dark:bg-gray-950">
       {/* Container to align the spinner and text horizontally */}
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col items-center gap-4">
         {/* The Lucide Loader spinner */}
         <Loader
-          className="h-9 w-9 animate-spin text-gray-900 dark:text-white"
+          className="h-14 w-14 animate-spin text-gray-900 dark:text-white"
           aria-label="loading"
         />
 
         {/* The text, styled for dark and light modes */}
-        <span className="text-xl text-gray-900 dark:text-white">
-          Logging out...
-        </span>
+        <span className="text-gray-900 dark:text-white">Logging out...</span>
       </div>
     </div>
   );
@@ -82,17 +80,15 @@ export const DeletingOverlay = () => {
       className={`fixed inset-0 z-9999 flex h-screen items-center justify-center bg-black/50 transition-all duration-200 dark:bg-black/60`}
     >
       {/* Container to align the spinner and text horizontally */}
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col items-center gap-4">
         {/* The Lucide Loader spinner */}
         <Loader2
-          className="h-9 w-9 animate-spin text-gray-900 dark:text-white"
+          className="h-14 w-14 animate-spin text-gray-900 dark:text-white"
           aria-label="loading"
         />
 
         {/* The text, styled for dark and light modes */}
-        <span className="text-xl text-gray-900 dark:text-white">
-          Deleting...
-        </span>
+        <span className="text-gray-900 dark:text-white">Deleting...</span>
       </div>
     </div>
   );

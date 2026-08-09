@@ -24,9 +24,10 @@ export function useTableQuery({
   const committed = useFilterStore((state) => state.committed);
   const staged = useFilterStore((state) => state.staged);
   const stagedKeys = useFilterStore((state) => state.stagedKeys);
-  const stageField = useFilterStore((state) => state.stageField);
-  const unstageField = useFilterStore((state) => state.unstageField);
+  const selectedField = useFilterStore((state) => state.selectedField);
+  const setSelectedField = useFilterStore((state) => state.setSelectedField);
   const setStagedValue = useFilterStore((state) => state.setStagedValue);
+  const clearStagedKeys = useFilterStore((state) => state.clearStagedKeys);
   const applyFilters = useFilterStore((state) => state.applyFilters);
   const removeCommittedFilter = useFilterStore(
     (state) => state.removeCommittedFilter,
@@ -64,9 +65,10 @@ export function useTableQuery({
     filters: committed,
     staged,
     stagedKeys,
-    stageField,
-    unstageField,
+    selectedField,
+    setSelectedField,
     setStagedValue,
+    clearStagedKeys,
     applyFilters,
     removeCommittedFilter,
     resetAll,

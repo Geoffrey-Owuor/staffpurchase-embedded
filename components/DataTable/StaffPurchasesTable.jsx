@@ -217,9 +217,10 @@ export default function StaffPurchasesTable() {
         filters={table.filters}
         staged={table.staged}
         stagedKeys={table.stagedKeys}
-        onStageField={table.stageField}
-        onUnstageField={table.unstageField}
+        selectedField={table.selectedField}
+        onSelectField={table.setSelectedField}
         onStagedValueChange={table.setStagedValue}
+        onClearStaged={table.clearStagedKeys}
         onApplyFilters={table.applyFilters}
         onRemoveCommittedFilter={table.removeCommittedFilter}
         onResetAll={table.resetAll}
