@@ -127,7 +127,8 @@ export const PUT = requireAuth(async (request, { params, user }) => {
       const roleConfig = approverConfig[user.role];
       if (roleConfig && purchaseData[roleConfig.approvalField]) {
         const prefix = roleConfig.prefix;
-        const approverName = purchaseData[`${prefix}_approver_name`] || user.name;
+        const approverName =
+          purchaseData[`${prefix}_approver_name`] || user.name;
 
         //Correctly push clauses and params
         setClauses.push(
@@ -148,7 +149,11 @@ export const PUT = requireAuth(async (request, { params, user }) => {
       }
 
       //UPDATE THE PRODUCTS TABLE (ONLY WHEN USER IS CC)
-      if (user.role === "cc" && Array.isArray(products) && products.length > 0) {
+      if (
+        user.role === "cc" &&
+        Array.isArray(products) &&
+        products.length > 0
+      ) {
         //Delete the existing products for this purchase
         await connection.execute(
           "DELETE FROM purchase_products WHERE purchase_id = ?",
@@ -183,11 +188,11 @@ export const PUT = requireAuth(async (request, { params, user }) => {
     // --- FIRE-AND-FORGET ---
     // Call the handler but DO NOT await it.
     // The code will continue immediately to the return statement.
-    ApproversEmailHandler({
-      user,
-      oldData,
-      newData,
-    });
+    // ApproversEmailHandler({
+    //   user,
+    //   oldData,
+    //   newData,
+    // });
 
     return Response.json(
       {
@@ -198,7 +203,10 @@ export const PUT = requireAuth(async (request, { params, user }) => {
     );
   } catch (error) {
     if (error instanceof RouteError) {
-      return Response.json({ message: error.message }, { status: error.status });
+      return Response.json(
+        { message: error.message },
+        { status: error.status },
+      );
     }
     console.error("API Error Updating Purchase: ", error);
     return Response.json(

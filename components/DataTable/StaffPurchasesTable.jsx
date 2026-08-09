@@ -27,6 +27,12 @@ const PAYMENT_TERMS_OPTIONS = [
 
 const FILTER_FIELDS = [
   {
+    key: "search",
+    type: "text",
+    label: "Staff Name",
+    placeholder: "Search staff...",
+  },
+  {
     key: "referenceNumber",
     type: "text",
     label: "Reference Number",
@@ -67,7 +73,11 @@ export default function StaffPurchasesTable() {
   const { handleViewClick, getViewPathName } = useDashboardRoutes();
   const [goingTo, setGoingTo] = useState(null);
   const [visibleColumns, setVisibleColumns] = useState(DEFAULT_VISIBLE_COLUMNS);
-  const [alertInfo, setAlertInfo] = useState({ show: false, type: "", message: "" });
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
 
   const startLoading = useLoadingLineStore((state) => state.startLoading);
 
@@ -81,12 +91,10 @@ export default function StaffPurchasesTable() {
 
   const gotoPurchaseView = (id) => {
     setGoingTo(id);
-    startLoading();
     handleViewClick(id);
   };
 
   const handleTableRowClick = (row) => {
-    setGoingTo(row.id);
     startLoading();
     handleViewClick(row.id);
   };

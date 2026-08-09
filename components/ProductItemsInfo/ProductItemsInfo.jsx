@@ -9,7 +9,7 @@ export default function ProductItemsInfo({ products }) {
       <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
         Product & Pricing Details
       </h2>
-      <div className="overflow-x-auto rounded-xl">
+      <div className="overflow-x-auto rounded-xl [scrollbar-width:thin]">
         <table className="mb-4 min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-800 text-white">
             <tr>

@@ -46,8 +46,8 @@ export default function SecuritySettingsPage() {
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
-    setConfirmationDialogue(false);
     setUpdating(true);
+    setConfirmationDialogue(false);
 
     try {
       const response = await fetch(`${basePath}/api/reset-password`, {
@@ -86,14 +86,13 @@ export default function SecuritySettingsPage() {
           <ChangeEmail onClose={() => setShowChangeEmail(false)} />
         )}
 
-        {confirmationDialogue && (
-          <ConfirmationDialog
-            title="Confirm password update"
-            message="Are you sure you want to update your password?"
-            onConfirm={handleUpdatePassword}
-            onCancel={() => setConfirmationDialogue(false)}
-          />
-        )}
+        <ConfirmationDialog
+          title="Confirm password update"
+          message="Are you sure you want to update your password?"
+          onConfirm={handleUpdatePassword}
+          showDialog={confirmationDialogue}
+          onCancel={() => setConfirmationDialogue(false)}
+        />
       </AnimatePresence>
 
       {showAlert && (

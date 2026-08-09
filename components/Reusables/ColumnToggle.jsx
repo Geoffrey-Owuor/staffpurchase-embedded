@@ -40,7 +40,7 @@ export default function ColumnToggle({ visibleColumns, onToggle }) {
   );
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="relative z-60 inline-block text-left" ref={dropdownRef}>
       {/* Dropdown Trigger Button */}
       <button
         type="button"

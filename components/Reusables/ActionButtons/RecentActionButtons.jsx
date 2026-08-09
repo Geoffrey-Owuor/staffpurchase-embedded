@@ -62,8 +62,9 @@ export const RecentActionButtons = ({
 
   const handleClose = async (e) => {
     e.stopPropagation();
-    setShowCloseConfirmation(false);
     setIsClosing(true);
+    setShowCloseConfirmation(false);
+
     try {
       const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
         method: "PUT",
@@ -187,6 +188,7 @@ export const RecentActionButtons = ({
           top: `${menuPosition.top}px`,
           left: `${menuPosition.left}px`,
         }}
+        onClick={(e) => e.stopPropagation()}
         className="z-50 w-32 rounded-xl border border-gray-200 bg-white shadow-lg focus:outline-none dark:border-gray-700 dark:bg-gray-800"
       >
         <div className="p-1">
@@ -244,7 +246,8 @@ export const RecentActionButtons = ({
                 goingTo === id ||
                 disableDelete ||
                 userRole !== "staff" ||
-                biApproval === "approved"
+                biApproval !== "pending" ||
+                ccApproval !== "pending"
               }
               className="mt-1 flex w-full items-center rounded-lg p-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:hover:bg-transparent dark:text-red-400 dark:hover:bg-red-600/15"
             >
@@ -285,17 +288,16 @@ export const RecentActionButtons = ({
         />
       )}
 
-      {showCloseConfirmation && (
-        <ConfirmationDialog
-          message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"
-          onConfirm={(e) => handleClose(e)}
-          onCancel={(e) => {
-            e.stopPropagation();
-            setShowCloseConfirmation(false);
-          }}
-          title="Close Purchase Request"
-        />
-      )}
+      <ConfirmationDialog
+        message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"
+        onConfirm={(e) => handleClose(e)}
+        onCancel={(e) => {
+          e.stopPropagation();
+          setShowCloseConfirmation(false);
+        }}
+        showDialog={showCloseConfirmation}
+        title="Close Purchase Request"
+      />
 
       {deleting && <DeletingOverlay />}
       <LoadingBarWave isLoading={isClosing} />
