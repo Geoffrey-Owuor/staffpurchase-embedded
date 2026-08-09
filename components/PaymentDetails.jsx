@@ -1,6 +1,32 @@
 "use client";
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
+import Select from "./Reusables/Select";
 import { formatDateLong } from "@/public/assets";
+
+const LOCATION_OPTIONS = [
+  { value: "SARIT", label: "Sarit" },
+  { value: "RUIRU", label: "Ruiru" },
+  { value: "GCS", label: "Garden City" },
+  { value: "IMAARA", label: "Imaara" },
+  { value: "KAREN", label: "Karen" },
+  { value: "RIARA", label: "Riara" },
+  { value: "KISUMU", label: "Kisumu" },
+  { value: "ELDORET", label: "Eldoret" },
+  { value: "NYALI", label: "Nyali" },
+  { value: "LIKONI", label: "Likoni" },
+  { value: "CBD", label: "CBD" },
+  { value: "YAYA", label: "Yaya" },
+  { value: "VILLAGE", label: "Village Market" },
+  { value: "GALLERIA", label: "Galleria" },
+  { value: "DIANI", label: "Diani" },
+  { value: "OTHER", label: "Other(Specify in other details section)" },
+];
+
+const PAYMENT_TERMS_OPTIONS = [
+  { value: "CREDIT", label: "Credit" },
+  { value: "CASH", label: "Cash" },
+  { value: "CASH AND CREDIT", label: "Cash & Credit" },
+];
 
 const PaymentDetails = ({
   formData,
@@ -27,39 +53,19 @@ const PaymentDetails = ({
             >
               Invoicing Location <FormAsterisk />
             </label>
-            <select
+            <Select
               id="invoicing_location"
               name="invoicing_location"
               value={formData.invoicing_location || ""}
-              onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
-                isReadOnly
-                  ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                  : "bg-white dark:bg-gray-950"
-              }`}
+              onChange={(value) =>
+                handleChange({ target: { name: "invoicing_location", value } })
+              }
+              options={LOCATION_OPTIONS}
+              placeholder="Select a location"
+              className="w-full"
               required
               disabled={isReadOnly}
-            >
-              <option value="" disabled>
-                Select a location
-              </option>
-              <option value="SARIT">Sarit Showroom</option>
-              <option value="RUIRU">Head Office (RUIRU)</option>
-              <option value="GCS">Garden City Showroom</option>
-              <option value="IMAARA">Imaara Showroom</option>
-              <option value="KAREN">Karen Showroom</option>
-              <option value="RIARA">Riara Showroom</option>
-              <option value="KISUMU">Kisumu Showroom</option>
-              <option value="ELDORET">Eldoret Showroom</option>
-              <option value="NYALI">Nyali Showroom</option>
-              <option value="LIKONI">Likoni Showroom</option>
-              <option value="CBD">CBD Showroom</option>
-              <option value="YAYA">Yaya Showroom</option>
-              <option value="VILLAGE">Village Market Showroom</option>
-              <option value="OTHER">
-                Other(Indicate in other details section)
-              </option>
-            </select>
+            />
           </div>
 
           {/* Payment Terms & Options */}
@@ -70,22 +76,21 @@ const PaymentDetails = ({
             >
               Payment Terms/Options <FormAsterisk />
             </label>
-            <select
+            <Select
               id="employee_payment_terms"
               name="employee_payment_terms"
-              value={formData.employee_payment_terms}
-              onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${staffReadonly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              value={formData.employee_payment_terms || ""}
+              onChange={(value) =>
+                handleChange({
+                  target: { name: "employee_payment_terms", value },
+                })
+              }
+              options={PAYMENT_TERMS_OPTIONS}
+              placeholder="Select a payment option"
+              className="w-full"
               required
               disabled={staffReadonly}
-            >
-              <option value="" disabled>
-                Select a payment option
-              </option>
-              <option value="CREDIT">Credit</option>
-              <option value="CASH">Cash</option>
-              <option value="CASH AND CREDIT">Cash & Credit</option>
-            </select>
+            />
           </div>
 
           {/* Conditional mpesa-reference code */}
@@ -123,24 +128,24 @@ const PaymentDetails = ({
               >
                 Credit Period <FormAsterisk />
               </label>
-              <select
+              <Select
                 id="user_credit_period"
                 name="user_credit_period"
                 value={formData.user_credit_period || ""}
-                onChange={handleChange}
-                className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${staffReadonly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+                onChange={(value) =>
+                  handleChange({
+                    target: { name: "user_credit_period", value },
+                  })
+                }
+                options={periods.map((period) => ({
+                  value: period.period_value,
+                  label: period.period_description,
+                }))}
+                placeholder="Select period"
+                className="w-full"
                 required
                 disabled={staffReadonly}
-              >
-                <option value="" disabled>
-                  Select period
-                </option>
-                {periods.map((period) => (
-                  <option key={period.period_value} value={period.period_value}>
-                    {period.period_description}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           )}
 

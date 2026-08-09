@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Filter, FilterX, ChevronDown, X, Check } from "lucide-react";
+import { Filter, FilterX, ChevronDown, X, Check, Lightbulb } from "lucide-react";
 import Select from "../Reusables/Select";
 
 const inputClass =
-  "rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white";
+  "rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white";
 
 // A "field" always maps to one or more committed filter keys - every field is
 // a single key except dateRange, which always writes/reads fromDate+toDate
@@ -164,6 +164,17 @@ export default function FilterPanel({
           </AnimatePresence>
         </div>
 
+        {committedFields.length === 0 && (
+          <div className="group relative flex items-center">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
+              <Lightbulb className="h-3.5 w-3.5" />
+            </span>
+            <div className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 w-56 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-center text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-100 dark:text-gray-900">
+              Pick a field from &quot;Add filter&quot;, set its value, then hit Apply to filter the table.
+            </div>
+          </div>
+        )}
+
         {stagedFields.map((field) => (
           <div
             key={field.key}
@@ -199,7 +210,9 @@ export default function FilterPanel({
                   type="date"
                   aria-label="From date"
                   value={staged.fromDate || ""}
-                  onChange={(e) => onStagedValueChange("fromDate", e.target.value)}
+                  onChange={(e) =>
+                    onStagedValueChange("fromDate", e.target.value)
+                  }
                   className={inputClass}
                 />
                 <span className="text-gray-400">to</span>
@@ -207,7 +220,9 @@ export default function FilterPanel({
                   type="date"
                   aria-label="To date"
                   value={staged.toDate || ""}
-                  onChange={(e) => onStagedValueChange("toDate", e.target.value)}
+                  onChange={(e) =>
+                    onStagedValueChange("toDate", e.target.value)
+                  }
                   className={inputClass}
                 />
               </div>

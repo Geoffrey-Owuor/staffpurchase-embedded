@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
+import Select from "./Reusables/Select";
 import { X, Search } from "lucide-react";
 import { basePath } from "@/public/assets";
+
+const ITEM_STATUS_OPTIONS = [
+  { value: "New", label: "New" },
+  { value: "RHD2", label: "RHD2" },
+];
 
 const ProductPricing = ({
   formData,
@@ -253,20 +259,18 @@ const ProductPricing = ({
             <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-400">
               Status (New / RHD2) <FormAsterisk />
             </label>
-            <select
+            <Select
               name="itemStatus"
-              value={formData.itemStatus}
-              onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${staffReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              value={formData.itemStatus || ""}
+              onChange={(value) =>
+                handleChange({ target: { name: "itemStatus", value } })
+              }
+              options={ITEM_STATUS_OPTIONS}
+              placeholder="Select"
+              className="w-full"
               required
               disabled={staffReadOnly}
-            >
-              <option value="" disabled>
-                Select
-              </option>
-              <option value="New">New</option>
-              <option value="RHD2">RHD2</option>
-            </select>
+            />
           </div>
 
           {/* Product Policy Type */}

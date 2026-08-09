@@ -67,7 +67,10 @@ export default function ApprovalCards({ filters = {} }) {
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
                 {[...Array(4)].map((_, i) => (
-                  <SkeletonBox key={i} className="mr-2 h-12 w-20 md:flex" />
+                  <SkeletonBox
+                    key={i}
+                    className="mr-2 h-10 w-20 rounded-full! md:flex"
+                  />
                 ))}
               </div>
             )}
@@ -76,29 +79,29 @@ export default function ApprovalCards({ filters = {} }) {
           <>
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-200 p-3 shadow-sm hover:shadow-md dark:bg-slate-900">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-full bg-slate-200 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-slate-900">
+                  <span className="font-mono font-semibold">
                     {counts.total > 500 ? "500+" : counts.total}
                   </span>{" "}
-                  <TrendingUp />
+                  <TrendingUp className="h-4 w-4" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 shadow-sm hover:shadow-md dark:bg-slate-700">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-full bg-red-50 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-slate-700">
+                  <span className="font-mono font-semibold">
                     {counts.totalDeclined > 500 ? "500+" : counts.totalDeclined}
                   </span>{" "}
-                  <MessageCircleX />
+                  <MessageCircleX className="h-4 w-4" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-yellow-50 p-3 shadow-sm hover:shadow-md dark:bg-gray-800">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-full bg-yellow-50 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-gray-800">
+                  <span className="font-mono font-semibold">
                     {totalPending > 500 ? "500+" : totalPending}
                   </span>{" "}
-                  <ClockFading />
+                  <ClockFading className="h-4 w-4" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-blue-50 p-3 shadow-sm hover:shadow-md dark:bg-slate-800">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm shadow-sm hover:shadow-md dark:bg-slate-800">
+                  <span className="font-mono font-semibold">
                     {counts.totalApproved > 500 ? "500+" : counts.totalApproved}
                   </span>{" "}
-                  <CheckCheck />
+                  <CheckCheck className="h-4 w-4" />
                 </div>
               </div>
             )}
