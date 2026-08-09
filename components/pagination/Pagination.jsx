@@ -103,7 +103,7 @@ export default function Pagination({
                   stiffness: 300,
                   damping: 30,
                 }}
-                className="absolute bottom-full left-0 z-10 mb-1 max-h-40 w-fit min-w-20 overflow-auto rounded-lg border border-gray-200 bg-gray-100 p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                className="absolute bottom-full left-0 z-10 mb-1 max-h-40 w-fit min-w-20 overflow-auto rounded-xl border border-gray-200 bg-gray-100 p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
               >
                 {Array.from({ length: totalPages - 4 }, (_, i) => i + 4).map(
                   (page) => (
@@ -113,7 +113,7 @@ export default function Pagination({
                         handlePageChange(page);
                         setShowPageDropdown(false);
                       }}
-                      className={`mb-0.5 block w-full rounded-[7px] py-1 pr-1 pl-3 text-start text-sm ${currentPage === page ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white" : "text-gray-900 hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"}`}
+                      className={`mb-0.5 block w-full rounded-lg py-1 pr-1 pl-3 text-start text-sm ${currentPage === page ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white" : "text-gray-900 hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"}`}
                     >
                       {page}
                     </button>
@@ -173,6 +173,7 @@ export default function Pagination({
             value={String(rowsPerPage)}
             onChange={(value) => onRowsPerPageChange(Number(value))}
             options={ROWS_PER_PAGE_OPTIONS}
+            openDirection="up"
           />
         </div>
         {totalPages > 1 && (

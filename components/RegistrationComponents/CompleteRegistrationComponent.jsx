@@ -5,8 +5,14 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import Alert from "../Alert";
+import Select from "../Reusables/Select";
 import { baseDepartments, basePath } from "@/public/assets";
 import { isValidRole } from "@/utils/routes";
+
+const DEPARTMENT_OPTIONS = baseDepartments.map((department) => ({
+  value: department.value,
+  label: department.option,
+}));
 
 export default function CompleteRegistrationComponent({ email }) {
   const [formData, setFormData] = useState({
@@ -150,24 +156,18 @@ export default function CompleteRegistrationComponent({ email }) {
               >
                 Department
               </label>
-              <select
+              <Select
                 name="department"
                 id="department"
                 value={formData.department}
-                onChange={handleChange}
+                onChange={(value) =>
+                  handleChange({ target: { name: "department", value } })
+                }
+                options={DEPARTMENT_OPTIONS}
+                placeholder="Select a department"
+                className="w-full"
                 required
-                // Standard Select Style (matching input field)
-                className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:focus:border-gray-600 dark:focus:ring-gray-600"
-              >
-                <option value="" disabled>
-                  Select a department
-                </option>
-                {baseDepartments.map((department) => (
-                  <option key={department.value} value={department.value}>
-                    {department.option}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             {/* Password */}

@@ -135,7 +135,7 @@ export default function MobileHeader() {
 
       {/* Sidebar Content */}
       <div
-        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-64 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
+        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-70 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

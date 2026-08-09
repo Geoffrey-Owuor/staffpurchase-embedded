@@ -56,7 +56,7 @@ export default function DataTable({
       {goingTo && <LoadingBar isLoading={true} />}
 
       <div className="rounded-xl px-2 pb-4">
-        <div className="flex flex-col space-y-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="mb-4 flex flex-col space-y-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 md:mb-0">
           {heading}
           <div className="flex items-center gap-4">
             <button

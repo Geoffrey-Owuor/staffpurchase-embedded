@@ -1,5 +1,12 @@
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import Select from "../Reusables/Select";
+
+const APPROVAL_STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "declined", label: "Declined" },
+];
 
 export default function CreditControlSection({
   formData,
@@ -8,7 +15,7 @@ export default function CreditControlSection({
 }) {
   const isReadOnly = userRole !== "cc";
   return (
-    <div className="overflow-hidden rounded-xl">
+    <div className="rounded-xl">
       <div className="px-2 py-3">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Credit Control Approval
@@ -95,19 +102,18 @@ export default function CreditControlSection({
           >
             Approval Status <FormAsterisk />
           </label>
-          <select
+          <Select
             id="CC_Approval"
             name="CC_Approval"
-            value={formData.CC_Approval}
-            onChange={handleChange}
+            value={formData.CC_Approval || ""}
+            onChange={(value) =>
+              handleChange({ target: { name: "CC_Approval", value } })
+            }
+            options={APPROVAL_STATUS_OPTIONS}
+            className="w-full"
             disabled={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
             required
-          >
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="declined">Declined</option>
-          </select>
+          />
         </div>
 
         <div>

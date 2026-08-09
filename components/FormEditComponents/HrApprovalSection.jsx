@@ -1,5 +1,22 @@
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import Select from "../Reusables/Select";
+
+const EMPLOYMENT_STATUS_OPTIONS = [
+  { value: "contract", label: "Contract" },
+  { value: "permanent", label: "Permanent" },
+];
+
+const PROBATION_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+
+const APPROVAL_STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "declined", label: "Declined" },
+];
 
 export default function HRApprovalSection({
   formData,
@@ -9,7 +26,7 @@ export default function HRApprovalSection({
   const isReadOnly = userRole !== "hr";
 
   return (
-    <div className="overflow-hidden rounded-xl">
+    <div className="rounded-xl">
       <div className="px-2 py-3">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           HR Approval
@@ -25,25 +42,19 @@ export default function HRApprovalSection({
           >
             Employment Status <FormAsterisk />
           </label>
-          <select
+          <Select
             id="is_employed"
             name="is_employed"
-            value={formData.is_employed}
-            onChange={handleChange}
+            value={formData.is_employed || ""}
+            onChange={(value) =>
+              handleChange({ target: { name: "is_employed", value } })
+            }
+            options={EMPLOYMENT_STATUS_OPTIONS}
+            placeholder="Select status"
+            className="w-full"
             disabled={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
-              isReadOnly
-                ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                : "bg-white dark:bg-gray-950"
-            }`}
-          >
-            <option value="" disabled>
-              Select status
-            </option>
-            <option value="contract">Contract</option>
-            <option value="permanent">Permanent</option>
-          </select>
+          />
         </div>
 
         {/* Probation */}
@@ -54,25 +65,19 @@ export default function HRApprovalSection({
           >
             Probation? <FormAsterisk />
           </label>
-          <select
+          <Select
             id="on_probation"
             name="on_probation"
-            value={formData.on_probation}
-            onChange={handleChange}
+            value={formData.on_probation || ""}
+            onChange={(value) =>
+              handleChange({ target: { name: "on_probation", value } })
+            }
+            options={PROBATION_OPTIONS}
+            placeholder="Select status"
+            className="w-full"
             disabled={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
-              isReadOnly
-                ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                : "bg-white dark:bg-gray-950"
-            }`}
-          >
-            <option value="" disabled>
-              Select status
-            </option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
+          />
         </div>
 
         {/* Approval Status */}
@@ -83,23 +88,18 @@ export default function HRApprovalSection({
           >
             Approval Status <FormAsterisk />
           </label>
-          <select
+          <Select
             id="HR_Approval"
             name="HR_Approval"
-            value={formData.HR_Approval}
-            onChange={handleChange}
+            value={formData.HR_Approval || ""}
+            onChange={(value) =>
+              handleChange({ target: { name: "HR_Approval", value } })
+            }
+            options={APPROVAL_STATUS_OPTIONS}
+            className="w-full"
             disabled={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
-              isReadOnly
-                ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                : "bg-white dark:bg-gray-950"
-            }`}
-          >
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="declined">Declined</option>
-          </select>
+          />
         </div>
 
         {/* Approver Name */}
