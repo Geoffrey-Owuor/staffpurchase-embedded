@@ -150,11 +150,11 @@ export default function Select({
             }
             onKeyDown={handleListKeyDown}
             ref={(node) => node?.focus()}
-            initial={{ scale: 0.95, opacity: 0, y: 6 }}
+            initial={{ scale: 0.95, opacity: 0, y: -6 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 6 }}
+            exit={{ scale: 0.95, opacity: 0, y: -6 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute bottom-full z-10 mb-1 max-h-60 w-max min-w-full overflow-auto rounded-xl border border-gray-300 bg-white p-1 shadow-lg focus:outline-none dark:border-gray-600 dark:bg-gray-800"
+            className="absolute top-full z-10 mt-1 max-h-60 w-max min-w-full overflow-auto rounded-xl border border-gray-300 bg-white p-1 shadow-lg focus:outline-none dark:border-gray-600 dark:bg-gray-800"
           >
             {options.map((option, index) => (
               <li

@@ -55,6 +55,7 @@ export default function FilterPanel({
 }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const addMenuRef = useRef(null);
+  const hasAutoStagedRef = useRef(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,6 +66,23 @@ export default function FilterPanel({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Stage the staff-name search field by default (once per mount) so the
+  // panel never looks entirely blank before a user picks a filter. Skipped
+  // if it's already staged/committed (e.g. restored from a persisted store)
+  // or if this table has no such field (StaffPurchasesTable).
+  useEffect(() => {
+    if (hasAutoStagedRef.current) return;
+    hasAutoStagedRef.current = true;
+    const staffNameField = fields.find((field) => field.key === "search");
+    if (
+      staffNameField &&
+      !isFieldStaged(staffNameField, stagedKeys) &&
+      !isFieldCommitted(staffNameField, committed)
+    ) {
+      onStageField(staffNameField.key, committed[staffNameField.key] ?? "");
+    }
+  }, [fields, stagedKeys, committed, onStageField]);
 
   const availableFields = fields.filter(
     (field) =>

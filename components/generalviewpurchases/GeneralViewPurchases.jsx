@@ -11,7 +11,6 @@ import {
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
 import ApprovalStatus from "../Reusables/ApprovalStatus";
-import { AnimatePresence } from "framer-motion";
 import TopBarButtons from "../Reusables/TopBarButtons/TopBarButtons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -57,8 +56,9 @@ export default function GeneralViewPurchases({ id }) {
   };
 
   const handleUpdateClose = async () => {
-    setShowConfirmationDialog(false);
     setUpdating(true);
+    setShowConfirmationDialog(false);
+
     try {
       const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
         method: "PUT",
@@ -532,16 +532,13 @@ export default function GeneralViewPurchases({ id }) {
         />
       )}
 
-      <AnimatePresence>
-        {showConfirmationDialog && (
-          <ConfirmationDialog
-            message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"
-            onConfirm={handleUpdateClose}
-            onCancel={() => setShowConfirmationDialog(false)}
-            title="Close Purchase Request"
-          />
-        )}
-      </AnimatePresence>
+      <ConfirmationDialog
+        message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"
+        onConfirm={handleUpdateClose}
+        showDialog={showConfirmationDialog}
+        onCancel={() => setShowConfirmationDialog(false)}
+        title="Close Purchase Request"
+      />
 
       <LoadingBarWave isLoading={updating} />
     </>

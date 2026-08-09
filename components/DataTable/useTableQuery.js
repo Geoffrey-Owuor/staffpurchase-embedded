@@ -45,10 +45,9 @@ export function useTableQuery({
 
   const queryParams = { ...committed, page, pageSize };
 
-  const { data, isLoading, isFetching, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: [...queryKeyPrefix, queryParams],
     queryFn: () => fetchFn(queryParams),
-    placeholderData: keepPreviousData,
   });
 
   return {
@@ -72,7 +71,6 @@ export function useTableQuery({
     removeCommittedFilter,
     resetAll,
     isLoading,
-    isFetching,
     isError,
     refetch,
   };
