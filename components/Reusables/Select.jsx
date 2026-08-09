@@ -111,7 +111,10 @@ export default function Select({
   };
 
   return (
-    <div className={`relative inline-block text-left ${className}`} ref={containerRef}>
+    <div
+      className={`relative inline-block text-left ${className}`}
+      ref={containerRef}
+    >
       <button
         ref={triggerRef}
         type="button"
@@ -122,9 +125,11 @@ export default function Select({
         disabled={disabled}
         onClick={() => (isOpen ? closeList() : openList())}
         onKeyDown={handleTriggerKeyDown}
-        className="flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-gray-500 focus:outline-none disabled:opacity-50 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
+        className="flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm focus:border-gray-500 focus:outline-none disabled:opacity-50 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
       >
-        <span className={selectedOption ? "" : "text-gray-400 dark:text-gray-500"}>
+        <span
+          className={selectedOption ? "" : "text-gray-400 dark:text-gray-500"}
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
@@ -139,15 +144,17 @@ export default function Select({
             role="listbox"
             tabIndex={-1}
             aria-activedescendant={
-              highlightedIndex >= 0 ? `${listboxId}-${highlightedIndex}` : undefined
+              highlightedIndex >= 0
+                ? `${listboxId}-${highlightedIndex}`
+                : undefined
             }
             onKeyDown={handleListKeyDown}
             ref={(node) => node?.focus()}
-            initial={{ scale: 0.95, opacity: 0, y: -6 }}
+            initial={{ scale: 0.95, opacity: 0, y: 6 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: -6 }}
+            exit={{ scale: 0.95, opacity: 0, y: 6 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute z-10 mt-1 max-h-60 w-max min-w-full overflow-auto rounded-md border border-gray-300 bg-white py-1 shadow-lg focus:outline-none dark:border-gray-600 dark:bg-gray-800"
+            className="absolute bottom-full z-10 mb-1 max-h-60 w-max min-w-full overflow-auto rounded-xl border border-gray-300 bg-white p-1 shadow-lg focus:outline-none dark:border-gray-600 dark:bg-gray-800"
           >
             {options.map((option, index) => (
               <li
@@ -157,7 +164,7 @@ export default function Select({
                 aria-selected={option.value === value}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 onClick={() => commit(index)}
-                className={`flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 text-sm ${
+                className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-sm ${
                   index === highlightedIndex
                     ? "bg-gray-100 dark:bg-gray-700"
                     : ""

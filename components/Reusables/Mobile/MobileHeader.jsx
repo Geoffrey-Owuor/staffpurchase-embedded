@@ -5,7 +5,6 @@ import {
   HomeIcon,
   ShoppingBagIcon,
   MessageCircleQuestion,
-  History,
   Link2,
   ChevronLeft,
   BookOpenCheck,
@@ -54,8 +53,6 @@ export default function MobileHeader() {
   const {
     handleHomeRoute,
     homePath,
-    handleHistoryRoute,
-    historyPath,
     handlePurchaseRoute,
     purchasePath,
     paymentTrackingPath,
@@ -66,15 +63,6 @@ export default function MobileHeader() {
     if (!isSameRoute) {
       startLoading();
       handleHomeRoute();
-    }
-    setIsMobileMenuOpen(false); // Close menu on click
-  };
-
-  const handleHistoryClick = () => {
-    const isSameRoute = historyPath === pathname;
-    if (!isSameRoute) {
-      startLoading();
-      handleHistoryRoute();
     }
     setIsMobileMenuOpen(false); // Close menu on click
   };
@@ -183,16 +171,6 @@ export default function MobileHeader() {
               >
                 <ShoppingBagIcon className="h-5 w-5 shrink-0" />
                 <span>New Purchase</span>
-              </div>
-            </li>
-
-            <li>
-              <div
-                onClick={handleHistoryClick}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-              >
-                <History className="h-5 w-5 shrink-0" />
-                <span>Purchases History</span>
               </div>
             </li>
 

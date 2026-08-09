@@ -19,6 +19,7 @@ This application serves as a self-service bridge between staff members and the H
 
 - **Self-Service Dashboard:** One shared `/dashboard` route tree for every role (Staff, Payroll, HR, Credit Control, Billing/Invoicing) — the UI adapts to the signed-in user's role rather than routing them to a separate dashboard URL per role.
 - **Server-Side Filtering & Pagination:** Purchase history, staff history, and payment tracking tables query the server directly (combined, AND'd filters — search, reference number, payroll number, date range, approval status, payment terms, credit period, closure status), rather than fetching everything and filtering in the browser.
+- **Committed Filters:** Filters are staged (pick a field, fill in a value) and only sent to the server on "Apply" — nothing refetches while you're still typing/selecting. Applied filters show as removable pills; removing a pill or hitting Reset takes effect immediately.
 - **Filter-Aware Count Cards:** The Pending/Declined/Approved (and Open/Closed) summary cards recompute against the same active filters as the table beside them, so the numbers and the rows always agree. Reference totals (e.g. "Total requests") stay as fixed, unfiltered figures.
 - **Digital History:** Automated logging (MySQL) of all requests creates a seamless audit trail, replacing manual spreadsheets.
 - **Real-time Feedback:** Automated email notifications on request state changes (Pending, Approved, Declined) to reduce user uncertainty.
@@ -49,14 +50,13 @@ Five roles share one route tree under `/dashboard`:
 
 | Route | Description |
 |---|---|
-| `/dashboard` | Home — count cards + purchase table (role-aware: staff see their own requests, others see the approval queue) |
-| `/dashboard/history` | The same table, dedicated full-page view |
-| `/dashboard/history/[id]` | View a single purchase request |
-| `/dashboard/history/[id]/edit` | Edit/approve a purchase request (approver roles only, gated per-field by role) |
+| `/dashboard` | Home — count cards + the full, filterable purchase table (role-aware: staff see their own requests, others see the approval queue) |
+| `/dashboard/[id]` | View a single purchase request |
+| `/dashboard/[id]/edit` | Edit/approve a purchase request (approver roles only, gated per-field by role) |
 | `/dashboard/new-purchase` | Submit a new purchase request |
 | `/dashboard/payment-tracking` | Fully-approved requests awaiting payment/closure — **Credit Control role only** |
 
-Old per-role URLs (`/hrdashboard`, `/staffdashboard/purchase-history`, etc.) redirect to their `/dashboard` equivalents (see `next.config.mjs`).
+Old per-role URLs (`/hrdashboard`, `/staffdashboard/purchase-history`, etc.), as well as the retired `/dashboard/history` subtree, redirect to their `/dashboard` equivalents (see `next.config.mjs`).
 
 ## Setup
 

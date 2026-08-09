@@ -78,15 +78,16 @@ export const GET = requireAuth(async (request, { user }) => {
     const whereSql =
       whereClauses.length > 0 ? ` WHERE ${whereClauses.join(" AND ")}` : "";
 
-    const dataQuery = `${baseSelect}${whereSql} ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
+    // pageSize/offset are clamped integers computed above (never raw user
+    // strings), so inlining them is safe. mysql2's execute() (server-side
+    // prepared statements) can throw `ER_WRONG_ARGUMENTS: Incorrect
+    // arguments to mysqld_stmt_execute` when LIMIT/OFFSET are bound as `?`
+    // placeholders - inlining sidesteps that incompatibility entirely.
+    const dataQuery = `${baseSelect}${whereSql} ORDER BY createdAt DESC LIMIT ${pageSize} OFFSET ${offset}`;
     const countQuery = `SELECT COUNT(*) as count FROM purchasesinfo${whereSql}`;
 
     const { rows, total } = await withConnection(async (connection) => {
-      const [rows] = await connection.execute(dataQuery, [
-        ...params,
-        pageSize,
-        offset,
-      ]);
+      const [rows] = await connection.execute(dataQuery, params);
       const [countResult] = await connection.execute(countQuery, params);
       return { rows, total: countResult[0].count };
     });
