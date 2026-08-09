@@ -66,7 +66,6 @@ export default function FilterPanel({
   onApply,
   onRemoveCommitted,
   onResetAll,
-  resultCount,
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const selectorRef = useRef(null);
@@ -81,12 +80,15 @@ export default function FilterPanel({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const activeField = fields.find((field) => field.key === selectedField) ?? fields[0];
+  const activeField =
+    fields.find((field) => field.key === selectedField) ?? fields[0];
 
   const stagedFields = fields.filter((field) =>
     committedKeysFor(field).some((key) => stagedKeys.includes(key)),
   );
-  const committedFields = fields.filter((field) => isFieldCommitted(field, committed));
+  const committedFields = fields.filter((field) =>
+    isFieldCommitted(field, committed),
+  );
 
   const clearField = (field) => {
     const keys = committedKeysFor(field);
@@ -183,7 +185,9 @@ export default function FilterPanel({
               <Select
                 className="w-full"
                 value={effectiveValue(activeField.key, staged, committed)}
-                onChange={(value) => onStagedValueChange(activeField.key, value)}
+                onChange={(value) =>
+                  onStagedValueChange(activeField.key, value)
+                }
                 options={activeField.options}
                 placeholder={activeField.placeholder}
               />
@@ -195,7 +199,9 @@ export default function FilterPanel({
                   type="date"
                   aria-label="From date"
                   value={effectiveValue("fromDate", staged, committed)}
-                  onChange={(e) => onStagedValueChange("fromDate", e.target.value)}
+                  onChange={(e) =>
+                    onStagedValueChange("fromDate", e.target.value)
+                  }
                   className={inputClass}
                 />
                 <span className="shrink-0 text-gray-400">to</span>
@@ -203,7 +209,9 @@ export default function FilterPanel({
                   type="date"
                   aria-label="To date"
                   value={effectiveValue("toDate", staged, committed)}
-                  onChange={(e) => onStagedValueChange("toDate", e.target.value)}
+                  onChange={(e) =>
+                    onStagedValueChange("toDate", e.target.value)
+                  }
                   className={inputClass}
                 />
               </div>
@@ -263,12 +271,6 @@ export default function FilterPanel({
               </button>
             </span>
           ))}
-        </div>
-      )}
-
-      {committedFields.length > 0 && (
-        <div className="mt-2 px-1 text-xs text-gray-400 dark:text-gray-500">
-          {resultCount} result{resultCount !== 1 ? "s" : ""}
         </div>
       )}
     </div>

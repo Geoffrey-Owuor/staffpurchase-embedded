@@ -1,5 +1,3 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,123 +16,47 @@ export default function Pagination({
   totalPages,
   currentPage,
   rowsPerPage,
+  totalResults,
   onRowsPerPageChange,
   handlePageChange,
 }) {
-  const [showPageDropdown, setShowPageDropdown] = useState(false);
-  const dropDownRef = useRef(null);
-
-  // useEffect that listens to clicking outside of the dropdown menu
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropDownRef.current && !dropDownRef.current.contains(e.target)) {
-        setShowPageDropdown(false);
-      }
-    };
-
-    // Only run if showPagedropdown is true
-    if (showPageDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showPageDropdown]);
+  const rangeStart = totalResults === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+  const rangeEnd =
+    totalResults === 0
+      ? 0
+      : Math.min(currentPage * rowsPerPage, totalResults);
 
   const renderPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
+    // Always show first, last, current, and current's immediate neighbors;
+    // collapse any gaps between those into an unclickable ellipsis.
+    const pageSet = new Set([1, totalPages, currentPage]);
+    if (currentPage - 1 >= 1) pageSet.add(currentPage - 1);
+    if (currentPage + 1 <= totalPages) pageSet.add(currentPage + 1);
+    const sortedPages = Array.from(pageSet).sort((a, b) => a - b);
 
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`mx-1 flex h-6 w-6 items-center justify-center rounded-[7px] ${currentPage === i ? "bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900" : "bg-transparent text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"}`}
-          >
-            {i}
-          </button>,
-        );
-      }
-    } else {
-      for (let i = 1; i <= 3; i++) {
-        pages.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`mx-1 flex h-6 w-6 items-center justify-center rounded-[7px] ${currentPage === i ? "bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900" : "bg-transparent text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"}`}
-          >
-            {i}
-          </button>,
-        );
-      }
-
-      // Show current page if it is in the drop-down range
-      {
-        currentPage > 3 &&
-          currentPage < totalPages &&
-          pages.push(
-            <button
-              key={currentPage}
-              onClick={() => handlePageChange(currentPage)}
-              className="mx-1 flex h-6 w-fit min-w-6 items-center justify-center rounded-[7px] bg-gray-900 px-1 text-white dark:bg-gray-200 dark:text-gray-900"
-            >
-              {currentPage}
-            </button>,
-          );
-      }
-
-      pages.push(
-        <div key="dropdown" className="relative mx-1" ref={dropDownRef}>
-          <button
-            onClick={() => setShowPageDropdown(!showPageDropdown)}
-            className={`flex h-8 w-8 items-center justify-center rounded-[7px] bg-transparent text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800`}
+    const items = [];
+    sortedPages.forEach((page, index) => {
+      if (index > 0 && page - sortedPages[index - 1] > 1) {
+        items.push(
+          <span
+            key={`ellipsis-${page}`}
+            className="mx-1 flex h-8 w-8 items-center justify-center text-gray-400 dark:text-gray-600"
           >
             <MoreHorizontal className="h-4 w-4" />
-          </button>
-          <AnimatePresence>
-            {showPageDropdown && (
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 10 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30,
-                }}
-                className="absolute bottom-full left-0 z-10 mb-1 max-h-40 w-fit min-w-20 overflow-auto rounded-xl border border-gray-200 bg-gray-100 p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-              >
-                {Array.from({ length: totalPages - 4 }, (_, i) => i + 4).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      onClick={() => {
-                        handlePageChange(page);
-                        setShowPageDropdown(false);
-                      }}
-                      className={`mb-0.5 block w-full rounded-lg py-1 pr-1 pl-3 text-start text-sm ${currentPage === page ? "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white" : "text-gray-900 hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"}`}
-                    >
-                      {page}
-                    </button>
-                  ),
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>,
-      );
-      pages.push(
+          </span>,
+        );
+      }
+      items.push(
         <button
-          key={totalPages}
-          onClick={() => handlePageChange(totalPages)}
-          className={`mx-1 flex h-6 w-fit min-w-6 items-center justify-center rounded-[7px] px-1 ${currentPage === totalPages ? "bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900" : "bg-transparent text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"}`}
+          key={page}
+          onClick={() => handlePageChange(page)}
+          className={`mx-1 flex h-8 w-8 items-center justify-center rounded-lg text-sm ${currentPage === page ? "bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900" : "bg-transparent text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"}`}
         >
-          {totalPages}
+          {page}
         </button>,
       );
-    }
-    return pages;
+    });
+    return items;
   };
 
   return (
@@ -163,18 +85,25 @@ export default function Pagination({
         </div>
       )}
       {/* Desktop Pagination */}
-      <div className="hidden items-center justify-center space-x-2 sm:flex">
-        {/* Rows Per Page Drop Down */}
-        <div className="items-center">
-          <span className="mr-2 text-sm text-gray-700 dark:text-gray-400">
-            Rows:
-          </span>
-          <Select
-            value={String(rowsPerPage)}
-            onChange={(value) => onRowsPerPageChange(Number(value))}
-            options={ROWS_PER_PAGE_OPTIONS}
-            openDirection="up"
-          />
+      <div className="hidden items-center justify-between sm:flex">
+        {/* Results summary + Rows Per Page Drop Down */}
+        <div className="flex items-center gap-4">
+          {typeof totalResults === "number" && (
+            <span className="text-sm text-gray-700 dark:text-gray-400">
+              Showing {rangeStart} to {rangeEnd} of {totalResults} results
+            </span>
+          )}
+          <div className="items-center">
+            <span className="mr-2 text-sm text-gray-700 dark:text-gray-400">
+              Rows:
+            </span>
+            <Select
+              value={String(rowsPerPage)}
+              onChange={(value) => onRowsPerPageChange(Number(value))}
+              options={ROWS_PER_PAGE_OPTIONS}
+              openDirection="up"
+            />
+          </div>
         </div>
         {totalPages > 1 && (
           <div className="flex items-center">
