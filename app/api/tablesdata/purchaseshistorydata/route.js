@@ -1,6 +1,6 @@
 // api/tablesdata/purchaseshistorydata/route.js
-import pool from "@/lib/db";
-import { getCurrentUser } from "@/app/lib/auth";
+import { withConnection } from "@/lib/db";
+import { requireAuth } from "@/lib/apiAuth";
 
 //role to column mapping
 const roleToColumnMap = {
@@ -10,23 +10,20 @@ const roleToColumnMap = {
   bi: "BI_Approval",
 };
 
-export async function GET(request) {
-  const { role } = await getCurrentUser();
+export const GET = requireAuth(async (request, { user }) => {
+  const { role } = user;
 
-  if (!role) {
-    return Response.json(
-      { message: "No user role found or session invalid" },
-      { status: 403 },
-    );
-  }
-
-  let connection;
   try {
     const { searchParams } = new URL(request.url);
 
-    const fetchAll = searchParams.get("fetchAll") === "true";
+    const page = Math.max(1, parseInt(searchParams.get("page"), 10) || 1);
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("pageSize"), 10) || 10),
+    );
+    const offset = (page - 1) * pageSize;
+
     const biApproval = searchParams.get("biApproval") === "true";
-    const filterType = searchParams.get("filterType") || "staff"; //default to staff
     const searchQuery = searchParams.get("search") || "";
     const payrollNumber = searchParams.get("payrollNumber") || "";
     const referenceNumber = searchParams.get("referenceNumber") || "";
@@ -41,37 +38,39 @@ export async function GET(request) {
     const monthPeriod = searchParams.get("monthPeriod") || null;
     const requestClosure = searchParams.get("requestClosure") || null;
 
-    connection = await pool.getConnection();
-
-    let query = `SELECT id, createdAt, reference_number, staffName, payrollNo, employee_payment_terms, mpesa_code, user_credit_period, Payroll_Approval, HR_Approval, CC_Approval, BI_Approval,
+    const baseSelect = `SELECT id, createdAt, reference_number, staffName, payrollNo, employee_payment_terms, mpesa_code, user_credit_period, Payroll_Approval, HR_Approval, CC_Approval, BI_Approval,
          invoice_amount, request_closure
          FROM purchasesinfo`;
 
     let params = [];
     let whereClauses = [];
 
-    // Conditionally add the date interval clause
-    if (!fetchAll) {
-      whereClauses.push(`createdAt >= NOW() - INTERVAL 12 DAY`);
-    }
-
+    // Every provided filter contributes its own clause; filters combine (AND) rather than being mutually exclusive.
     if (biApproval) {
-      whereClauses.push(`BI_Approval = "approved"`);
+      whereClauses.push(`BI_Approval = 'approved'`);
     }
 
-    if (filterType === "staff" && searchQuery) {
+    if (searchQuery) {
       whereClauses.push(`staffName LIKE ?`);
       params.push(`%${searchQuery}%`);
-    } else if (filterType === "reference" && referenceNumber) {
+    }
+
+    if (referenceNumber) {
       whereClauses.push(`reference_number = ?`);
       params.push(referenceNumber);
-    } else if (filterType === "payroll" && payrollNumber) {
+    }
+
+    if (payrollNumber) {
       whereClauses.push(`payrollNo = ?`);
       params.push(payrollNumber);
-    } else if (filterType === "date" && fromDate && toDate) {
+    }
+
+    if (fromDate && toDate) {
       whereClauses.push(`DATE(createdAt) BETWEEN ? AND ?`);
       params.push(fromDate, toDate);
-    } else if (filterType === "approval" && approvalStatus) {
+    }
+
+    if (approvalStatus) {
       const columnName = roleToColumnMap[role];
       if (columnName) {
         whereClauses.push(`${columnName} = ?`);
@@ -88,30 +87,54 @@ export async function GET(request) {
           }
         }
       }
-    } else if (filterType === "terms" && paymentTerms) {
+    }
+
+    if (paymentTerms) {
       whereClauses.push(`employee_payment_terms = ?`);
       params.push(paymentTerms);
-    } else if (filterType === "period" && monthPeriod) {
+    }
+
+    if (monthPeriod) {
       whereClauses.push(`user_credit_period = ?`);
       params.push(Number(monthPeriod));
-    } else if (filterType === "closure" && requestClosure) {
+    }
+
+    if (requestClosure) {
       whereClauses.push(`request_closure = ?`);
       params.push(requestClosure);
     }
 
-    if (whereClauses.length > 0) {
-      query += ` WHERE ${whereClauses.join(" AND ")}`;
-    }
+    const whereSql =
+      whereClauses.length > 0 ? ` WHERE ${whereClauses.join(" AND ")}` : "";
 
-    query += ` ORDER BY createdAt DESC LIMIT 500`;
+    const dataQuery = `${baseSelect}${whereSql} ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
+    const countQuery = `SELECT COUNT(*) as count FROM purchasesinfo${whereSql}`;
 
-    const [rows] = await connection.execute(query, params);
+    const { rows, total } = await withConnection(async (connection) => {
+      const [rows] = await connection.execute(dataQuery, [
+        ...params,
+        pageSize,
+        offset,
+      ]);
+      const [countResult] = await connection.execute(countQuery, params);
+      return { rows, total: countResult[0].count };
+    });
 
-    return Response.json(rows || [], { status: 200 });
+    return Response.json(
+      {
+        data: rows || [],
+        page,
+        pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("API Error:", error);
-    return Response.json("Error Displaying the Data", { status: 400 });
-  } finally {
-    if (connection) connection.release();
+    return Response.json(
+      { message: "Error Displaying the Data" },
+      { status: 400 },
+    );
   }
-}
+});

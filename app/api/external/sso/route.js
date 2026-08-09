@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createSession } from "@/app/lib/auth";
 import { getCurrentUser } from "@/app/lib/auth";
 import crypto from "crypto";
-import { basePath, REDIRECT_DASHBOARD_LINKS } from "@/public/assets";
+import { basePath } from "@/public/assets";
+import { isValidRole } from "@/utils/routes";
 import pool from "@/lib/db";
 
 export async function GET(request) {
@@ -54,12 +55,12 @@ export async function GET(request) {
     }
 
     // If there is already a valid session of the user available,
-    // redirect directly to their dashboard
+    // redirect directly to the dashboard
     const existingSession = await getCurrentUser();
     if (existingSession.valid) {
-      const redirectLink =
-        `${basePath}/${REDIRECT_DASHBOARD_LINKS[existingSession.role]}` ||
-        `${basePath}/login`;
+      const redirectLink = isValidRole(existingSession.role)
+        ? `${basePath}/dashboard`
+        : `${basePath}/login`;
 
       return NextResponse.redirect(new URL(redirectLink, baseUrl));
     }
@@ -93,10 +94,10 @@ export async function GET(request) {
       userObject.department,
     );
 
-    // Success: redirect the user to their designated dashboard
-    const redirectLink =
-      `${basePath}/${REDIRECT_DASHBOARD_LINKS[userObject.role]}` ||
-      `${basePath}/login`;
+    // Success: redirect the user to the dashboard
+    const redirectLink = isValidRole(userObject.role)
+      ? `${basePath}/dashboard`
+      : `${basePath}/login`;
     return NextResponse.redirect(new URL(redirectLink, baseUrl));
   } catch (error) {
     console.error("Error while trying to create the user session:", error);

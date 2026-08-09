@@ -2,19 +2,11 @@
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function UnauthorizedEdit({ role }) {
+export default function UnauthorizedEdit() {
   const router = useRouter();
 
-  const dashBoardRoutes = {
-    staff: "/staffdashboard",
-    hr: "/hrdashboard",
-    cc: "/ccdashboard",
-    bi: "/bidashboard",
-  };
-
   const handleRedirect = () => {
-    const targetRoute = dashBoardRoutes[role] || "/";
-    router.push(targetRoute);
+    router.push("/dashboard");
   };
 
   return (

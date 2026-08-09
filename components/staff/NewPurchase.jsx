@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing";
 import Alert from "../Alert";
 import { LoadingBarWave } from "../Reusables/LoadingBar";
-import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
+import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
   PackagePlus,
@@ -36,7 +36,7 @@ const initialProductState = {
 export default function NewPurchase({ approversPurchasing }) {
   const user = useUser();
   const queryClient = useQueryClient();
-  const { handleHomeRoute } = UseHandleHomeRoute();
+  const { handleHomeRoute } = useDashboardRoutes();
 
   const [discountPolicies, setDiscountPolicies] = useState([]);
   const [staffInfo, setStaffInfo] = useState(() => ({

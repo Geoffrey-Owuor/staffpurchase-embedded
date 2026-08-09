@@ -1,22 +1,14 @@
 import { basePath } from "@/public/assets";
+import { buildPurchaseQueryParams } from "./buildPurchaseQueryParams";
 
-export async function fetchStaffPurchases(fetchAllData) {
-  try {
-    let url = `${basePath}/api/staffpurchaseshistory?filterType=approval`;
+// filters: { page, pageSize, search, referenceNumber, payrollNumber, fromDate, toDate, approvalStatus, paymentTerms }
+// Returns the server envelope: { data, page, pageSize, total, totalPages }
+export async function fetchStaffPurchases(filters = {}) {
+  const params = buildPurchaseQueryParams(filters);
+  const url = `${basePath}/api/staffpurchaseshistory?${params.toString()}`;
 
-    //Telling the api if we should fetch all the data or if biApproval is true
-    if (fetchAllData) {
-      url += `&fetchAll=true`;
-    }
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch purchases");
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Failed to fetch purchases");
-
-    const data = await response.json();
-
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Error fetching purchases:", error);
-    return [];
-  }
+  return response.json();
 }

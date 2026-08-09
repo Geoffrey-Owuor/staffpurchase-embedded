@@ -20,7 +20,7 @@ import {
 } from "@/utils/FetchCardCounts/fetchApprovalCounts";
 import SkeletonBox from "@/components/skeletons/SkeletonBox";
 
-export default function ApprovalCards() {
+export default function ApprovalCards({ filters = {} }) {
   const { role: userRole } = useUser();
 
   const {
@@ -28,8 +28,8 @@ export default function ApprovalCards() {
     isLoading: loading,
     refetch: refetchCounts,
   } = useQuery({
-    queryKey: ["ApprovalCardCounts"],
-    queryFn: fetchApprovalCounts,
+    queryKey: ["ApprovalCardCounts", filters],
+    queryFn: () => fetchApprovalCounts(filters),
   });
 
   // Calculating the total pending purchases from returned counts data

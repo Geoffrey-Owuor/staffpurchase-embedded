@@ -7,6 +7,12 @@ import {
   ChevronRight,
   MoreHorizontal,
 } from "lucide-react";
+import Select from "../Reusables/Select";
+
+const ROWS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100].map((size) => ({
+  value: String(size),
+  label: String(size),
+}));
 
 export default function Pagination({
   totalPages,
@@ -163,19 +169,11 @@ export default function Pagination({
           <span className="mr-2 text-sm text-gray-700 dark:text-gray-400">
             Rows:
           </span>
-          <select
-            value={rowsPerPage}
-            onChange={(e) => {
-              onRowsPerPageChange(Number(e.target.value));
-            }}
-            className="rounded-[7px] border border-gray-300 bg-white p-1 text-sm text-gray-700 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-gray-400"
-          >
-            {[5, 10, 20, 50, 100].map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={String(rowsPerPage)}
+            onChange={(value) => onRowsPerPageChange(Number(value))}
+            options={ROWS_PER_PAGE_OPTIONS}
+          />
         </div>
         {totalPages > 1 && (
           <div className="flex items-center">

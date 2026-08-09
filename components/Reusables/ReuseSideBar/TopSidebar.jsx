@@ -22,6 +22,7 @@ const TopSidebar = ({
   handleNavClick,
   activeTab,
   role,
+  paymentTrackingPath,
 }) => {
   // --- State for header scroll effect ---
   const [isScrolled, setIsScrolled] = useState(false);
@@ -110,9 +111,7 @@ const TopSidebar = ({
             {role === "cc" && (
               <li>
                 <div
-                  onClick={() =>
-                    handleNavClick("/ccdashboard/payment-tracking")
-                  }
+                  onClick={() => handleNavClick(paymentTrackingPath)}
                   className={`flex cursor-default items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "paymentTracking"
                       ? "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"

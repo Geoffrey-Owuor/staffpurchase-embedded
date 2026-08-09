@@ -18,9 +18,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import UserMenu from "../UserMenu";
-import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
-import { UseHandleHistoryRoute } from "@/utils/HandleActionClicks/UseHandleHistoryRoute";
-import { UseHandlePurchaseRoute } from "@/utils/HandleActionClicks/UseHandlePurchaseRoute";
+import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
 import Link from "next/link";
 
@@ -53,9 +51,15 @@ export default function MobileHeader() {
     };
   }, [isMobileMenuOpen]);
 
-  const { handleHomeRoute, homePath } = UseHandleHomeRoute();
-  const { handleHistoryRoute, historyPath } = UseHandleHistoryRoute();
-  const { handlePurchaseRoute, purchasePath } = UseHandlePurchaseRoute();
+  const {
+    handleHomeRoute,
+    homePath,
+    handleHistoryRoute,
+    historyPath,
+    handlePurchaseRoute,
+    purchasePath,
+    paymentTrackingPath,
+  } = useDashboardRoutes();
 
   const handleHomeClick = () => {
     const isSameRoute = homePath === pathname;
@@ -195,9 +199,7 @@ export default function MobileHeader() {
             {role === "cc" && (
               <li>
                 <div
-                  onClick={() =>
-                    handleNavClick("/ccdashboard/payment-tracking")
-                  }
+                  onClick={() => handleNavClick(paymentTrackingPath)}
                   className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
                 >
                   <BookOpenCheck className="h-5 w-5 shrink-0" />
