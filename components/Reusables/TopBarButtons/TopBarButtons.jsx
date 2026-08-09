@@ -1,22 +1,17 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { Undo2, ArrowLeft, History } from "lucide-react";
+import { Undo2, ArrowLeft } from "lucide-react";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 
 export default function TopBarButtons() {
   const startLoading = useLoadingLineStore((state) => state.startLoading);
-  const { handleHomeRoute, handleHistoryRoute } = useDashboardRoutes();
+  const { handleHomeRoute } = useDashboardRoutes();
   const router = useRouter();
 
   const gotoHomeClick = () => {
     startLoading();
     handleHomeRoute();
-  };
-
-  const gotoHistoryClick = () => {
-    startLoading();
-    handleHistoryRoute();
   };
 
   return (
@@ -34,13 +29,6 @@ export default function TopBarButtons() {
       >
         <ArrowLeft className="h-5 w-5" />
         Home
-      </button>
-      <button
-        onClick={gotoHistoryClick}
-        className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-900/50 dark:text-white dark:hover:bg-gray-800/50"
-      >
-        <History className="h-5 w-5" />
-        History
       </button>
     </div>
   );

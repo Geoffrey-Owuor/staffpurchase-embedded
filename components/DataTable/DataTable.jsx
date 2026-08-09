@@ -4,7 +4,7 @@ import TableSkeleton from "../skeletons/TableSkeleton";
 import { LoadingBar } from "../Reusables/LoadingBar";
 import Pagination from "../pagination/Pagination";
 import ColumnToggle from "../Reusables/ColumnToggle";
-import FilterBar from "./FilterBar";
+import FilterPanel from "./FilterPanel";
 
 // Config-driven table shell shared by every purchases/payment-tracking view.
 // columns: [{ key, label, title?, toggleable?, render(row) }]
@@ -18,8 +18,14 @@ export default function DataTable({
   onColumnToggle,
   filterFields,
   filters,
-  onFilterChange,
-  onClearFilters,
+  staged,
+  stagedKeys,
+  onStageField,
+  onUnstageField,
+  onStagedValueChange,
+  onApplyFilters,
+  onRemoveCommittedFilter,
+  onResetAll,
   rows,
   total,
   totalPages,
@@ -71,15 +77,19 @@ export default function DataTable({
         </div>
 
         {filterFields && filterFields.length > 0 && (
-          <div className="mx-auto mt-3 max-w-3xl">
-            <FilterBar
-              fields={filterFields}
-              values={filters}
-              onChange={onFilterChange}
-              onClearAll={onClearFilters}
-              resultCount={total}
-            />
-          </div>
+          <FilterPanel
+            fields={filterFields}
+            committed={filters}
+            staged={staged}
+            stagedKeys={stagedKeys}
+            onStageField={onStageField}
+            onUnstageField={onUnstageField}
+            onStagedValueChange={onStagedValueChange}
+            onApply={onApplyFilters}
+            onRemoveCommitted={onRemoveCommittedFilter}
+            onResetAll={onResetAll}
+            resultCount={total}
+          />
         )}
 
         {isLoading ? (
@@ -132,7 +142,9 @@ export default function DataTable({
                   ) : (
                     <tr>
                       <td
-                        colSpan={visibleColumnList.length + (renderActions ? 1 : 0)}
+                        colSpan={
+                          visibleColumnList.length + (renderActions ? 1 : 0)
+                        }
                         className="px-6 py-4 text-center text-sm whitespace-nowrap text-gray-500 dark:text-gray-400"
                       >
                         {hasActiveFilters ? filteredEmptyMessage : emptyMessage}

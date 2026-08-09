@@ -18,11 +18,9 @@ export default function ReusableSidebar() {
 
   const {
     homePath,
-    historyPath,
     purchasePath,
     paymentTrackingPath,
     handleHomeRoute,
-    handleHistoryRoute,
     handlePurchaseRoute,
   } = useDashboardRoutes();
 
@@ -32,8 +30,6 @@ export default function ReusableSidebar() {
 
   if (pathname === homePath) {
     activeTab = "home";
-  } else if (pathname === historyPath) {
-    activeTab = "history";
   } else if (pathname === purchasePath) {
     activeTab = "newpurchase";
   } else if (pathname === paymentTrackingPath) {
@@ -44,12 +40,6 @@ export default function ReusableSidebar() {
     if (pathname === homePath) return; //Do not start loading
     startLoading();
     handleHomeRoute();
-  };
-
-  const handleHistoryClick = () => {
-    if (pathname === historyPath) return;
-    startLoading();
-    handleHistoryRoute();
   };
 
   const handlePurchaseClick = () => {
@@ -96,7 +86,6 @@ export default function ReusableSidebar() {
         <TopSidebar
           role={role}
           router={router}
-          handleHistoryClick={handleHistoryClick}
           handleHomeClick={handleHomeClick}
           handlePurchaseClick={handlePurchaseClick}
           handleNavClick={handleNavClick}
@@ -110,7 +99,6 @@ export default function ReusableSidebar() {
           role={role}
           handleHomeClick={handleHomeClick}
           handlePurchaseClick={handlePurchaseClick}
-          handleHistoryClick={handleHistoryClick}
           handleNavClick={handleNavClick}
           paymentTrackingPath={paymentTrackingPath}
         />

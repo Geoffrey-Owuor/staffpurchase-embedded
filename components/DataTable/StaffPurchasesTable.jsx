@@ -26,17 +26,24 @@ const PAYMENT_TERMS_OPTIONS = [
 ];
 
 const FILTER_FIELDS = [
-  { key: "referenceNumber", type: "text", placeholder: "Reference number..." },
-  { key: "date", type: "dateRange" },
+  {
+    key: "referenceNumber",
+    type: "text",
+    label: "Reference Number",
+    placeholder: "Reference number...",
+  },
+  { key: "date", type: "dateRange", label: "Date Range" },
   {
     key: "approvalStatus",
     type: "select",
+    label: "Approval Status",
     placeholder: "Approval status",
     options: APPROVAL_STATUS_OPTIONS,
   },
   {
     key: "paymentTerms",
     type: "select",
+    label: "Payment Terms",
     placeholder: "Payment terms",
     options: PAYMENT_TERMS_OPTIONS,
   },
@@ -200,8 +207,14 @@ export default function StaffPurchasesTable() {
         onColumnToggle={handleColumnToggle}
         filterFields={FILTER_FIELDS}
         filters={table.filters}
-        onFilterChange={table.setFilter}
-        onClearFilters={table.clearAllFilters}
+        staged={table.staged}
+        stagedKeys={table.stagedKeys}
+        onStageField={table.stageField}
+        onUnstageField={table.unstageField}
+        onStagedValueChange={table.setStagedValue}
+        onApplyFilters={table.applyFilters}
+        onRemoveCommittedFilter={table.removeCommittedFilter}
+        onResetAll={table.resetAll}
         rows={table.rows}
         total={table.total}
         totalPages={table.totalPages}

@@ -66,25 +66,38 @@ export default function PaymentTrackingTable() {
   });
 
   const FILTER_FIELDS = [
-    { key: "search", type: "text", placeholder: "Search staff..." },
-    { key: "referenceNumber", type: "text", placeholder: "Reference number..." },
-    { key: "payrollNumber", type: "text", placeholder: "Payroll number..." },
-    { key: "date", type: "dateRange" },
+    { key: "search", type: "text", label: "Staff Name", placeholder: "Search staff..." },
+    {
+      key: "referenceNumber",
+      type: "text",
+      label: "Reference Number",
+      placeholder: "Reference number...",
+    },
+    {
+      key: "payrollNumber",
+      type: "text",
+      label: "Payroll Number",
+      placeholder: "Payroll number...",
+    },
+    { key: "date", type: "dateRange", label: "Date Range" },
     {
       key: "paymentTerms",
       type: "select",
+      label: "Payment Terms",
       placeholder: "Payment terms",
       options: PAYMENT_TERMS_OPTIONS,
     },
     {
       key: "monthPeriod",
       type: "select",
+      label: "Credit Period",
       placeholder: "Credit period",
       options: periodOptions,
     },
     {
       key: "requestClosure",
       type: "select",
+      label: "Request Closure",
       placeholder: "Request closure",
       options: CLOSURE_OPTIONS,
     },
@@ -237,8 +250,14 @@ export default function PaymentTrackingTable() {
         onColumnToggle={handleColumnToggle}
         filterFields={FILTER_FIELDS}
         filters={table.filters}
-        onFilterChange={table.setFilter}
-        onClearFilters={table.clearAllFilters}
+        staged={table.staged}
+        stagedKeys={table.stagedKeys}
+        onStageField={table.stageField}
+        onUnstageField={table.unstageField}
+        onStagedValueChange={table.setStagedValue}
+        onApplyFilters={table.applyFilters}
+        onRemoveCommittedFilter={table.removeCommittedFilter}
+        onResetAll={table.resetAll}
         rows={table.rows}
         total={table.total}
         totalPages={table.totalPages}

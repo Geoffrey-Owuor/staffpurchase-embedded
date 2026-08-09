@@ -28,19 +28,31 @@ const PAYMENT_TERMS_OPTIONS = [
 ];
 
 const FILTER_FIELDS = [
-  { key: "search", type: "text", placeholder: "Search staff..." },
-  { key: "referenceNumber", type: "text", placeholder: "Reference number..." },
-  { key: "payrollNumber", type: "text", placeholder: "Payroll number..." },
-  { key: "date", type: "dateRange" },
+  { key: "search", type: "text", label: "Staff Name", placeholder: "Search staff..." },
+  {
+    key: "referenceNumber",
+    type: "text",
+    label: "Reference Number",
+    placeholder: "Reference number...",
+  },
+  {
+    key: "payrollNumber",
+    type: "text",
+    label: "Payroll Number",
+    placeholder: "Payroll number...",
+  },
+  { key: "date", type: "dateRange", label: "Date Range" },
   {
     key: "approvalStatus",
     type: "select",
+    label: "Approval Status",
     placeholder: "Approval status",
     options: APPROVAL_STATUS_OPTIONS,
   },
   {
     key: "paymentTerms",
     type: "select",
+    label: "Payment Terms",
     placeholder: "Payment terms",
     options: PAYMENT_TERMS_OPTIONS,
   },
@@ -214,8 +226,14 @@ export default function ApproverPurchasesTable() {
         onColumnToggle={handleColumnToggle}
         filterFields={FILTER_FIELDS}
         filters={table.filters}
-        onFilterChange={table.setFilter}
-        onClearFilters={table.clearAllFilters}
+        staged={table.staged}
+        stagedKeys={table.stagedKeys}
+        onStageField={table.stageField}
+        onUnstageField={table.unstageField}
+        onStagedValueChange={table.setStagedValue}
+        onApplyFilters={table.applyFilters}
+        onRemoveCommittedFilter={table.removeCommittedFilter}
+        onResetAll={table.resetAll}
         rows={table.rows}
         total={table.total}
         totalPages={table.totalPages}

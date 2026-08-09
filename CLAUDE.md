@@ -33,11 +33,15 @@ correctness check available.
 - Every role shares **one route tree**: `app/(dashboard)/dashboard/`.
   - `layout.js` — session-only gate (redirects to `/login` if invalid).
   - `page.jsx` — home: role-aware table (`StaffPurchasesTable` for staff,
-    `ApproverPurchasesTable` otherwise) + `TermsConditions`.
-  - `history/page.jsx` — same table, no `TermsConditions`.
-  - `history/[id]/page.jsx`, `history/[id]/edit/page.jsx` — view/edit a
-    purchase (`GeneralViewPurchases`/`GeneralEditPurchases`, both already
-    role-agnostic; they read `role` from `useUser()` internally).
+    `ApproverPurchasesTable` otherwise) + `TermsConditions`. This table *is*
+    the full purchase history (filterable, paginated) — there's no separate
+    history route anymore; `/dashboard/history` used to be a dedicated
+    full-page view of the identical table and was folded into home.
+  - `[id]/page.jsx`, `[id]/edit/page.jsx` — view/edit a purchase
+    (`GeneralViewPurchases`/`GeneralEditPurchases`, both already
+    role-agnostic; they read `role` from `useUser()` internally). Static
+    sibling routes (`new-purchase/`, `payment-tracking/`) always take
+    precedence over this dynamic segment, so there's no collision.
   - `new-purchase/page.jsx` — `NewPurchase`, `approversPurchasing` derived
     from `role !== "staff"`.
   - `payment-tracking/` — **cc-only**, gated by its own nested `layout.js`
@@ -47,10 +51,10 @@ correctness check available.
   single prefix now). Role-specific gating (e.g. payment-tracking) lives in
   the relevant `layout.js`, not middleware.
 - `next.config.mjs` has a `redirects()` block mapping every old per-role URL
-  (`/hrdashboard`, `/staffdashboard/purchase-history`, etc.) to its
-  `/dashboard/...` equivalent, `permanent: false`. If you find a bookmarked
-  or hardcoded old URL somewhere, redirect it here rather than resurrecting
-  the old route.
+  (`/hrdashboard`, `/staffdashboard/purchase-history`, etc.) — plus the
+  retired `/dashboard/history/:path*` subtree — to its `/dashboard/...`
+  equivalent, `permanent: false`. If you find a bookmarked or hardcoded old
+  URL somewhere, redirect it here rather than resurrecting the old route.
 - Role→path logic lives in exactly two places: `utils/routes.js`
   (`VALID_ROLES`/`isValidRole` — is this a recognized role at all) and
   `utils/HandleActionClicks/useDashboardRoutes.js` (the one hook every
@@ -79,17 +83,31 @@ correctness check available.
 One generic table foundation under `components/DataTable/`, replacing three
 former ~700-800-line near-duplicate components:
 
-- `useTableQuery.js` — owns filter state (debounced as a whole, 400ms),
-  page/pageSize, and the `react-query` call. Every filter change resets to
-  page 1. Query key includes the full filters+page+pageSize object.
+- `useTableQuery.js` — owns page/pageSize and the `react-query` call, and
+  creates one `createFilterStore.js` zustand store per table instance (not a
+  shared/global store) to hold filter state. Only *committed* filters ever
+  reach the query key/fetch — staging a filter value never fetches. Every
+  committed-filter change (apply, pill removal, reset) resets to page 1.
+- `createFilterStore.js` — the zustand store factory: `committed` (what's
+  actually sent to the server + shown to count cards), `staged`/`stagedKeys`
+  (fields currently being edited, pre-Apply), and actions `stageField`/
+  `unstageField`/`setStagedValue`/`applyFilters` (merges staged into
+  committed, fetches once) /`removeCommittedFilter`/`resetAll` (both apply
+  immediately, no second Apply needed).
 - `DataTable.jsx` — presentational: takes a `columns` config
   (`{key,label,toggleable?,render(row)}`), an optional `filterFields` config
-  (consumed by `FilterBar.jsx`), and renders loading/error/empty states +
+  (consumed by `FilterPanel.jsx`), and renders loading/error/empty states +
   `Pagination`.
-- `FilterBar.jsx` — renders whatever `filterFields` a consumer declares
-  (`text`, `select`, `dateRange`). All declared filters are simultaneously
-  visible and combine (AND) server-side — there's no more single
-  "filter type" selector.
+- `FilterPanel.jsx` — the committed-filters UI: "+ Add filter" opens a
+  dropdown of fields not yet staged/committed; picking one adds an inline
+  value editor (`text`/`select`/`dateRange`) to the staging area; "Apply
+  filters" commits every staged field at once (one fetch). Committed filters
+  render as rounded pills below — a pill's `x` removes just that filter
+  immediately, and "Reset" clears everything immediately. A `dateRange`
+  field always reads/writes `fromDate`+`toDate` together as one unit (one
+  staged editor, one pill, one removal). The whole panel is a sticky
+  (`sticky top-0`) rounded card so it stays visible while scrolling the
+  table.
 - Three consumers compose this foundation: `ApproverPurchasesTable.jsx`
   (hr/payroll/cc/bi), `StaffPurchasesTable.jsx`, `PaymentTrackingTable.jsx`
   (cc-only, adds invoice/closure columns and a Close action instead of
@@ -110,10 +128,16 @@ former ~700-800-line near-duplicate components:
   Extend it (not ad hoc string concatenation) when adding a new filter.
 - `app/api/tablesdata/purchaseshistorydata/route.js` and
   `app/api/staffpurchaseshistory/route.js` do real server-side pagination
-  (`LIMIT ? OFFSET ?` + a companion `COUNT(*)` query) and additive
+  (`LIMIT`/`OFFSET` + a companion `COUNT(*)` query) and additive
   (AND-combined) filtering — every populated filter param contributes its
   own `WHERE` clause. Response shape is always
   `{data, page, pageSize, total, totalPages}`, never a bare array.
+  `pageSize`/`offset` are inlined as literals rather than bound as `?`
+  placeholders — mysql2's `execute()` (server-side prepared statements) can
+  throw `ER_WRONG_ARGUMENTS: Incorrect arguments to mysqld_stmt_execute`
+  when LIMIT/OFFSET are passed as placeholders. They're safe to inline
+  because they're computed via `Math.min`/`Math.max`/`parseInt` right above,
+  never raw query-string text — keep it that way if you touch this code.
 - `app/api/approval-counts/route.js` and `app/api/closure-counts/route.js`
   accept the same non-pagination filter params. **Grand/reference totals
   stay unfiltered on purpose** (`total`, `totalApproved`, `totalDeclined` in
@@ -144,6 +168,8 @@ former ~700-800-line near-duplicate components:
 No test suite. After any change: `npm run build` (catches route-tree/import
 errors; there's no real type-checking since this is plain JS). Manually
 exercise: login for each role, SSO entry, the unified `/dashboard` +
-`/dashboard/history` + `/dashboard/new-purchase` + `/dashboard/payment-tracking`
-(cc only) routes, combined filters on a table, and that count cards move
-with the table's filters as described above.
+`/dashboard/new-purchase` + `/dashboard/payment-tracking` (cc only) routes,
+staging + applying combined filters on a table (nothing should fetch until
+Apply), removing an individual filter pill and hitting Reset (both should
+refetch immediately), and that count cards move with the table's committed
+filters as described above.
