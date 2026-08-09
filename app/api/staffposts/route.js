@@ -132,13 +132,13 @@ export const POST = requireAuth(async (request, { user }) => {
     // --- FIRE-AND-FORGET ---
     // Call the handler but DO NOT await it.
     // The code will continue immediately to the return statement.
-    // userEmailHandler({
-    //   staffInfo,
-    //   products,
-    //   paymentInfo,
-    //   user,
-    //   referenceNumber,
-    // });
+    userEmailHandler({
+      staffInfo,
+      products,
+      paymentInfo,
+      user,
+      referenceNumber,
+    });
 
     return Response.json(
       {

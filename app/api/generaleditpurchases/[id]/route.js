@@ -188,11 +188,11 @@ export const PUT = requireAuth(async (request, { params, user }) => {
     // --- FIRE-AND-FORGET ---
     // Call the handler but DO NOT await it.
     // The code will continue immediately to the return statement.
-    // ApproversEmailHandler({
-    //   user,
-    //   oldData,
-    //   newData,
-    // });
+    ApproversEmailHandler({
+      user,
+      oldData,
+      newData,
+    });
 
     return Response.json(
       {
