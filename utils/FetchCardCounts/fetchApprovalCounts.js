@@ -1,4 +1,5 @@
 import { basePath } from "@/public/assets";
+import { buildPurchaseQueryParams } from "@/utils/FetchPurchases/buildPurchaseQueryParams";
 
 export const defaultCounts = {
   pending: 0,
@@ -9,9 +10,15 @@ export const defaultCounts = {
   totalApproved: 0,
 };
 
-export async function fetchApprovalCounts() {
+// filters: the same non-pagination filters applied to the sibling table
+// (search, referenceNumber, payrollNumber, fromDate/toDate, paymentTerms).
+// pending/declined/approved recompute against these; total/totalApproved/totalDeclined stay global.
+export async function fetchApprovalCounts(filters = {}) {
   try {
-    const response = await fetch(`${basePath}/api/approval-counts`);
+    const params = buildPurchaseQueryParams(filters);
+    const response = await fetch(
+      `${basePath}/api/approval-counts?${params.toString()}`,
+    );
     if (!response.ok) throw new Error("Failed to fetch approval counts");
 
     const data = await response.json();

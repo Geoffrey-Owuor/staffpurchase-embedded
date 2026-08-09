@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
 import { basePath } from "@/public/assets";
+import { isValidRole } from "@/utils/routes";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -39,21 +40,7 @@ export default function LoginPage() {
       if (response.ok) {
         const data = await response.json();
 
-        // Determine dashboard path based on role
-        let dashboardPath;
-        if (data.role === "payroll") {
-          dashboardPath = "/payrolldashboard";
-        } else if (data.role === "hr") {
-          dashboardPath = "/hrdashboard";
-        } else if (data.role === "cc") {
-          dashboardPath = "/ccdashboard";
-        } else if (data.role === "bi") {
-          dashboardPath = "/bidashboard";
-        } else if (data.role === "staff") {
-          dashboardPath = "/staffdashboard";
-        } else {
-          dashboardPath = "/login";
-        }
+        const dashboardPath = isValidRole(data.role) ? "/dashboard" : "/login";
 
         // Redirect with page reload
         window.location.href = `${basePath}${dashboardPath}`;

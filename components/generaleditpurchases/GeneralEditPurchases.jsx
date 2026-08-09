@@ -288,10 +288,13 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
       setIsSubmitting(false);
 
-      // Invalidate query data
+      // Invalidate query data - prefix match so every filter/page variant of
+      // each query key gets refetched, not just the exact key this page happened to use.
       queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
-      queryClient.invalidateQueries({ queryKey: ["purchases", true] });
-      queryClient.invalidateQueries({ queryKey: ["purchases", false] });
+      queryClient.invalidateQueries({ queryKey: ["TrackingApprovalCardCounts"] });
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["staffPurchases"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentTracking"] });
 
       // Redirect back after 0.7 seconds
       setTimeout(() => {
@@ -503,7 +506,7 @@ export default function GeneralEditPurchases({ id }) {
         purchase.HR_Approval === "declined" ||
         purchase.CC_Approval === "declined"))
   ) {
-    return <UnauthorizedEdit role={userRole} />;
+    return <UnauthorizedEdit />;
   }
 
   return (

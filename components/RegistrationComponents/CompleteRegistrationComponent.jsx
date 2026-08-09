@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import Alert from "../Alert";
 import { baseDepartments, basePath } from "@/public/assets";
+import { isValidRole } from "@/utils/routes";
 
 export default function CompleteRegistrationComponent({ email }) {
   const [formData, setFormData] = useState({
@@ -54,13 +55,7 @@ export default function CompleteRegistrationComponent({ email }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Registration failed");
 
-      let dashboardPath;
-      if (data.role === "payroll") dashboardPath = "/payrolldashboard";
-      else if (data.role === "hr") dashboardPath = "/hrdashboard";
-      else if (data.role === "cc") dashboardPath = "/ccdashboard";
-      else if (data.role === "bi") dashboardPath = "/bidashboard";
-      else if (data.role === "staff") dashboardPath = "/staffdashboard";
-      else dashboardPath = "/login";
+      const dashboardPath = isValidRole(data.role) ? "/dashboard" : "/login";
 
       window.location.href = `${basePath}${dashboardPath}`;
     } catch (err) {

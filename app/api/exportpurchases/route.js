@@ -1,29 +1,31 @@
 import ExcelJS from "exceljs";
-import pool from "@/lib/db";
+import { withConnection } from "@/lib/db";
+import { requireAuth } from "@/lib/apiAuth";
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
+export const GET = requireAuth(
+  async (request) => {
+    const { searchParams } = new URL(request.url);
 
-  //filters and searchqueries
-  const exportAll = searchParams.get("exportAll") === "true";
-  const fromDate = searchParams.get("fromDate");
-  const toDate = searchParams.get("toDate");
+    //filters and searchqueries
+    const exportAll = searchParams.get("exportAll") === "true";
+    const fromDate = searchParams.get("fromDate");
+    const toDate = searchParams.get("toDate");
 
-  const baseSelect = `
+    const baseSelect = `
   SELECT
-    p.id, 
+    p.id,
     DATE_FORMAT(p.createdAt, '%Y-%m-%d %H:%i:%s') AS createdAt,
     p.reference_number, p.staffName, p.payrollNo, p.department,
     p.employee_payment_terms, p.user_credit_period, p.mpesa_code, p.invoicing_location,
-    p.delivery_details, pp.itemName, pp.itemStatus, pp.productPolicy, pp.productCode, 
+    p.delivery_details, pp.itemName, pp.itemStatus, pp.productPolicy, pp.productCode,
     pp.tdPrice AS initialPrice, pp.discountRate, pp.discountedValue, p.Payroll_Approval, p.HR_Approval,
     p.CC_Approval, p.BI_Approval, p.one_third_rule, p.payroll_approver_name,
-    DATE_FORMAT(p.payroll_approval_date, '%Y-%m-%d %H:%i:%s') AS payroll_approval_date, 
+    DATE_FORMAT(p.payroll_approval_date, '%Y-%m-%d %H:%i:%s') AS payroll_approval_date,
     p.is_employed, p.on_probation, p.hr_comments,
-    p.hr_approver_name, 
+    p.hr_approver_name,
     DATE_FORMAT(p.hr_approval_date, '%Y-%m-%d %H:%i:%s') AS hr_approval_date,
     p.credit_period, p.purchase_history_comments,
-    p.pending_invoices, p.cc_approver_name, 
+    p.pending_invoices, p.cc_approver_name,
     DATE_FORMAT(p.cc_approval_date, '%Y-%m-%d %H:%i:%s') AS cc_approval_date,
     DATE_FORMAT(p.invoice_date, '%Y-%m-%d') AS invoice_date,
     p.invoice_number, p.invoice_amount, p.payment_reference, p.bi_approver_name,
@@ -33,82 +35,82 @@ export async function GET(request) {
   INNER JOIN purchase_products AS pp ON p.id = pp.purchase_id
   `;
 
-  let query = baseSelect;
-  let params = [];
-  let whereClauses = [];
+    let query = baseSelect;
+    let params = [];
+    let whereClauses = [];
 
-  //Add BI_Approval condition if not exporting all data
-  if (!exportAll) {
-    whereClauses.push(`p.BI_Approval = 'approved'`);
-  }
-
-  //Add date range condition if both dates are provided
-  // Based on which date to use
-  if (fromDate && toDate) {
+    //Add BI_Approval condition if not exporting all data
     if (!exportAll) {
-      whereClauses.push(`DATE(p.bi_approval_date) BETWEEN ? AND ?`);
-    } else {
-      whereClauses.push(`DATE(p.createdAt) BETWEEN ? AND ?`);
-    }
-    params.push(fromDate, toDate);
-  }
-
-  //Combine the whereclauses
-  if (whereClauses.length > 0) {
-    query += ` WHERE ${whereClauses.join(" AND ")}`;
-  }
-
-  //Add ORDER BY clause
-  query += ` ORDER BY p.createdAt DESC LIMIT 500`;
-
-  let connection;
-
-  try {
-    connection = await pool.getConnection();
-    const [rows] = await connection.execute(query, params);
-
-    //Create a new workook with excelJS and add a new worksheet
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Purchases");
-
-    // 3. Define the columns for the worksheet
-    if (rows.length > 0) {
-      worksheet.columns = Object.keys(rows[0]).map((key) => ({
-        header: key
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase()), // Format header text (e.g., "purchaseId" -> "Purchase Id")
-        key: key,
-        width: 20, // Set a default column width
-        numFmt:
-          key.toLowerCase().includes("date") ||
-          key.toLowerCase().includes("created")
-            ? "yyyy-mm-dd hh:mm:ss"
-            : undefined,
-      }));
-
-      // Add rows - row data
-      worksheet.addRows(rows);
+      whereClauses.push(`p.BI_Approval = 'approved'`);
     }
 
-    // 5. Generate the buffer
-    const buffer = await workbook.xlsx.writeBuffer();
+    //Add date range condition if both dates are provided
+    // Based on which date to use
+    if (fromDate && toDate) {
+      if (!exportAll) {
+        whereClauses.push(`DATE(p.bi_approval_date) BETWEEN ? AND ?`);
+      } else {
+        whereClauses.push(`DATE(p.createdAt) BETWEEN ? AND ?`);
+      }
+      params.push(fromDate, toDate);
+    }
 
-    // --- Send the file as a response ---
-    return new Response(buffer, {
-      status: 200,
-      headers: {
-        "Content-Type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": 'attachment; filename="purchase_data.xlsx"',
-      },
-    });
-  } catch (error) {
-    console.error("Failed to export data:", error);
-    return Response.json(
-      { message: "Failed to export data to excel" },
-      { status: 500 },
-    );
-  } finally {
-    if (connection) connection.release();
-  }
-}
+    //Combine the whereclauses
+    if (whereClauses.length > 0) {
+      query += ` WHERE ${whereClauses.join(" AND ")}`;
+    }
+
+    //Add ORDER BY clause
+    query += ` ORDER BY p.createdAt DESC LIMIT 500`;
+
+    try {
+      const rows = await withConnection(async (connection) => {
+        const [rows] = await connection.execute(query, params);
+        return rows;
+      });
+
+      //Create a new workook with excelJS and add a new worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Purchases");
+
+      // 3. Define the columns for the worksheet
+      if (rows.length > 0) {
+        worksheet.columns = Object.keys(rows[0]).map((key) => ({
+          header: key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase()), // Format header text (e.g., "purchaseId" -> "Purchase Id")
+          key: key,
+          width: 20, // Set a default column width
+          numFmt:
+            key.toLowerCase().includes("date") ||
+            key.toLowerCase().includes("created")
+              ? "yyyy-mm-dd hh:mm:ss"
+              : undefined,
+        }));
+
+        // Add rows - row data
+        worksheet.addRows(rows);
+      }
+
+      // 5. Generate the buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      // --- Send the file as a response ---
+      return new Response(buffer, {
+        status: 200,
+        headers: {
+          "Content-Type":
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "Content-Disposition": 'attachment; filename="purchase_data.xlsx"',
+        },
+      });
+    } catch (error) {
+      console.error("Failed to export data:", error);
+      return Response.json(
+        { message: "Failed to export data to excel" },
+        { status: 500 },
+      );
+    }
+  },
+  { roles: ["hr", "payroll", "cc", "bi"] },
+);

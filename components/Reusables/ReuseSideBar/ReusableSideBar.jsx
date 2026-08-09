@@ -2,9 +2,7 @@
 import { useEffect } from "react";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { usePathname, useRouter } from "next/navigation";
-import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
-import { UseHandleHistoryRoute } from "@/utils/HandleActionClicks/UseHandleHistoryRoute";
-import { UseHandlePurchaseRoute } from "@/utils/HandleActionClicks/UseHandlePurchaseRoute";
+import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
 import LeftSidebar from "./LeftSidebar";
 import TopSidebar from "./TopSidebar";
@@ -18,44 +16,27 @@ export default function ReusableSidebar() {
   const startLoading = useLoadingLineStore((state) => state.startLoading);
   const stopLoading = useLoadingLineStore((state) => state.stopLoading);
 
-  const { homePath, handleHomeRoute } = UseHandleHomeRoute();
-  const { historyPath, handleHistoryRoute } = UseHandleHistoryRoute();
-  const { purchasePath, handlePurchaseRoute } = UseHandlePurchaseRoute();
+  const {
+    homePath,
+    historyPath,
+    purchasePath,
+    paymentTrackingPath,
+    handleHomeRoute,
+    handleHistoryRoute,
+    handlePurchaseRoute,
+  } = useDashboardRoutes();
 
   //Determining active tabs
   const pathname = usePathname();
   let activeTab = "";
 
-  const homeRoutes = [
-    "/staffdashboard",
-    "/payrolldashboard",
-    "/hrdashboard",
-    "/ccdashboard",
-    "/bidashboard",
-  ];
-  const historyRoutes = [
-    "/staffdashboard/purchase-history",
-    "/payrolldashboard/purchases-history",
-    "/hrdashboard/requests-history",
-    "/ccdashboard/purchases-history",
-    "/bidashboard/purchases-history",
-  ];
-
-  const purchaseRoutes = [
-    "/staffdashboard/new-purchase",
-    "/payrolldashboard/new-purchase",
-    "/hrdashboard/new-purchase",
-    "/ccdashboard/new-purchase",
-    "/bidashboard/new-purchase",
-  ];
-
-  if (homeRoutes.includes(pathname)) {
+  if (pathname === homePath) {
     activeTab = "home";
-  } else if (historyRoutes.includes(pathname)) {
+  } else if (pathname === historyPath) {
     activeTab = "history";
-  } else if (purchaseRoutes.includes(pathname)) {
+  } else if (pathname === purchasePath) {
     activeTab = "newpurchase";
-  } else if (pathname === "/ccdashboard/payment-tracking") {
+  } else if (pathname === paymentTrackingPath) {
     activeTab = "paymentTracking";
   }
 
@@ -120,6 +101,7 @@ export default function ReusableSidebar() {
           handlePurchaseClick={handlePurchaseClick}
           handleNavClick={handleNavClick}
           activeTab={activeTab}
+          paymentTrackingPath={paymentTrackingPath}
         />
       ) : (
         <LeftSidebar
@@ -130,6 +112,7 @@ export default function ReusableSidebar() {
           handlePurchaseClick={handlePurchaseClick}
           handleHistoryClick={handleHistoryClick}
           handleNavClick={handleNavClick}
+          paymentTrackingPath={paymentTrackingPath}
         />
       )}
     </>

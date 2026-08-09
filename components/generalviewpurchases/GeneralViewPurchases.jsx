@@ -20,7 +20,7 @@ import DetailField from "../Reusables/DetailField";
 import { generateClientPDF } from "@/utils/returnPurchasePDF";
 import { LoadingBar } from "../Reusables/LoadingBar";
 import { basePath, formatDateLong } from "@/public/assets";
-import { UseHandleEditClick } from "@/utils/HandleActionClicks/UseHandleEditClick";
+import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
 import { formatCreditPeriod } from "@/public/assets";
@@ -105,7 +105,7 @@ export default function GeneralViewPurchases({ id }) {
     }
   };
 
-  const handleEditClick = UseHandleEditClick();
+  const { handleEditClick } = useDashboardRoutes();
 
   // const handleCustomAlertShow = () => {
   //   setAlertType("success");

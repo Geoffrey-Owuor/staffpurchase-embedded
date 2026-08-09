@@ -1,13 +1,14 @@
 import pool from "@/lib/db";
 import { verifyPassword } from "@/app/lib/auth";
+import { requireAuth } from "@/lib/apiAuth";
 
-export async function POST(request) {
-  const { password, email } = await request.json();
+export const POST = requireAuth(async (request, { user }) => {
+  const { password } = await request.json();
 
   try {
     const [result] = await pool.execute(
       `SELECT password from users WHERE email = ? LIMIT 1`,
-      [email],
+      [user.email],
     );
 
     // Check if a user was found
@@ -25,4 +26,4 @@ export async function POST(request) {
     console.error("Error verifying your password", error);
     return Response.json({ valid: false }, { status: 500 });
   }
-}
+});

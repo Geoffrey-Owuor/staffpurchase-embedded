@@ -36,6 +36,7 @@ export const RecentActionButtons = ({
   onCloseSuccess,
   onCloseError,
   disableDelete = false,
+  disableEdit = false,
 }) => {
   const { role: userRole } = useUser();
   const [isOpen, setIsOpen] = useState(false);
@@ -205,6 +206,7 @@ export const RecentActionButtons = ({
             disabled={
               //Approver cannot edit once approved
               goingTo === id ||
+              disableEdit ||
               (userRole === "payroll" &&
                 (payrollApproval === "approved" ||
                   payrollApproval === "declined")) ||
@@ -238,8 +240,11 @@ export const RecentActionButtons = ({
                 handleConfirmDelete();
               }}
               disabled={
-                //Approver cannot delete once approved
-                goingTo === id || disableDelete || userRole !== "admin"
+                //Only staff can delete, and only their own not-yet-invoiced requests
+                goingTo === id ||
+                disableDelete ||
+                userRole !== "staff" ||
+                biApproval === "approved"
               }
               className="mt-1 flex w-full items-center rounded-lg p-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:hover:bg-transparent dark:text-red-400 dark:hover:bg-red-600/15"
             >

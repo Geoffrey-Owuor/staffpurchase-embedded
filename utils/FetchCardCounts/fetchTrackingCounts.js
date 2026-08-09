@@ -1,4 +1,5 @@
 import { basePath } from "@/public/assets";
+import { buildPurchaseQueryParams } from "@/utils/FetchPurchases/buildPurchaseQueryParams";
 
 export const defaultClosureCounts = {
   open: 0,
@@ -6,9 +7,15 @@ export const defaultClosureCounts = {
   approved: 0,
 };
 
-export async function fetchTrackingCounts() {
+// filters: the same non-pagination filters applied to Payment Tracking's table
+// (search, referenceNumber, payrollNumber, fromDate/toDate, paymentTerms, monthPeriod).
+// requestClosure is intentionally not sent - see closure-counts/route.js.
+export async function fetchTrackingCounts(filters = {}) {
   try {
-    const response = await fetch(`${basePath}/api/closure-counts`);
+    const params = buildPurchaseQueryParams(filters);
+    const response = await fetch(
+      `${basePath}/api/closure-counts?${params.toString()}`,
+    );
     if (!response.ok) throw new Error("Failed to fetch closure counts");
 
     const data = await response.json();
