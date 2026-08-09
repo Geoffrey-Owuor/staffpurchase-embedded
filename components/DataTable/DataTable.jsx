@@ -90,7 +90,6 @@ export default function DataTable({
             onApply={onApplyFilters}
             onRemoveCommitted={onRemoveCommittedFilter}
             onResetAll={onResetAll}
-            resultCount={total}
           />
         )}
 
@@ -161,6 +160,7 @@ export default function DataTable({
               totalPages={totalPages}
               currentPage={page}
               rowsPerPage={pageSize}
+              totalResults={total}
               handlePageChange={onPageChange}
               onRowsPerPageChange={onPageSizeChange}
             />
