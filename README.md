@@ -48,13 +48,13 @@ This application serves as a self-service bridge between staff members and the H
 
 Five roles share one route tree under `/dashboard`:
 
-| Route | Description |
-|---|---|
-| `/dashboard` | Home — count cards + the full, filterable purchase table (role-aware: staff see their own requests, others see the approval queue) |
-| `/dashboard/[id]` | View a single purchase request |
-| `/dashboard/[id]/edit` | Edit/approve a purchase request (approver roles only, gated per-field by role) |
-| `/dashboard/new-purchase` | Submit a new purchase request |
-| `/dashboard/payment-tracking` | Fully-approved requests awaiting payment/closure — **Credit Control role only** |
+| Route                         | Description                                                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `/dashboard`                  | Home — count cards + the full, filterable purchase table (role-aware: staff see their own requests, others see the approval queue) |
+| `/dashboard/[id]`             | View a single purchase request                                                                                                     |
+| `/dashboard/[id]/edit`        | Edit/approve a purchase request (approver roles only, gated per-field by role)                                                     |
+| `/dashboard/new-purchase`     | Submit a new purchase request                                                                                                      |
+| `/dashboard/payment-tracking` | Fully-approved requests awaiting payment/closure — **Credit Control role only**                                                    |
 
 Old per-role URLs (`/hrdashboard`, `/staffdashboard/purchase-history`, etc.), as well as the retired `/dashboard/history` subtree, redirect to their `/dashboard` equivalents (see `next.config.mjs`).
 
@@ -66,35 +66,6 @@ Old per-role URLs (`/hrdashboard`, `/staffdashboard/purchase-history`, etc.), as
 - A MySQL-compatible database
 - SMTP credentials (Gmail) and/or Microsoft Entra ID app registration for outbound email
 
-### Installation
-
-```bash
-npm install
-```
-
-### Environment Configuration
-
-Configure a `.env` file with (non-exhaustive — check `lib/db.js`, `app/lib/auth.js`, `middleware.js`, `app/api/external/sso/route.js`, and `lib/emailSender.js` for the authoritative list):
-
-- `DATABASE_HOST`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME` — MySQL connection
-- `JWT_SECRET` — session token signing secret
-- `SSO_SHARED_SECRET` — HMAC secret shared with the embedding host for `/api/external/sso`
-- `NEXT_PUBLIC_BASE_PATH` — set when served under a sub-path (embedded deployments)
-- `NEXT_PUBLIC_BASE_URL` — absolute base URL used in outbound email links
-- `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_SENDER`, and/or `AUTH_MICROSOFT_ENTRA_ID_ID` / `AUTH_MICROSOFT_ENTRA_ID_TENANT_ID` / `AUTH_MICROSOFT_ENTRA_ID_SECRET` — outbound email
-- `ORION_API_KEY` — external ERP price-lookup integration (`app/api/getpurchasedetails`)
-
-### Development
-
-```bash
-npm run dev     # starts on port 1557 (Turbopack)
-```
-
-### Build & Deploy
-
-```bash
-npm run build
-npm run start
 ```
 
 `ecosystem.config.js` is included for PM2-based process management in production.
@@ -111,16 +82,6 @@ npm run start
 - Purchase list endpoints (`/api/tablesdata/purchaseshistorydata`, `/api/staffpurchaseshistory`) return `{ data, page, pageSize, total, totalPages }` and support `page`, `pageSize`, and combinable filters (`search`, `referenceNumber`, `payrollNumber`, `fromDate`/`toDate`, `approvalStatus`, `paymentTerms`, and more depending on the route).
 - Client-side, `utils/FetchPurchases/buildPurchaseQueryParams.js` is the single place query strings are built from a filters object — every fetch helper uses it.
 
-## Testing & Validation
-
-There is currently no automated test suite (`npm run lint` also isn't configured — no ESLint config exists in the repo). Validate changes with:
-
-```bash
-npm run build
-```
-
-...and manual verification of the affected role(s)/route(s) in a browser.
-
 ---
 
 ### Basic Folder Structure
@@ -132,3 +93,4 @@ npm run build
 - `/public`: Static assets.
 
 See `CLAUDE.md` for a more detailed architectural guide aimed at future development sessions.
+```

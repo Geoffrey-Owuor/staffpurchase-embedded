@@ -158,7 +158,7 @@ const LeftSidebar = ({
             </span>
           </a>
           <a
-            href="mailto:helpdesk@hotpoint.co.ke"
+            href="mailto:itsupport@hotpoint.co.ke"
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
           >
             <MessageCircleQuestion className="h-4 w-4 shrink-0" />

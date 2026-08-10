@@ -34,10 +34,10 @@ export default function UnauthorizedPage() {
       <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>Need help? Contact our support team</p>
         <a
-          href="mailto:helpdesk@hotpoint.co.ke"
+          href="mailto:itsupport@hotpoint.co.ke"
           className="text-blue-600 hover:underline dark:text-blue-400"
         >
-          helpdesk@hotpoint.co.ke
+          itsupport@hotpoint.co.ke
         </a>
       </div>
     </div>
