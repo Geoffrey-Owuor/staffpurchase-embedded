@@ -64,6 +64,7 @@ export const PUT = requireAuth(async (request, { params, user }) => {
           "credit_period",
           "purchase_history_comments",
           "pending_invoices",
+          "mpesa_code",
           "CC_Approval",
         ],
         bi: [
@@ -72,7 +73,6 @@ export const PUT = requireAuth(async (request, { params, user }) => {
           "invoice_amount",
           "payment_reference",
           "invoicing_location",
-          "mpesa_code",
           "BI_Approval",
         ],
       };

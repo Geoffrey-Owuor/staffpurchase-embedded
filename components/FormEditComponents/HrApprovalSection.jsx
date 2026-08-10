@@ -118,7 +118,7 @@ export default function HRApprovalSection({
             onChange={handleChange}
             readOnly={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"
@@ -142,7 +142,7 @@ export default function HRApprovalSection({
             value={formatDateLong(formData.hr_approval_date)}
             onChange={handleChange}
             readOnly
-            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
           />
         </div>
 
@@ -157,12 +157,12 @@ export default function HRApprovalSection({
           <textarea
             id="hr_comments"
             name="hr_comments"
-            rows={3}
+            rows={4}
             value={formData.hr_comments}
             onChange={handleChange}
             readOnly={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"

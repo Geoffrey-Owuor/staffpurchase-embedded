@@ -36,8 +36,11 @@ const PaymentDetails = ({
   approversPurchasing,
 }) => {
   const editableRoles = ["bi", "staff"];
+  const editCodeRoles = ["cc", "staff"];
   const staffReadonly = userRole !== "staff" && !approversPurchasing;
   const isReadOnly = !editableRoles.includes(userRole) && !approversPurchasing;
+  const isCodeReadonly =
+    !editCodeRoles.includes(userRole) && !approversPurchasing;
   return (
     <div className="relative rounded-xl">
       <div className="rounded-t-xl px-2 py-3 text-lg font-semibold text-gray-900 dark:text-white">
@@ -109,11 +112,11 @@ const PaymentDetails = ({
                 name="mpesa_code"
                 value={formData.mpesa_code}
                 onChange={handleChange}
-                readOnly={isReadOnly}
+                readOnly={isCodeReadonly}
                 maxLength={25}
                 placeholder="Enter Mpesa reference code"
                 required
-                className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+                className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isCodeReadonly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
               />
             </div>
           )}
@@ -164,7 +167,7 @@ const PaymentDetails = ({
               value={formatDateLong(formData.createdAt)}
               onChange={handleChange}
               readOnly
-              className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+              className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
             />
           </div>
         </div>
@@ -182,8 +185,8 @@ const PaymentDetails = ({
               name="delivery_details"
               value={formData.delivery_details || ""}
               onChange={handleChange}
-              rows="3" //Text Area Height
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+              rows="4" //Text Area Height
+              className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
                 staffReadonly
                   ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                   : "bg-white dark:bg-gray-950"

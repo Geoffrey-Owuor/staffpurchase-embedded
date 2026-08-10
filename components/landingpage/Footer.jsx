@@ -105,7 +105,7 @@ export default function Footer() {
           {/* Centered Part */}
           <div className="flex items-center justify-center space-x-1 text-sm">
             <span className="text-gray-500 dark:text-gray-400">
-              © {new Date().getFullYear()} Hotpoint Appliances Ltd.
+              © {new Date().getFullYear()} Hotpoint Appliances Ltd
             </span>
           </div>
 
