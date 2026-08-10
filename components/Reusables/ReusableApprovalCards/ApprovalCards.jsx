@@ -76,29 +76,29 @@ export default function ApprovalCards({ filters = {} }) {
           <>
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-200 px-4 py-2 shadow-sm hover:shadow-md dark:bg-slate-900">
-                  <span className="font-mono text-lg font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-800 dark:bg-gray-900">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {counts.total > 500 ? "500+" : counts.total}
                   </span>{" "}
-                  <TrendingUp className="h-4.5 w-4.5" />
+                  <TrendingUp className="h-4.5 w-4.5 text-gray-400 dark:text-gray-500" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 shadow-sm hover:shadow-md dark:bg-slate-700">
-                  <span className="font-mono text-lg font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-800 dark:bg-gray-900">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {counts.totalDeclined > 500 ? "500+" : counts.totalDeclined}
                   </span>{" "}
-                  <MessageCircleX className="h-4.5 w-4.5" />
+                  <MessageCircleX className="h-4.5 w-4.5 text-rose-500 dark:text-rose-400" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-yellow-50 px-4 py-2 shadow-sm hover:shadow-md dark:bg-gray-800">
-                  <span className="font-mono text-lg font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-800 dark:bg-gray-900">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {totalPending > 500 ? "500+" : totalPending}
                   </span>{" "}
-                  <ClockFading className="h-4.5 w-4.5" />
+                  <ClockFading className="h-4.5 w-4.5 text-amber-500 dark:text-amber-400" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 shadow-sm hover:shadow-md dark:bg-slate-800">
-                  <span className="font-mono text-lg font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-800 dark:bg-gray-900">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {counts.totalApproved > 500 ? "500+" : counts.totalApproved}
                   </span>{" "}
-                  <CheckCheck className="h-4.5 w-4.5" />
+                  <CheckCheck className="h-4.5 w-4.5 text-emerald-500 dark:text-emerald-400" />
                 </div>
               </div>
             )}

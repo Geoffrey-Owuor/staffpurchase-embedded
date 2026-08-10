@@ -1,36 +1,48 @@
 // app/components/Features.js
-import { Pencil, ShieldCheck, Zap } from "lucide-react";
+import {
+  Workflow,
+  BellRing,
+  FileSpreadsheet,
+  ShieldCheck,
+  BarChart3,
+} from "lucide-react";
 
 const features = [
   {
     id: 1,
-    icon: Pencil,
-    title: "Easy Submission",
+    icon: Workflow,
+    title: "Sequential Approval Workflow",
     description:
-      "Easily submit your purchase request and track its approval stages",
-    bgColor: "bg-slate-50 dark:bg-gray-900/50",
-    iconBgColor: "bg-red-100 dark:bg-red-900/40",
-    iconColor: "text-red-600 dark:text-red-500",
+      "Every request moves automatically through Payroll → HR → Credit Control → Invoicing, so it's always sitting in the right inbox - never lost in an email thread.",
+    span: "md:col-span-2",
+    featured: true,
   },
   {
     id: 2,
-    icon: ShieldCheck,
-    title: "Priority Support",
+    icon: BellRing,
+    title: "Real-Time Notifications",
     description:
-      "Get dedicated staff service and technical support for all your employee purchases.",
-    bgColor: "bg-slate-50 dark:bg-gray-900/50",
-    iconBgColor: "bg-red-100 dark:bg-red-900/40",
-    iconColor: "text-red-600 dark:text-red-500",
+      "Get emailed the moment your request is submitted, approved, or declined - no need to chase anyone for an update.",
   },
   {
     id: 3,
-    icon: Zap,
-    title: "Purchase History",
+    icon: FileSpreadsheet,
+    title: "Searchable History",
+    description: "Filter and paginate your full request history",
+  },
+  {
+    id: 4,
+    icon: BarChart3,
+    title: "Filter-Aware Summary Cards",
     description:
-      "Track your previous product purchases history directly in your staff dashboard",
-    bgColor: "bg-slate-50 dark:bg-gray-900/50",
-    iconBgColor: "bg-red-100 dark:bg-red-900/40",
-    iconColor: "text-red-600 dark:text-red-500",
+      "Pending, approved, and declined counts recalculate live to match whatever filters you have applied.",
+  },
+  {
+    id: 5,
+    icon: ShieldCheck,
+    title: "Secure, SSO-Ready Access",
+    description:
+      "Sign in directly or through a trusted single sign-on handoff — the portal works standalone or embedded.",
   },
 ];
 
@@ -40,32 +52,37 @@ export default function Features() {
       <div className="px-6">
         {/* Section Header */}
         <div className="mb-16 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-gray-100">
+          <span className="mb-3 inline-block text-sm font-semibold tracking-wide text-red-600 uppercase dark:text-red-500">
             Features
+          </span>
+          <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl dark:text-gray-100">
+            Everything your request needs, built in
           </h2>
           <p className="mx-auto max-w-3xl text-xl text-gray-600 dark:text-gray-300">
-            The following are some of the features of the Staff Purchase Portal
+            A single, self-service portal that replaces paper forms and email
+            chains with a clear, trackable approval process.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        {/* Bento Features Grid */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
               <div
                 key={feature.id}
-                className={`rounded-3xl ${feature.bgColor} p-8 transition hover:shadow-md dark:hover:shadow-lg`}
+                className={`group relative overflow-hidden rounded-3xl border border-gray-100 bg-slate-50 p-8 transition hover:-translate-y-1 hover:border-red-100 hover:shadow-lg dark:border-gray-800/60 dark:bg-gray-900/50 dark:hover:border-red-900/40 dark:hover:shadow-red-950/20 ${feature.span ?? ""}`}
               >
-                <div
-                  className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl ${feature.iconBgColor} p-3`}
-                >
-                  <Icon className={`h-6 w-6 ${feature.iconColor}`} />
+                {feature.featured && (
+                  <div className="pointer-events-none absolute top-0 right-0 h-40 w-40 rounded-full bg-red-100 opacity-60 blur-3xl transition group-hover:opacity-90 dark:bg-red-900/30" />
+                )}
+                <div className="relative mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 p-3 transition group-hover:scale-105 dark:bg-red-900/40">
+                  <Icon className="h-6 w-6 text-red-600 dark:text-red-500" />
                 </div>
-                <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="relative mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="relative text-gray-600 dark:text-gray-300">
                   {feature.description}
                 </p>
               </div>

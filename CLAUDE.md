@@ -33,7 +33,7 @@ correctness check available.
 - Every role shares **one route tree**: `app/(dashboard)/dashboard/`.
   - `layout.js` — session-only gate (redirects to `/login` if invalid).
   - `page.jsx` — home: role-aware table (`StaffPurchasesTable` for staff,
-    `ApproverPurchasesTable` otherwise) + `TermsConditions`. This table *is*
+    `ApproverPurchasesTable` otherwise) + `TermsConditions`. This table _is_
     the full purchase history (filterable, paginated) — there's no separate
     history route anymore; `/dashboard/history` used to be a dedicated
     full-page view of the identical table and was folded into home.
@@ -85,7 +85,7 @@ former ~700-800-line near-duplicate components:
 
 - `useTableQuery.js` — owns page/pageSize and the `react-query` call, and
   creates one `createFilterStore.js` zustand store per table instance (not a
-  shared/global store) to hold filter state. Only *committed* filters ever
+  shared/global store) to hold filter state. Only _committed_ filters ever
   reach the query key/fetch — staging a filter value never fetches. Every
   committed-filter change (apply, pill removal, reset) resets to page 1.
 - `createFilterStore.js` — the zustand store factory: `committed` (what's
@@ -166,10 +166,4 @@ former ~700-800-line near-duplicate components:
 ## Verification
 
 No test suite. After any change: `npm run build` (catches route-tree/import
-errors; there's no real type-checking since this is plain JS). Manually
-exercise: login for each role, SSO entry, the unified `/dashboard` +
-`/dashboard/new-purchase` + `/dashboard/payment-tracking` (cc only) routes,
-staging + applying combined filters on a table (nothing should fetch until
-Apply), removing an individual filter pill and hitting Reset (both should
-refetch immediately), and that count cards move with the table's committed
-filters as described above.
+errors; there's no real type-checking since this is plain JS).
