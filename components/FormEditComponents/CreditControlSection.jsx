@@ -44,11 +44,11 @@ export default function CreditControlSection({
           <textarea
             id="credit_period"
             name="credit_period"
-            rows={3}
+            rows={4}
             value={formData.credit_period}
             onChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
             placeholder="Enter credit period assessment (1-3 paragraphs)"
             required
           />
@@ -64,11 +64,11 @@ export default function CreditControlSection({
           <textarea
             id="purchase_history_comments"
             name="purchase_history_comments"
-            rows={3}
+            rows={4}
             value={formData.purchase_history_comments}
             onChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
             placeholder="Enter comments on purchase history"
             required
           />
@@ -89,7 +89,7 @@ export default function CreditControlSection({
             value={formData.pending_invoices}
             onChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
             placeholder="Enter pending invoices details"
             required
           />
@@ -130,7 +130,7 @@ export default function CreditControlSection({
             value={formData.cc_approver_name}
             onChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
             placeholder="Enter verifier's name"
             required
           />
@@ -150,7 +150,7 @@ export default function CreditControlSection({
             value={formatDateLong(formData.cc_approval_date)}
             onChange={handleChange}
             readOnly
-            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
           />
         </div>
       </div>

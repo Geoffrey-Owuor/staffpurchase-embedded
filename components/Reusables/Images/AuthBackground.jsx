@@ -16,7 +16,7 @@ export default function AuthBackground({ children }) {
       <div className="absolute bottom-4">
         <div className="flex items-center justify-center space-x-1 text-sm">
           <span className="text-gray-700 dark:text-gray-400">
-            © {new Date().getFullYear()} Hotpoint Appliances Ltd.
+            © {new Date().getFullYear()} Hotpoint Appliances Ltd
           </span>
         </div>
       </div>

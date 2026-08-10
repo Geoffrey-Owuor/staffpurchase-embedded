@@ -13,7 +13,7 @@ export const LoadingBar = ({ isLoading }) => {
         {/* The Lucide Loader spinner */}
         <Loader2
           strokeWidth={1}
-          className="h-20 w-20 animate-spin text-black dark:text-white"
+          className="h-14 w-14 animate-spin text-black dark:text-white"
           aria-label="loading"
         />
 
@@ -38,7 +38,7 @@ export const LoadingBarWave = ({ isLoading }) => {
       <div className="flex flex-col items-center gap-4">
         {/* The Lucide Loader spinner */}
         <Loader2
-          className="h-14 w-14 animate-spin text-gray-900 dark:text-white"
+          className="h-12 w-12 animate-spin text-gray-900 dark:text-white"
           aria-label="loading"
         />
 
@@ -61,7 +61,7 @@ export const LoggingOutOverlay = ({ isLoggingOut }) => {
       <div className="flex flex-col items-center gap-4">
         {/* The Lucide Loader spinner */}
         <Loader
-          className="h-14 w-14 animate-spin text-gray-900 dark:text-white"
+          className="h-12 w-12 animate-spin text-gray-900 dark:text-white"
           aria-label="loading"
         />
 
@@ -83,7 +83,7 @@ export const DeletingOverlay = () => {
       <div className="flex flex-col items-center gap-4">
         {/* The Lucide Loader spinner */}
         <Loader2
-          className="h-14 w-14 animate-spin text-gray-900 dark:text-white"
+          className="h-12 w-12 animate-spin text-gray-900 dark:text-white"
           aria-label="loading"
         />
 
