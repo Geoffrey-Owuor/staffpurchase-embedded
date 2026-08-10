@@ -31,7 +31,7 @@ export default function Header() {
         <LandingPageLogo />
 
         {/* Navigation */}
-        <nav className="navigation:flex hidden space-x-8 px-6">
+        <nav className="navigation:flex hidden space-x-8 px-6 text-sm">
           <a href={`${basePath}#features`} className={NAV_LINK_CLASSES}>
             Features
           </a>
