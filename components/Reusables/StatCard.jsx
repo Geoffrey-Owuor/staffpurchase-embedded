@@ -1,19 +1,20 @@
 export const StatCard = ({ title, count, description, IconComponent }) => {
   // Muted icon accent per status — card body stays neutral gray/white
   const dynamicIcons = {
-    Pending: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
-    Open: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
-    Closed: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
-    Declined: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400",
+    Pending:
+      "bg-amber-50 text-amber-600 dark:bg-amber-600/20 dark:text-amber-400",
+    Open: "bg-amber-50 text-amber-600 dark:bg-amber-600/20 dark:text-amber-400",
+    Closed: "bg-sky-50 text-sky-600 dark:bg-sky-600/20 dark:text-sky-400",
+    Declined: "bg-rose-50 text-rose-600 dark:bg-rose-600/20 dark:text-rose-400",
     Approved:
-      "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+      "bg-emerald-50 text-emerald-600 dark:bg-emerald-600/20 dark:text-emerald-400",
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200">
             {title}
           </h3>
           <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
@@ -24,7 +25,7 @@ export const StatCard = ({ title, count, description, IconComponent }) => {
           <IconComponent className="h-6 w-6" />
         </div>
       </div>
-      <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+      <p className="mt-4 text-sm text-gray-800 dark:text-gray-200">
         {description}
       </p>
     </div>
