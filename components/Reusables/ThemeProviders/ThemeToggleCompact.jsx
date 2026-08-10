@@ -36,11 +36,11 @@ export default function ThemeToggleCompact() {
     // Displays the correct icon based on the current theme.
     switch (theme) {
       case "light":
-        return <Sun className="h-5 w-5" />;
+        return <Sun className="h-4.5 w-4.5" />;
       case "dark":
-        return <Moon className="h-5 w-5" />;
+        return <Moon className="h-4.5 w-4.5" />;
       default:
-        return <Monitor className="h-5 w-5" />; // System theme
+        return <Monitor className="h-4.5 w-4.5" />; // System theme
     }
   };
 
