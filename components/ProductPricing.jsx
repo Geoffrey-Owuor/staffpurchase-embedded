@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
+import Select from "./Reusables/Select";
 import { X, Search } from "lucide-react";
 import { basePath } from "@/public/assets";
+
+const ITEM_STATUS_OPTIONS = [
+  { value: "New", label: "New" },
+  { value: "RHD2", label: "RHD2" },
+];
 
 const ProductPricing = ({
   formData,
@@ -214,7 +220,7 @@ const ProductPricing = ({
                 name="productCode"
                 value={formData.productCode}
                 onChange={handleChange}
-                className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadonlyGeneral ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+                className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadonlyGeneral ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
                 required
                 readOnly={isReadonlyGeneral}
               />
@@ -242,7 +248,7 @@ const ProductPricing = ({
               name="itemName"
               value={formData.itemName}
               onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadonlyGeneral ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadonlyGeneral ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
               required
               readOnly={isReadonlyGeneral}
               title={formData.itemName}
@@ -253,20 +259,18 @@ const ProductPricing = ({
             <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-400">
               Status (New / RHD2) <FormAsterisk />
             </label>
-            <select
+            <Select
               name="itemStatus"
-              value={formData.itemStatus}
-              onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${staffReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              value={formData.itemStatus || ""}
+              onChange={(value) =>
+                handleChange({ target: { name: "itemStatus", value } })
+              }
+              options={ITEM_STATUS_OPTIONS}
+              placeholder="Select"
+              className="w-full"
               required
               disabled={staffReadOnly}
-            >
-              <option value="" disabled>
-                Select
-              </option>
-              <option value="New">New</option>
-              <option value="RHD2">RHD2</option>
-            </select>
+            />
           </div>
 
           {/* Product Policy Type */}
@@ -278,7 +282,7 @@ const ProductPricing = ({
               type="text"
               value={formData.productPolicy}
               onChange={handleChange}
-              className="w-full rounded-xl border border-gray-200 bg-gray-100 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className="w-full rounded-xl border border-gray-200 bg-gray-100 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               readOnly
               title={formData.productPolicy}
             />
@@ -295,7 +299,7 @@ const ProductPricing = ({
               name="tdPrice"
               value={formData.tdPrice}
               onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${ccReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${ccReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
               readOnly={ccReadOnly}
               required
             />
@@ -314,7 +318,7 @@ const ProductPricing = ({
               onChange={handleChange}
               readOnly={ccReadOnly}
               required
-              className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${ccReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${ccReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
             />
           </div>
 
@@ -329,7 +333,7 @@ const ProductPricing = ({
               name="discountedValue"
               value={formData.discountedValue}
               readOnly
-              className="w-full rounded-xl border border-gray-200 bg-gray-100 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              className="w-full rounded-xl border border-gray-200 bg-gray-100 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
             />
           </div>
         </div>

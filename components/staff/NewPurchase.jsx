@@ -1,12 +1,11 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import StaffInformation from "../StaffInformation";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing";
 import Alert from "../Alert";
 import { LoadingBarWave } from "../Reusables/LoadingBar";
-import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
+import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
   PackagePlus,
@@ -36,7 +35,7 @@ const initialProductState = {
 export default function NewPurchase({ approversPurchasing }) {
   const user = useUser();
   const queryClient = useQueryClient();
-  const { handleHomeRoute } = UseHandleHomeRoute();
+  const { handleHomeRoute } = useDashboardRoutes();
 
   const [discountPolicies, setDiscountPolicies] = useState([]);
   const [staffInfo, setStaffInfo] = useState(() => ({
@@ -166,6 +165,7 @@ export default function NewPurchase({ approversPurchasing }) {
   const handleSubmit = async (e) => {
     e?.preventDefault();
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
 
     //Combine all state parts into 1 object for the API
     const finalFormData = {
@@ -194,8 +194,8 @@ export default function NewPurchase({ approversPurchasing }) {
       setShowAlert(true);
 
       // Invalidate query data
-      queryClient.invalidateQueries({ queryKey: ["staffPurchases", true] });
-      queryClient.invalidateQueries({ queryKey: ["staffPurchases", false] });
+      queryClient.invalidateQueries({ queryKey: ["staffPurchases"] });
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
 
       // Redirect to designated dashboard after 0.7 seconds
@@ -218,15 +218,16 @@ export default function NewPurchase({ approversPurchasing }) {
     <>
       <div className="mx-auto leading-relaxed dark:text-white">
         <div className="flex items-center justify-between px-2 pt-2 pb-4">
-          <div className="flex items-center justify-center gap-2 text-gray-900 dark:text-gray-200">
-            <ClipboardList className="h-6 w-6" />
-            <h1 className="text-xl font-semibold">Request Form</h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-900 dark:text-gray-200">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="h-6 w-6" />
+              <h1 className="text-xl font-semibold">Request Form</h1>
+            </div>
+            {/* Till Number Area*/}
+            <MpesaTillNumber />
           </div>
           <TopBarButtons />
         </div>
-
-        {/* Till Number Area*/}
-        <MpesaTillNumber />
 
         <form
           id="staffInformation"
@@ -332,17 +333,13 @@ export default function NewPurchase({ approversPurchasing }) {
         />
       )}
 
-      {showConfirmDialog && (
-        <ConfirmationDialog
-          message="Are you sure you want to submit this purchase request? (You cannot edit after submission)"
-          onConfirm={() => {
-            setShowConfirmDialog(false);
-            handleSubmit();
-          }}
-          onCancel={() => setShowConfirmDialog(false)}
-          title="Submit Purchase"
-        />
-      )}
+      <ConfirmationDialog
+        message="Are you sure you want to submit this purchase request? (You cannot edit after submission)"
+        onConfirm={handleSubmit}
+        showDialog={showConfirmDialog}
+        onCancel={() => setShowConfirmDialog(false)}
+        title="Submit Purchase"
+      />
     </>
   );
 }

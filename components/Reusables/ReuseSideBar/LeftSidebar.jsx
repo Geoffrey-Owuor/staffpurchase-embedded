@@ -17,11 +17,11 @@ import { useSidebarStore } from "@/store/useSidebarStore";
 const LeftSidebar = ({
   router,
   handleHomeClick,
-  handleHistoryClick,
   handlePurchaseClick,
   handleNavClick,
   activeTab,
   role,
+  paymentTrackingPath,
 }) => {
   const sidebarOpen = useSidebarStore((state) => state.sidebarOpen);
   const setSidebarOpen = useSidebarStore((state) => state.setSidebarOpen);
@@ -104,31 +104,10 @@ const LeftSidebar = ({
               </div>
             </li>
 
-            <li>
-              <div
-                onClick={handleHistoryClick}
-                className={`flex cursor-default items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-                  activeTab === "history"
-                    ? "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-                }`}
-              >
-                <History className="h-4 w-4 shrink-0" />
-                <span
-                  className={`overflow-hidden whitespace-nowrap transition-all duration-200 ${
-                    sidebarOpen ? "w-40" : "w-0"
-                  }`}
-                >
-                  Purchases History
-                </span>
-              </div>
-            </li>
             {role === "cc" && (
               <li>
                 <div
-                  onClick={() =>
-                    handleNavClick("/ccdashboard/payment-tracking")
-                  }
+                  onClick={() => handleNavClick(paymentTrackingPath)}
                   className={`flex cursor-default items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "paymentTracking"
                       ? "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"

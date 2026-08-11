@@ -85,11 +85,3 @@ export const baseDepartments = [
   { option: "Operations", value: "Operations" },
   { option: "Security", value: "Security" },
 ];
-
-export const REDIRECT_DASHBOARD_LINKS = {
-  staff: "staffdashboard",
-  payroll: "payrolldashboard",
-  hr: "hrdashboard",
-  cc: "ccdashboard",
-  bi: "bidashboard",
-};

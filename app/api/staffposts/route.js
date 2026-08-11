@@ -1,30 +1,26 @@
-import pool from "@/lib/db";
-import { getCurrentUser } from "@/app/lib/auth";
+import { withTransaction } from "@/lib/db";
+import { requireAuth } from "@/lib/apiAuth";
 import { userEmailHandler } from "@/lib/Email/userEmailHandler";
 
 const parseNumber = (value) => {
   return value === "" || value == null ? null : parseFloat(value);
 };
 
-export async function POST(request) {
-  let connection;
-  let referenceNumber = null;
-  let user = null;
-  let staffInfo, products, paymentInfo;
-  try {
-    // 1. Get the logged-in user
-    user = await getCurrentUser();
-    if (!user.role) {
-      return Response.json(
-        { success: false, message: "Not authenticated" },
-        { status: 401 },
-      );
-    }
+class RouteError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
 
-    connection = await pool.getConnection();
+export const POST = requireAuth(async (request, { user }) => {
+  let referenceNumber = null;
+  let staffInfo, products, paymentInfo;
+
+  try {
     ({ staffInfo, products, paymentInfo } = await request.json());
 
-    // Validate that all products have a tdPrice before beginning a transaction (An implicit return)
+    // Validate that all products have a tdPrice before beginning a transaction
     const missingPriceProducts = products.filter(
       (product) =>
         product.tdPrice === "" ||
@@ -43,88 +39,82 @@ export async function POST(request) {
       );
     }
 
-    //Start a transaction
-    await connection.beginTransaction();
-
-    // Destructure directly in the parameter list to avoid extra lines
-    const [result] = await connection.execute(
-      `INSERT INTO purchasesinfo 
-       (staffName, user_id, user_email, payrollNo, department, employee_payment_terms, mpesa_code, user_credit_period, invoicing_location, delivery_details, signature, Payroll_Approval, HR_Approval, 
-        CC_Approval, BI_Approval, request_closure) 
+    const purchaseId = await withTransaction(async (connection) => {
+      // Destructure directly in the parameter list to avoid extra lines
+      const [result] = await connection.execute(
+        `INSERT INTO purchasesinfo
+       (staffName, user_id, user_email, payrollNo, department, employee_payment_terms, mpesa_code, user_credit_period, invoicing_location, delivery_details, signature, Payroll_Approval, HR_Approval,
+        CC_Approval, BI_Approval, request_closure)
        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', 'pending', 'pending', 'open')`,
-      [
-        staffInfo.staffName,
-        user.id,
-        user.email,
-        staffInfo.payrollNo,
-        staffInfo.department,
-        paymentInfo.employee_payment_terms,
-        paymentInfo.mpesa_code,
-        parseNumber(paymentInfo.user_credit_period),
-        paymentInfo.invoicing_location,
-        paymentInfo.delivery_details,
-        user.name,
-      ],
-    );
-
-    //Get the resultant inserted id (Next auto_inceremented value)
-    const insertedId = result.insertId;
-    referenceNumber = `PRQ-${insertedId}`;
-
-    //Run an update query to insert reference_number into purchasesinfo
-    await connection.execute(
-      `UPDATE purchasesinfo 
-       SET reference_number = ? 
-       WHERE increment_id = ?`,
-      [referenceNumber, insertedId],
-    );
-
-    //Get the purchase (id) from purchasesinfo table
-    const [rows] = await connection.execute(
-      `SELECT id from purchasesinfo
-       WHERE reference_number = ?`,
-      [referenceNumber],
-    );
-
-    const purchaseId = rows[0]?.id;
-    if (!purchaseId) {
-      // Failsafe
-      await connection.rollback();
-      return Response.json(
-        { success: false, message: "Failed to retrieve final purchase ID." },
-        { status: 500 },
-      );
-    }
-
-    //Insert each product/item into the purchase_products table
-
-    const itemInsertPromises = products.map((product) => {
-      return connection.execute(
-        `INSERT INTO purchase_products
-        (purchase_id, itemName, itemStatus, productPolicy, productCode, tdPrice, discountRate, discountedValue)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          purchaseId,
-          product.itemName,
-          product.itemStatus,
-          product.productPolicy,
-          product.productCode,
-          parseNumber(product.tdPrice),
-          parseNumber(product.discountRate),
-          parseNumber(product.discountedValue),
+          staffInfo.staffName,
+          user.id,
+          user.email,
+          staffInfo.payrollNo,
+          staffInfo.department,
+          paymentInfo.employee_payment_terms,
+          paymentInfo.mpesa_code,
+          parseNumber(paymentInfo.user_credit_period),
+          paymentInfo.invoicing_location,
+          paymentInfo.delivery_details,
+          user.name,
         ],
       );
-    });
 
-    await Promise.all(itemInsertPromises);
+      //Get the resultant inserted id (Next auto_inceremented value)
+      const insertedId = result.insertId;
+      referenceNumber = `PRQ-${insertedId}`;
 
-    //If payment terms is cash, autofill both payroll and hr data with default values
-    if (paymentInfo.employee_payment_terms === "CASH") {
+      //Run an update query to insert reference_number into purchasesinfo
       await connection.execute(
-        `
+        `UPDATE purchasesinfo
+       SET reference_number = ?
+       WHERE increment_id = ?`,
+        [referenceNumber, insertedId],
+      );
+
+      //Get the purchase (id) from purchasesinfo table
+      const [rows] = await connection.execute(
+        `SELECT id from purchasesinfo
+       WHERE reference_number = ?`,
+        [referenceNumber],
+      );
+
+      const purchaseId = rows[0]?.id;
+      if (!purchaseId) {
+        // Failsafe
+        throw new RouteError(500, "Failed to retrieve final purchase ID.");
+      }
+
+      //Insert each product/item into the purchase_products table
+
+      const itemInsertPromises = products.map((product) => {
+        return connection.execute(
+          `INSERT INTO purchase_products
+        (purchase_id, itemName, itemStatus, productPolicy, productCode, tdPrice, discountRate, discountedValue)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            purchaseId,
+            product.itemName,
+            product.itemStatus,
+            product.productPolicy,
+            product.productCode,
+            parseNumber(product.tdPrice),
+            parseNumber(product.discountRate),
+            parseNumber(product.discountedValue),
+          ],
+        );
+      });
+
+      await Promise.all(itemInsertPromises);
+
+      //If payment terms is cash, autofill both payroll and hr data with default values
+      if (paymentInfo.employee_payment_terms === "CASH") {
+        await connection.execute(
+          `
         UPDATE purchasesinfo
-        SET 
-        payroll_approver_name = 'auto approval', 
+        SET
+        payroll_approver_name = 'auto approval',
         payroll_approver_email = 'auto approval',
         payroll_signature = 'auto approval',
         payroll_approval_date = CURRENT_TIMESTAMP,
@@ -132,14 +122,14 @@ export async function POST(request) {
         one_third_rule = 'not applicable, cash payment'
         WHERE increment_id = ?
         `,
-        [insertedId],
-      );
-    }
+          [insertedId],
+        );
+      }
 
-    //If all inserts succeed, commit the transaction
-    await connection.commit();
+      return purchaseId;
+    });
 
-    // 5. --- FIRE-AND-FORGET ---
+    // --- FIRE-AND-FORGET ---
     // Call the handler but DO NOT await it.
     // The code will continue immediately to the return statement.
     userEmailHandler({
@@ -159,7 +149,12 @@ export async function POST(request) {
       { status: 201 }, // 201 Created for successful resource creation
     );
   } catch (error) {
-    if (connection) await connection.rollback();
+    if (error instanceof RouteError) {
+      return Response.json(
+        { success: false, message: error.message },
+        { status: error.status },
+      );
+    }
     console.error("Database error:", error);
     return Response.json(
       {
@@ -169,7 +164,5 @@ export async function POST(request) {
       },
       { status: 500 },
     );
-  } finally {
-    if (connection) connection.release();
   }
-}
+});
