@@ -3,7 +3,6 @@ import {
   HomeIcon,
   ShoppingBagIcon,
   MessageCircleQuestion,
-  History,
   Link2,
   BookOpenCheck,
   ChevronLeft,
@@ -17,11 +16,11 @@ import { useSidebarStore } from "@/store/useSidebarStore";
 const TopSidebar = ({
   router,
   handleHomeClick,
-  handleHistoryClick,
   handlePurchaseClick,
   handleNavClick,
   activeTab,
   role,
+  paymentTrackingPath,
 }) => {
   // --- State for header scroll effect ---
   const [isScrolled, setIsScrolled] = useState(false);
@@ -93,26 +92,10 @@ const TopSidebar = ({
               </div>
             </li>
 
-            <li>
-              <div
-                onClick={handleHistoryClick}
-                className={`flex cursor-default items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-                  activeTab === "history"
-                    ? "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-                }`}
-              >
-                <History className="h-4 w-4 shrink-0" />
-                <span>History</span>
-              </div>
-            </li>
-
             {role === "cc" && (
               <li>
                 <div
-                  onClick={() =>
-                    handleNavClick("/ccdashboard/payment-tracking")
-                  }
+                  onClick={() => handleNavClick(paymentTrackingPath)}
                   className={`flex cursor-default items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "paymentTracking"
                       ? "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
@@ -161,7 +144,7 @@ const TopSidebar = ({
 
           {/* Help Link */}
           <a
-            href="mailto:helpdesk@hotpoint.co.ke"
+            href="mailto:itsupport@hotpoint.co.ke"
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
           >
             <MessageCircleQuestion className="h-4 w-4 shrink-0" />

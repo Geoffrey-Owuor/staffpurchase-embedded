@@ -1,8 +1,8 @@
 //NEW REUSABLE APPROVAL COUNTS QUERY FOR ALL ROLES (staff, hr, cc, bi)
-import pool from "@/lib/db";
-import { getCurrentUser } from "@/app/lib/auth";
+import { withConnection } from "@/lib/db";
+import { requireAuth } from "@/lib/apiAuth";
 
-// Total requests query
+// Total requests query - always global/unfiltered, these are fixed reference totals.
 const totalQuery = `SELECT COUNT(*) as count FROM purchasesinfo`;
 const totalApprovedQuery = `SELECT COUNT(*) as count FROM purchasesinfo WHERE BI_Approval = 'approved'`;
 const totalDeclinedQuery = `SELECT COUNT(*) as count FROM purchasesinfo
@@ -30,28 +30,28 @@ const ROLE_QUERY_CONFIGS = {
   // Staff functions - they see the approval status of their submitted requests
   staff: {
     getPendingQuery: (userId) => ({
-      sql: `SELECT COUNT(*) as count FROM purchasesinfo 
-            WHERE user_id = ? 
-            AND BI_Approval = 'pending' 
-            AND CC_Approval <> 'declined' 
+      sql: `SELECT COUNT(*) as count FROM purchasesinfo
+            WHERE user_id = ?
+            AND BI_Approval = 'pending'
+            AND CC_Approval <> 'declined'
             AND HR_Approval <> 'declined'
             AND Payroll_Approval <> 'declined'`,
       params: [userId],
     }),
     getDeclinedQuery: (userId) => ({
-      sql: `SELECT COUNT(*) as count FROM purchasesinfo 
+      sql: `SELECT COUNT(*) as count FROM purchasesinfo
             WHERE user_id = ? AND (
-            BI_Approval = 'declined' OR 
-            HR_Approval = 'declined' OR 
+            BI_Approval = 'declined' OR
+            HR_Approval = 'declined' OR
             CC_Approval = 'declined' OR
             Payroll_Approval = 'declined')`,
       params: [userId],
     }),
     getApprovedQuery: (userId) => ({
-      sql: `SELECT COUNT(*) as count FROM purchasesinfo 
-            WHERE user_id = ? 
-            AND BI_Approval = 'approved' 
-            AND CC_Approval <> 'declined' 
+      sql: `SELECT COUNT(*) as count FROM purchasesinfo
+            WHERE user_id = ?
+            AND BI_Approval = 'approved'
+            AND CC_Approval <> 'declined'
             AND HR_Approval <> 'declined'
             AND Payroll_Approval <> 'declined'`,
       params: [userId],
@@ -84,36 +84,73 @@ function getApproverQueryConfigs(role, approvalField, approverIdField, userId) {
 
   return {
     pending: {
-      sql: `SELECT COUNT(*) as count FROM purchasesinfo 
-            WHERE ${approvalField} = 'pending' 
+      sql: `SELECT COUNT(*) as count FROM purchasesinfo
+            WHERE ${approvalField} = 'pending'
             ${prerequisiteClause}`,
       params: [],
     },
     declined: {
-      sql: `SELECT COUNT(*) as count FROM purchasesinfo 
+      sql: `SELECT COUNT(*) as count FROM purchasesinfo
             WHERE ${approvalField} = 'declined' AND ${approverIdField} = ?`,
       params: [userId],
     },
     approved: {
-      sql: `SELECT COUNT(*) as count FROM purchasesinfo 
+      sql: `SELECT COUNT(*) as count FROM purchasesinfo
             WHERE ${approvalField} = 'approved' AND ${approverIdField} = ?`,
       params: [userId],
     },
   };
 }
 
-export async function GET(_req) {
-  let connection;
-  try {
-    const { role, id: userId } = await getCurrentUser();
+// Builds the extra, additive WHERE fragment shared by the pending/declined/approved
+// counts so they can be scoped by the same non-status filters as the sibling table.
+// The grand totals above intentionally never use this - they stay global reference numbers.
+function buildExtraFilterClause(searchParams) {
+  const clauses = [];
+  const params = [];
 
-    //Check if current user is authenticated
-    if (!role || !userId) {
-      return Response.json(
-        { message: "User is not authenticated" },
-        { status: 401 },
-      );
-    }
+  const search = searchParams.get("search");
+  if (search) {
+    clauses.push(`staffName LIKE ?`);
+    params.push(`%${search}%`);
+  }
+
+  const referenceNumber = searchParams.get("referenceNumber");
+  if (referenceNumber) {
+    clauses.push(`reference_number = ?`);
+    params.push(referenceNumber);
+  }
+
+  const payrollNumber = searchParams.get("payrollNumber");
+  if (payrollNumber) {
+    clauses.push(`payrollNo = ?`);
+    params.push(payrollNumber);
+  }
+
+  const fromDate = searchParams.get("fromDate");
+  const toDate = searchParams.get("toDate");
+  if (fromDate && toDate) {
+    clauses.push(`DATE(createdAt) BETWEEN ? AND ?`);
+    params.push(fromDate, toDate);
+  }
+
+  const paymentTerms = searchParams.get("paymentTerms");
+  if (paymentTerms) {
+    clauses.push(`employee_payment_terms = ?`);
+    params.push(paymentTerms);
+  }
+
+  return {
+    sql: clauses.length > 0 ? ` AND ${clauses.join(" AND ")}` : "",
+    params,
+  };
+}
+
+export const GET = requireAuth(async (request, { user }) => {
+  const { role, id: userId } = user;
+  try {
+    const { searchParams } = new URL(request.url);
+    const extraFilter = buildExtraFilterClause(searchParams);
 
     const roleConfig = ROLE_QUERY_CONFIGS[role];
 
@@ -147,42 +184,66 @@ export async function GET(_req) {
       );
     }
 
+    // Append the shared extra filter clause to every status-scoped query.
+    for (const key of ["pending", "declined", "approved"]) {
+      queryConfigs[key] = {
+        sql: queryConfigs[key].sql + extraFilter.sql,
+        params: [...queryConfigs[key].params, ...extraFilter.params],
+      };
+    }
+
     //Execute queries
-    connection = await pool.getConnection();
-
-    // Prepare all six concurrent query promises
-    const pendingPromise = connection.execute(
-      queryConfigs.pending.sql,
-      queryConfigs.pending.params,
-    );
-    const declinedPromise = connection.execute(
-      queryConfigs.declined.sql,
-      queryConfigs.declined.params,
-    );
-    const approvedPromise = connection.execute(
-      queryConfigs.approved.sql,
-      queryConfigs.approved.params,
-    );
-    const totalPromise = connection.execute(totalQuery);
-    const totalApprovedPromise = connection.execute(totalApprovedQuery);
-    const totalDeclinedPromise = connection.execute(totalDeclinedQuery);
-
-    // Execute all three queries in parallel
     const [
-      [pendingResult],
-      [declinedResult],
-      [approvedResult],
-      [totalResult],
-      [totalApprovedResult],
-      [totalDeclinedResult],
-    ] = await Promise.all([
-      pendingPromise,
-      declinedPromise,
-      approvedPromise,
-      totalPromise,
-      totalApprovedPromise,
-      totalDeclinedPromise,
-    ]);
+      pendingResult,
+      declinedResult,
+      approvedResult,
+      totalResult,
+      totalApprovedResult,
+      totalDeclinedResult,
+    ] = await withConnection(async (connection) => {
+      // Prepare all six concurrent query promises
+      const pendingPromise = connection.execute(
+        queryConfigs.pending.sql,
+        queryConfigs.pending.params,
+      );
+      const declinedPromise = connection.execute(
+        queryConfigs.declined.sql,
+        queryConfigs.declined.params,
+      );
+      const approvedPromise = connection.execute(
+        queryConfigs.approved.sql,
+        queryConfigs.approved.params,
+      );
+      const totalPromise = connection.execute(totalQuery);
+      const totalApprovedPromise = connection.execute(totalApprovedQuery);
+      const totalDeclinedPromise = connection.execute(totalDeclinedQuery);
+
+      // Execute all six queries in parallel
+      const [
+        [pendingResult],
+        [declinedResult],
+        [approvedResult],
+        [totalResult],
+        [totalApprovedResult],
+        [totalDeclinedResult],
+      ] = await Promise.all([
+        pendingPromise,
+        declinedPromise,
+        approvedPromise,
+        totalPromise,
+        totalApprovedPromise,
+        totalDeclinedPromise,
+      ]);
+
+      return [
+        pendingResult,
+        declinedResult,
+        approvedResult,
+        totalResult,
+        totalApprovedResult,
+        totalDeclinedResult,
+      ];
+    });
 
     //Return the combined result
     return Response.json({
@@ -199,7 +260,5 @@ export async function GET(_req) {
       { message: "Failed to fetch Approval Counts" },
       { status: 500 },
     );
-  } finally {
-    if (connection) connection.release();
   }
-}
+});

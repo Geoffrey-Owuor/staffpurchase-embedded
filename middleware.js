@@ -23,31 +23,21 @@ const redirectIfLoggedInPaths = [
   "/reset-password",
 ];
 
-// Define protected base routes
-const protectedDashboards = [
-  "/staffdashboard",
-  "/payrolldashboard",
-  "/hrdashboard",
-  "/ccdashboard",
-  "/bidashboard",
-];
-
 export default async function middleware(request) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get("session_token")?.value;
 
-  // 1. HANDLE PROTECTED DASHBOARD ROUTES
-  const isProtectedRoute = protectedDashboards.some((dash) =>
-    pathname.startsWith(dash),
-  );
-
-  if (isProtectedRoute) {
+  // 1. HANDLE THE PROTECTED DASHBOARD ROUTE
+  // Role-specific gating (who can see /dashboard/payment-tracking, etc.) lives
+  // in the relevant layout.js now that every role shares one route tree -
+  // this only needs to confirm a valid session exists.
+  if (pathname.startsWith("/dashboard")) {
     // Case A: No token at all
     if (!sessionToken) {
       return NextResponse.redirect(new URL(`${BASE_PATH}/login`, request.url));
     }
 
-    const { valid, role } = await verifyEdgeJWT(sessionToken);
+    const { valid } = await verifyEdgeJWT(sessionToken);
 
     // Case B: Token has expired or is invalid
     if (!valid) {
@@ -57,23 +47,16 @@ export default async function middleware(request) {
       response.cookies.delete("session_token"); // Hard clean from browser
       return response;
     }
-
-    // Case C: Valid token, but trying to access someone else's dashboard (Role Enforcement)
-    if (!pathname.startsWith(`/${role}dashboard`)) {
-      return NextResponse.redirect(
-        new URL(`${BASE_PATH}/${role}dashboard`, request.url),
-      );
-    }
   }
 
   // 2. HANDLE PUBLIC AUTH PATHS (Your existing redirect logic)
   if (redirectIfLoggedInPaths.includes(pathname)) {
     if (sessionToken) {
-      const { valid, role } = await verifyEdgeJWT(sessionToken);
+      const { valid } = await verifyEdgeJWT(sessionToken);
 
       if (valid) {
         return NextResponse.redirect(
-          new URL(`${BASE_PATH}/${role}dashboard`, request.url),
+          new URL(`${BASE_PATH}/dashboard`, request.url),
         );
       }
     }
@@ -89,9 +72,6 @@ export const config = {
     "/register",
     "/forgot-password",
     "/reset-password",
-    "/staffdashboard/:path*",
-    "/hrdashboard/:path*",
-    "/ccdashboard/:path*",
-    "/bidashboard/:path*",
+    "/dashboard/:path*",
   ],
 };

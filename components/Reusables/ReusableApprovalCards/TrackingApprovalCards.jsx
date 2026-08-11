@@ -8,14 +8,14 @@ import {
   defaultClosureCounts,
 } from "@/utils/FetchCardCounts/fetchTrackingCounts";
 
-export default function TrackingApprovalCards() {
+export default function TrackingApprovalCards({ filters = {} }) {
   const {
     data: counts = defaultClosureCounts,
     isLoading: loading,
     refetch: refetchCounts,
   } = useQuery({
-    queryKey: ["TrackingApprovalCardCounts"],
-    queryFn: fetchTrackingCounts,
+    queryKey: ["TrackingApprovalCardCounts", filters],
+    queryFn: () => fetchTrackingCounts(filters),
   });
 
   return (
@@ -35,7 +35,7 @@ export default function TrackingApprovalCards() {
           onClick={() => refetchCounts()}
           title="refresh"
         >
-          <RotateCcw />
+          <RotateCcw className="h-5 w-5" />
         </button>
       </div>
 

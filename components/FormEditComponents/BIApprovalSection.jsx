@@ -1,5 +1,12 @@
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import Select from "../Reusables/Select";
+
+const APPROVAL_STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "declined", label: "Declined" },
+];
 
 export default function BIApprovalSection({
   formData,
@@ -8,7 +15,7 @@ export default function BIApprovalSection({
 }) {
   const isReadOnly = userRole !== "bi";
   return (
-    <div className="overflow-hidden rounded-xl">
+    <div className="rounded-xl">
       {/* Invoicing Details Section */}
 
       <div className="px-2 py-3">
@@ -31,7 +38,7 @@ export default function BIApprovalSection({
             value={formData.invoice_date}
             onChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"
@@ -54,7 +61,7 @@ export default function BIApprovalSection({
             value={formData.invoice_number}
             onChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"
@@ -80,7 +87,7 @@ export default function BIApprovalSection({
             readOnly={isReadOnly}
             step="0.01"
             min="0"
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"
@@ -97,23 +104,18 @@ export default function BIApprovalSection({
           >
             Invoicing Approval <FormAsterisk />
           </label>
-          <select
+          <Select
             id="BI_Approval"
             name="BI_Approval"
-            value={formData.BI_Approval}
-            onChange={handleChange}
+            value={formData.BI_Approval || ""}
+            onChange={(value) =>
+              handleChange({ target: { name: "BI_Approval", value } })
+            }
+            options={APPROVAL_STATUS_OPTIONS}
+            className="w-full"
             disabled={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
-              isReadOnly
-                ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                : "bg-white dark:bg-gray-950"
-            }`}
-          >
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="declined">Declined</option>
-          </select>
+          />
         </div>
         <div>
           <label
@@ -130,7 +132,7 @@ export default function BIApprovalSection({
             onChange={handleChange}
             readOnly={isReadOnly}
             required
-            className={`w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"
@@ -152,7 +154,7 @@ export default function BIApprovalSection({
             value={formatDateLong(formData.bi_approval_date)}
             onChange={handleChange}
             readOnly
-            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
           />
         </div>
 
@@ -168,8 +170,8 @@ export default function BIApprovalSection({
             name="payment_reference"
             value={formData.payment_reference || ""}
             onChange={handleChange}
-            rows="3" //Text Area Height
-            className={`w-full rounded-xl border border-gray-200 p-2 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
+            rows={4} //Text Area Height
+            className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
                 : "bg-white dark:bg-gray-950"

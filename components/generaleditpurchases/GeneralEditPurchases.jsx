@@ -251,8 +251,8 @@ function PurchaseForm({ purchase, userRole, name, id }) {
   };
 
   const handleConfirmSubmit = async () => {
-    setShowConfirmation(false);
     setIsSubmitting(true);
+    setShowConfirmation(false);
 
     //Consolidate all form data into a single object
     const fullFormData = {
@@ -288,10 +288,15 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
       setIsSubmitting(false);
 
-      // Invalidate query data
+      // Invalidate query data - prefix match so every filter/page variant of
+      // each query key gets refetched, not just the exact key this page happened to use.
       queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
-      queryClient.invalidateQueries({ queryKey: ["purchases", true] });
-      queryClient.invalidateQueries({ queryKey: ["purchases", false] });
+      queryClient.invalidateQueries({
+        queryKey: ["TrackingApprovalCardCounts"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["staffPurchases"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentTracking"] });
 
       // Redirect back after 0.7 seconds
       setTimeout(() => {
@@ -433,14 +438,13 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
       {/* Confirmation Dialogue */}
 
-      {showConfirmation && (
-        <ConfirmationDialog
-          message="Are you sure you want to submit these request changes? (You can't edit once approved/declined)"
-          onConfirm={handleConfirmSubmit}
-          onCancel={() => setShowConfirmation(false)}
-          title="Confirm Changes"
-        />
-      )}
+      <ConfirmationDialog
+        message="Are you sure you want to submit these request changes? (You can't edit once approved/declined)"
+        onConfirm={handleConfirmSubmit}
+        showDialog={showConfirmation}
+        onCancel={() => setShowConfirmation(false)}
+        title="Confirm Changes"
+      />
 
       {/* Alert Component */}
       {showAlert && (
@@ -503,7 +507,7 @@ export default function GeneralEditPurchases({ id }) {
         purchase.HR_Approval === "declined" ||
         purchase.CC_Approval === "declined"))
   ) {
-    return <UnauthorizedEdit role={userRole} />;
+    return <UnauthorizedEdit />;
   }
 
   return (

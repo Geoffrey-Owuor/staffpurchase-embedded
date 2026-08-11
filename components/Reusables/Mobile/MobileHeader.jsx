@@ -5,7 +5,6 @@ import {
   HomeIcon,
   ShoppingBagIcon,
   MessageCircleQuestion,
-  History,
   Link2,
   ChevronLeft,
   BookOpenCheck,
@@ -18,9 +17,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import UserMenu from "../UserMenu";
-import { UseHandleHomeRoute } from "@/utils/HandleActionClicks/UseHandleHomeRoute";
-import { UseHandleHistoryRoute } from "@/utils/HandleActionClicks/UseHandleHistoryRoute";
-import { UseHandlePurchaseRoute } from "@/utils/HandleActionClicks/UseHandlePurchaseRoute";
+import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
 import Link from "next/link";
 
@@ -53,24 +50,19 @@ export default function MobileHeader() {
     };
   }, [isMobileMenuOpen]);
 
-  const { handleHomeRoute, homePath } = UseHandleHomeRoute();
-  const { handleHistoryRoute, historyPath } = UseHandleHistoryRoute();
-  const { handlePurchaseRoute, purchasePath } = UseHandlePurchaseRoute();
+  const {
+    handleHomeRoute,
+    homePath,
+    handlePurchaseRoute,
+    purchasePath,
+    paymentTrackingPath,
+  } = useDashboardRoutes();
 
   const handleHomeClick = () => {
     const isSameRoute = homePath === pathname;
     if (!isSameRoute) {
       startLoading();
       handleHomeRoute();
-    }
-    setIsMobileMenuOpen(false); // Close menu on click
-  };
-
-  const handleHistoryClick = () => {
-    const isSameRoute = historyPath === pathname;
-    if (!isSameRoute) {
-      startLoading();
-      handleHistoryRoute();
     }
     setIsMobileMenuOpen(false); // Close menu on click
   };
@@ -143,7 +135,7 @@ export default function MobileHeader() {
 
       {/* Sidebar Content */}
       <div
-        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-64 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
+        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-70 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -182,22 +174,10 @@ export default function MobileHeader() {
               </div>
             </li>
 
-            <li>
-              <div
-                onClick={handleHistoryClick}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-              >
-                <History className="h-5 w-5 shrink-0" />
-                <span>Purchases History</span>
-              </div>
-            </li>
-
             {role === "cc" && (
               <li>
                 <div
-                  onClick={() =>
-                    handleNavClick("/ccdashboard/payment-tracking")
-                  }
+                  onClick={() => handleNavClick(paymentTrackingPath)}
                   className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
                 >
                   <BookOpenCheck className="h-5 w-5 shrink-0" />
@@ -220,7 +200,7 @@ export default function MobileHeader() {
             <span>Hotpoint Website</span>
           </a>
           <a
-            href="mailto:helpdesk@hotpoint.co.ke"
+            href="mailto:itsupport@hotpoint.co.ke"
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
           >
             <MessageCircleQuestion className="h-5 w-5 shrink-0" />

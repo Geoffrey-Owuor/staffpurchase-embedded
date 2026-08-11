@@ -9,6 +9,8 @@ import {
   Banknote,
   AlertCircle,
   UserRoundPlus,
+  BookOpenText,
+  Info,
 } from "lucide-react";
 import PagesFooter from "../Reusables/PagesFooter/PagesFooter";
 import Header from "../landingpage/Header";
@@ -104,29 +106,36 @@ const UserManual = () => {
       {/* Header */}
       <Header />
 
+      {/* Masthead */}
+      <section className="bg-conditions px-4 pt-28 pb-16 md:px-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold tracking-wide text-red-700 uppercase dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+            <BookOpenText className="h-3.5 w-3.5" />
+            User Guide & Documentation
+          </span>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl dark:text-white">
+            Staff Purchase Portal
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+            Everything you need to register, submit a request, and follow it
+            through approval - in one place.
+          </p>
+        </div>
+      </section>
+
       <section className="w-full flex-1 bg-white px-4 py-20 md:px-8 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl">
-          {/* Header */}
-          <div className="mb-16 text-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 md:text-3xl dark:text-white">
-              Staff Purchase Portal
-            </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-              User Guide & Documentation
-            </p>
-          </div>
-
           {/* Vertical Timeline */}
           <div className="relative ml-3 border-l border-gray-200 md:ml-6 dark:border-gray-800">
             {manualSteps.map((step) => (
-              <div key={step.id} className="relative mb-12 ml-8 md:ml-12">
+              <div key={step.id} className="group relative mb-12 ml-8 md:ml-12">
                 {/* Timeline Dot / Icon */}
-                <span className="absolute -left-[52px] flex h-10 w-10 items-center justify-center rounded-full bg-red-50 ring-8 ring-white md:-left-[68px] dark:bg-red-950 dark:ring-gray-950">
+                <span className="absolute -left-[52px] flex h-10 w-10 items-center justify-center rounded-full bg-red-50 ring-8 ring-white transition-transform group-hover:scale-110 md:-left-[68px] dark:bg-red-950 dark:ring-gray-950">
                   <step.icon className="h-5 w-5 text-red-600 dark:text-red-300" />
                 </span>
 
                 {/* Content Card */}
-                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50">
+                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-red-100 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-red-900/40">
                   <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                     {step.id}. {step.title}
                   </h3>
@@ -180,9 +189,10 @@ const UserManual = () => {
           </div>
 
           {/* Footer Note */}
-          <div className="mt-12 rounded-xl bg-blue-50 p-6 text-center dark:bg-blue-900/20">
-            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-              Note: This manual serves as a guide for the Staff Purchase Portal.
+          <div className="mt-12 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-6 dark:border-blue-900/40 dark:bg-blue-900/20">
+            <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" />
+            <p className="text-left text-sm font-medium text-blue-800 dark:text-blue-200">
+              This manual serves as a guide for the Staff Purchase Portal.
               Workflows are subject to system updates.
             </p>
           </div>

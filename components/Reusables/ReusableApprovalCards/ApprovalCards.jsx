@@ -20,7 +20,7 @@ import {
 } from "@/utils/FetchCardCounts/fetchApprovalCounts";
 import SkeletonBox from "@/components/skeletons/SkeletonBox";
 
-export default function ApprovalCards() {
+export default function ApprovalCards({ filters = {} }) {
   const { role: userRole } = useUser();
 
   const {
@@ -28,8 +28,8 @@ export default function ApprovalCards() {
     isLoading: loading,
     refetch: refetchCounts,
   } = useQuery({
-    queryKey: ["ApprovalCardCounts"],
-    queryFn: fetchApprovalCounts,
+    queryKey: ["ApprovalCardCounts", filters],
+    queryFn: () => fetchApprovalCounts(filters),
   });
 
   // Calculating the total pending purchases from returned counts data
@@ -58,7 +58,7 @@ export default function ApprovalCards() {
             onClick={() => refetchCounts()}
             title="refresh"
           >
-            <RotateCcw />
+            <RotateCcw className="h-5 w-5" />
           </button>
         </div>
 
@@ -67,7 +67,7 @@ export default function ApprovalCards() {
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
                 {[...Array(4)].map((_, i) => (
-                  <SkeletonBox key={i} className="mr-2 h-12 w-20 md:flex" />
+                  <SkeletonBox key={i} className="mr-2 h-11 w-20 md:flex" />
                 ))}
               </div>
             )}
@@ -76,29 +76,29 @@ export default function ApprovalCards() {
           <>
             {userRole !== "staff" && (
               <div className="hidden items-center space-x-2 lg:flex">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-200 p-3 shadow-sm hover:shadow-md dark:bg-slate-900">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-none dark:bg-gray-800">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {counts.total > 500 ? "500+" : counts.total}
                   </span>{" "}
-                  <TrendingUp />
+                  <TrendingUp className="h-4.5 w-4.5 text-gray-800 dark:text-gray-200" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 shadow-sm hover:shadow-md dark:bg-slate-700">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-none dark:bg-gray-800">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {counts.totalDeclined > 500 ? "500+" : counts.totalDeclined}
                   </span>{" "}
-                  <MessageCircleX />
+                  <MessageCircleX className="h-4.5 w-4.5 text-rose-500 dark:text-rose-400" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-yellow-50 p-3 shadow-sm hover:shadow-md dark:bg-gray-800">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-none dark:bg-gray-800">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {totalPending > 500 ? "500+" : totalPending}
                   </span>{" "}
-                  <ClockFading />
+                  <ClockFading className="h-4.5 w-4.5 text-amber-500 dark:text-amber-400" />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-blue-50 p-3 shadow-sm hover:shadow-md dark:bg-slate-800">
-                  <span className="font-mono text-xl font-semibold">
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-none dark:bg-gray-800">
+                  <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
                     {counts.totalApproved > 500 ? "500+" : counts.totalApproved}
                   </span>{" "}
-                  <CheckCheck />
+                  <CheckCheck className="h-4.5 w-4.5 text-emerald-500 dark:text-emerald-400" />
                 </div>
               </div>
             )}
