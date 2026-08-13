@@ -245,7 +245,7 @@ export const RecentActionButtons = ({
                 //Only staff can delete, and only their own not-yet-invoiced requests
                 goingTo === id ||
                 disableDelete ||
-                userRole !== "staff" ||
+                userRole !== "admin" ||
                 biApproval !== "pending" ||
                 ccApproval !== "pending"
               }
