@@ -55,9 +55,24 @@ export async function GET(request) {
     }
 
     // If there is already a valid session of the user available,
-    // redirect directly to the dashboard
+    // redirect directly to the dashboard - but only if the account hasn't
+    // been disabled since the session was issued (the JWT itself has no
+    // way of knowing that).
     const existingSession = await getCurrentUser();
     if (existingSession.valid) {
+      const [existingUser] = await pool.execute(
+        `SELECT is_active FROM users WHERE id = ? LIMIT 1`,
+        [existingSession.id],
+      );
+
+      if (existingUser.length === 0 || !existingUser[0].is_active) {
+        const response = NextResponse.redirect(
+          new URL(`${basePath}/login`, baseUrl),
+        );
+        response.cookies.delete("session_token"); // Hard clean from browser
+        return response;
+      }
+
       const redirectLink = isValidRole(existingSession.role)
         ? `${basePath}/dashboard`
         : `${basePath}/login`;
