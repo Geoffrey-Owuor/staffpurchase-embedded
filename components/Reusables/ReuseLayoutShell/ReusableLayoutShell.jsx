@@ -22,10 +22,10 @@ export default function ReusableLayoutShell({ user, children }) {
   useAuthSync(user);
 
   const mainMarginClass = showTopbar
-    ? ""
+    ? "custom:left-2"
     : sidebarOpen
-      ? "custom:left-58 custom:top-0 custom:rounded-tr-none!"
-      : "custom:left-14 custom:top-0 custom:rounded-tr-none!";
+      ? "custom:left-58 custom:top-2"
+      : "custom:left-14 custom:top-2";
 
   return (
     <UserContext.Provider value={user}>
@@ -34,7 +34,7 @@ export default function ReusableLayoutShell({ user, children }) {
         <MobileHeader />
         <ReusableSidebar />
         <main
-          className={`fixed right-0 ${mainMarginClass} bg-base-classes top-16 bottom-0 left-0 overflow-auto rounded-t-3xl border border-gray-300 px-2 transition-all duration-200 sm:rounded-t-2xl dark:border-gray-800`}
+          className={`fixed right-0 ${mainMarginClass} bg-base-classes custom:right-2 custom:bottom-2 custom:rounded-b-2xl top-16 bottom-0 left-0 overflow-auto rounded-t-2xl border border-gray-300 px-2 transition-all duration-200 dark:border-gray-800`}
         >
           <div className="mx-auto mt-2 flex h-full max-w-7xl flex-col">
             <div className="flex-1">{children}</div>
