@@ -1,5 +1,6 @@
 import { verifyPassword, createSession } from "@/app/lib/auth";
 import pool from "@/lib/db";
+import { MAX_LOGIN_ATTEMPTS } from "@/lib/loginPolicy";
 
 export async function POST(request) {
   try {
@@ -35,8 +36,9 @@ export async function POST(request) {
 
     if (!isValid) {
       const newAttempts = user.password_attempts + 1;
+      const remainingAttempts = MAX_LOGIN_ATTEMPTS - newAttempts;
 
-      if (newAttempts >= 3) {
+      if (remainingAttempts <= 0) {
         // Lock the account and update total attempts
         await pool.execute(
           "UPDATE users SET password_attempts = ?, is_active = false WHERE id = ?",
@@ -57,7 +59,12 @@ export async function POST(request) {
           [newAttempts, user.id],
         );
         return Response.json(
-          { success: false, message: "Wrong email or password" },
+          {
+            success: false,
+            message: `Wrong email or password. ${remainingAttempts} attempt${
+              remainingAttempts === 1 ? "" : "s"
+            } remaining before your account is locked.`,
+          },
           { status: 401 },
         );
       }
