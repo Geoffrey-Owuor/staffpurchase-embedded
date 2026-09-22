@@ -40,7 +40,7 @@ export default function MpesaTillNumber() {
     }
   };
   return (
-    <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pr-1.5 pl-3 shadow-sm dark:border-gray-800 dark:bg-gray-950">
+    <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white py-1 pr-1.5 pl-3 shadow-sm dark:border-gray-800 dark:bg-gray-950">
       <span className="font-mono text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
         Till No.
       </span>

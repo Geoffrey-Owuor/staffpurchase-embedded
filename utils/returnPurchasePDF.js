@@ -10,6 +10,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { formatCreditPeriod } from "@/public/assets";
+import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
 
 // Register a standard font (actually Lato)
 Font.register({
@@ -287,6 +288,10 @@ const PurchasePDFDocument = ({
                   <Text style={styles.tableCol2}>{item.productCode}</Text>
                   <Text style={styles.tableCol3}>
                     {formatCurrency(item.tdPrice)}
+                    {"\n"}
+                    <Text style={{ fontSize: 7, color: "#6B7280" }}>
+                      {PRICE_CODE_LABELS[item.priceCode] || "Trade Price"}
+                    </Text>
                   </Text>
                   <Text style={styles.tableCol4}>
                     {formatCurrency(
