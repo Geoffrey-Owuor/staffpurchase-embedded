@@ -5,7 +5,7 @@ import Alert from "../Alert";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
 import StaffInformation from "../StaffInformation";
-import ProductPricing from "../ProductPricing";
+import ProductPricing from "../ProductPricing/ProductPricing";
 import PaymentDetails from "../PaymentDetails";
 import EditFormSkeleton from "../skeletons/EditFormSkeleton";
 import PayrollApprovalSection from "../FormEditComponents/PayrollApprovalSection";
@@ -28,9 +28,13 @@ const initialProductState = {
   itemStatus: "",
   productPolicy: "",
   productCode: "",
+  priceCode: "",
   tdPrice: "",
   discountRate: "",
   discountedValue: "",
+  tradePrice: "",
+  retailPrice: "",
+  onlinePrice: "",
 };
 
 //Getting today's date in mm/dd/yy format (Server time zone)
@@ -154,6 +158,22 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       ? purchase.products
       : [{ ...initialProductState }],
   );
+
+  // Tracks which product rows currently have an in-progress Orion price
+  // fetch, so submission can be blocked until every fetch settles.
+  const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
+  const handleFetchStatusChange = (index, isFetching) => {
+    setFetchingIndices((prev) => {
+      const next = new Set(prev);
+      if (isFetching) {
+        next.add(index);
+      } else {
+        next.delete(index);
+      }
+      return next;
+    });
+  };
+  const isFetchingAnyPrice = fetchingIndices.size > 0;
 
   const [submitting, setIsSubmitting] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -365,6 +385,9 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                 userRole={userRole}
                 paymentTerms={paymentInfo.employee_payment_terms}
                 approversPurchasing={false}
+                onFetchStatusChange={(isFetching) =>
+                  handleFetchStatusChange(index, isFetching)
+                }
               />
               {/* Removing a product - Only when role is cc */}
               {products.length > 1 && userRole === "cc" && (
@@ -432,6 +455,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
             payrollApproval={purchase.Payroll_Approval}
             hrApproval={purchase.HR_Approval}
             ccApproval={purchase.CC_Approval}
+            disabled={submitting || isFetchingAnyPrice}
           />
         </form>
       </div>

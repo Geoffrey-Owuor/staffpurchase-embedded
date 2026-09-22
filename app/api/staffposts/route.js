@@ -1,10 +1,15 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { userEmailHandler } from "@/lib/Email/userEmailHandler";
+import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
 
 const parseNumber = (value) => {
   return value === "" || value == null ? null : parseFloat(value);
 };
+
+const VALID_PRICE_CODES = [...PRICE_CODES, "MANUAL"];
+const normalizePriceCode = (value) =>
+  VALID_PRICE_CODES.includes(value) ? value : "TRADE";
 
 class RouteError extends Error {
   constructor(status, message) {
@@ -33,7 +38,7 @@ export const POST = requireAuth(async (request, { user }) => {
         {
           success: false,
           message:
-            "Price is missing, click the search icon in product code field to insert the price",
+            "Price is missing, enter a valid product code so it can be fetched",
         },
         { status: 400 },
       );
@@ -91,17 +96,21 @@ export const POST = requireAuth(async (request, { user }) => {
       const itemInsertPromises = products.map((product) => {
         return connection.execute(
           `INSERT INTO purchase_products
-        (purchase_id, itemName, itemStatus, productPolicy, productCode, tdPrice, discountRate, discountedValue)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             purchaseId,
             product.itemName,
             product.itemStatus,
             product.productPolicy,
-            product.productCode,
+            product.productCode?.trim(),
+            normalizePriceCode(product.priceCode),
             parseNumber(product.tdPrice),
             parseNumber(product.discountRate),
             parseNumber(product.discountedValue),
+            parseNumber(product.tradePrice) ?? 0,
+            parseNumber(product.retailPrice) ?? 0,
+            parseNumber(product.onlinePrice) ?? 0,
           ],
         );
       });
