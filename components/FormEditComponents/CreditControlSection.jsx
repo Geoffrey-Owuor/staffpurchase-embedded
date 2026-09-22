@@ -22,11 +22,9 @@ export default function CreditControlSection({
         </h3>
       </div>
       {userRole === "cc" && (
-        <div className="px-2">
+        <div className="mx-2 rounded-lg bg-amber-100 p-2 dark:bg-amber-950">
           <p className="text-xs">
-            <span className="font-semibold text-red-500 dark:text-red-400">
-              Note:{" "}
-            </span>
+            <span className="font-semibold">Note: </span>
             Don't forget to check the "Other Details" field for items being
             bought at offer prices
           </p>

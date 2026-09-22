@@ -268,7 +268,7 @@ export default function GeneralViewPurchases({ id }) {
           </div>
           <div>
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              Delivery & Invoicing Details
+              Invoicing & Other Details
             </h2>
             <div className="space-y-4">
               <DetailField
@@ -276,7 +276,7 @@ export default function GeneralViewPurchases({ id }) {
                 value={purchase.invoicing_location}
               />
               <DetailField
-                label="Delivery/Pickup Details"
+                label="Other Details"
                 value={purchase.delivery_details}
               />
               <DetailField
