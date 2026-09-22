@@ -50,7 +50,7 @@ export default function MpesaTillNumber() {
       </span>
       <button
         onClick={handleCopy}
-        className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold transition-all duration-200 ${
+        className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-all duration-200 ${
           copied
             ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
             : "bg-green-600 text-white hover:bg-green-700 active:scale-95 dark:bg-green-700 dark:hover:bg-green-600"

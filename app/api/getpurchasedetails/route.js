@@ -86,7 +86,17 @@ export const POST = requireAuth(async (request) => {
   const year = now.getFullYear();
   const formattedDate = `${day}-${month}-${year}`;
 
-  const { productCode: rawProductCode } = await request.json();
+  // The client debounces + aborts in-flight fetches as the user types
+  // (useOrionPrices.js), so an occasional request here corresponds to an
+  // already-abandoned client request with an empty/truncated body -
+  // request.json() throws SyntaxError on that rather than a real client
+  // error, so it's handled separately from actual malformed input.
+  let rawProductCode;
+  try {
+    ({ productCode: rawProductCode } = await request.json());
+  } catch {
+    return Response.json({ message: "Invalid request body" }, { status: 400 });
+  }
   const productCode = rawProductCode?.trim();
 
   if (!productCode) {

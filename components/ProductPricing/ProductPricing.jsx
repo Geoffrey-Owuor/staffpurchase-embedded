@@ -8,6 +8,7 @@ import { RotateCcw } from "lucide-react";
 import { useOrionPrices } from "@/hooks/useOrionPrices";
 import { selectLowestPrice } from "@/utils/Pricing/selectLowestPrice";
 import { resolveDiscountPolicy } from "@/utils/Pricing/resolveDiscountPolicy";
+import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
 
 const ITEM_STATUS_OPTIONS = [
   { value: "New", label: "New" },
@@ -72,6 +73,11 @@ const ProductPricing = ({
     orion.refetch();
   };
 
+  // The `orion.prices` object last consumed by the policy/selection effect
+  // below - lets it tell a genuinely new fetch result apart from the effect
+  // simply re-running while `orion.status` still reflects an older fetch.
+  const appliedFetchRef = useRef(null);
+
   // Auto-apply the fetched item name (replaces the old click-to-select popover).
   useEffect(() => {
     if (orion.status !== "success") return;
@@ -83,10 +89,20 @@ const ProductPricing = ({
   // Policy resolution + lowest-price selection.
   useEffect(() => {
     if (!["staff", "cc"].includes(userRole) && !approversPurchasing) return;
-    // A manually-entered price (CC override) sticks until a fresh fetch runs.
-    if (formData.priceCode === "MANUAL") return;
 
-    const { itemName, itemStatus } = formData;
+    // A manually-entered price (CC override) sticks until a *fresh* fetch
+    // completes - retyping the product code, or hitting Retry, always wins
+    // over a prior MANUAL override. `isFreshFetch` distinguishes that from
+    // this effect merely re-running for an unrelated reason (e.g. Item
+    // Status changing) while `orion.status`/`orion.prices` still reflect an
+    // earlier, already-applied fetch - `appliedFetchRef` remembers which
+    // `orion.prices` object was last consumed, and useOrionPrices always
+    // hands back a brand-new object on every completed fetch.
+    const isFreshFetch =
+      orion.status === "success" && orion.prices !== appliedFetchRef.current;
+    if (formData.priceCode === "MANUAL" && !isFreshFetch) return;
+
+    const { itemName, itemStatus, priceCode } = formData;
     const policyResolution = resolveDiscountPolicy({
       itemName,
       itemStatus,
@@ -96,14 +112,24 @@ const ProductPricing = ({
     if (!policyResolution.resolved) return;
 
     const { policyRate, productPolicy } = policyResolution;
+    // RTLRRP/ONLINE never carry a discount (only TRADE does) — never let a
+    // resolved policy rate land on top of one of those bases.
+    const isNonTradeFetchedBasis =
+      priceCode === "RTLRRP" || priceCode === "ONLINE";
 
     if (orion.status === "success") {
+      // Mark this fetch result consumed regardless of outcome, so an
+      // unrelated re-run of this effect (nothing newly fetched) doesn't
+      // keep treating it as fresh.
+      appliedFetchRef.current = orion.prices;
+
       const { winner } = selectLowestPrice({
         prices: orion.prices,
         discountRate: policyRate,
       });
 
       if (winner) {
+        // A usable winner always wins, replacing any prior MANUAL override.
         setFormData((prev) => ({
           ...prev,
           productPolicy,
@@ -119,11 +145,13 @@ const ProductPricing = ({
 
       // All three fetched prices unusable: keep the existing tdPrice (don't
       // blank a previously-good value), but still persist the raw fetch
-      // results (0.00 fallback) for audit.
+      // results (0.00 fallback) for audit. A prior MANUAL entry is left
+      // fully intact here (price, basis and discount) rather than wiping it
+      // out over a refetch that found nothing to replace it with.
       setFormData((prev) => ({
         ...prev,
         productPolicy,
-        discountRate: policyRate,
+        discountRate: priceCode === "MANUAL" ? prev.discountRate : policyRate,
         tradePrice: orion.prices.TRADE ?? 0,
         retailPrice: orion.prices.RTLRRP ?? 0,
         onlinePrice: orion.prices.ONLINE ?? 0,
@@ -131,12 +159,15 @@ const ProductPricing = ({
       return;
     }
 
-    // No fresh fetch result yet (e.g. hydrated edit-page values) — only
-    // keep the policy/discount rate current, same as the original behavior.
+    // No fresh fetch result yet (e.g. hydrated edit-page values) — keep the
+    // policy current, and the discount rate current *for a TRADE basis
+    // only*. For an RTLRRP/ONLINE basis this also self-heals a stale
+    // nonzero discountRate that may have been saved before price-basis
+    // gating existed.
     setFormData((prev) => ({
       ...prev,
       productPolicy,
-      discountRate: policyRate,
+      discountRate: isNonTradeFetchedBasis ? 0 : policyRate,
     }));
   }, [
     formData.itemName,
@@ -185,6 +216,13 @@ const ProductPricing = ({
   const ccReadOnly = userRole !== "cc";
   const isReadonlyGeneral =
     !editableRoles.includes(userRole) && !approversPurchasing;
+
+  // Discount policies only apply to a TRADE basis; MANUAL is a full CC
+  // hand-entry so a custom discount on top of it is still meaningful.
+  // RTLRRP/ONLINE never take a discount, so the field is locked to 0 then.
+  const isDiscountableBasis =
+    formData.priceCode === "TRADE" || formData.priceCode === "MANUAL";
+  const discountRateReadOnly = ccReadOnly || !isDiscountableBasis;
 
   // What the comparison trigger/modal should show. Available as soon as a
   // fetch succeeds — even before Item Status/Payment Terms are chosen — so a
@@ -243,7 +281,7 @@ const ProductPricing = ({
   const statusText = STATUS_TEXT[orion.status];
 
   return (
-    <div className="relative rounded-xl">
+    <div className="relative mx-2 rounded-xl border border-gray-200 p-2 dark:border-gray-900">
       <div className="rounded-t-xl px-2 py-3 text-lg font-semibold text-gray-900 dark:text-white">
         Product {productNumber}
       </div>
@@ -367,6 +405,30 @@ const ProductPricing = ({
             )}
           </div>
 
+          {/* Price Basis - system-derived, never directly editable. Used to
+          gate whether Discount Rate can carry a nonzero value (see
+          isDiscountableBasis above). */}
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-400">
+              Price Basis
+            </label>
+            {isLoadingPrices ? (
+              <SkeletonBox className="h-11 w-full" />
+            ) : (
+              <input
+                type="text"
+                value={
+                  formData.priceCode
+                    ? (PRICE_CODE_LABELS[formData.priceCode] ??
+                      formData.priceCode)
+                    : "--"
+                }
+                readOnly
+                className="w-full rounded-xl border border-gray-200 bg-gray-100 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              />
+            )}
+          </div>
+
           {/* Discount Rate */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-400">
@@ -381,9 +443,14 @@ const ProductPricing = ({
                 name="discountRate"
                 value={formData.discountRate}
                 onChange={handleChange}
-                readOnly={ccReadOnly}
+                readOnly={discountRateReadOnly}
+                title={
+                  !ccReadOnly && !isDiscountableBasis
+                    ? "Only a Trade Price basis (or a manually entered price) can carry a discount"
+                    : undefined
+                }
                 required
-                className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${ccReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+                className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${discountRateReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
               />
             )}
           </div>

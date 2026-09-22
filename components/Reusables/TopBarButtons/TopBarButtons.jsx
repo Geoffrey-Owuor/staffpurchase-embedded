@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { ChevronLeft, Home } from "lucide-react";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 
 export default function TopBarButtons() {
@@ -27,7 +27,7 @@ export default function TopBarButtons() {
         onClick={gotoHomeClick}
         className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-900/50 dark:text-white dark:hover:bg-gray-800/50"
       >
-        <ArrowLeft className="h-5 w-5" />
+        <Home className="h-4.5 w-4.5" />
         Home
       </button>
     </div>
