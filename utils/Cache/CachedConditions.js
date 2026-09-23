@@ -79,8 +79,11 @@ export const CachedEmails = unstable_cache(
       return emails;
     } catch (error) {
       console.error("Error fetching approver emails:", error);
-      // Empty fallback array
-      return [];
+      // Rethrow rather than returning [] - unstable_cache would cache the empty
+      // fallback for an hour, and callers index into this array positionally,
+      // so every notification would fail until revalidation. Callers (the
+      // email handlers) already catch and log.
+      throw error;
     }
   },
   ["all_approver_emails"],

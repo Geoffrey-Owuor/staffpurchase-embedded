@@ -2,10 +2,16 @@
 import pool from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { sendResetEmail } from "@/lib/nodemailer";
+import { parseEmail, INVALID_EMAIL_MESSAGE } from "@/lib/emailValidation";
 
 export async function POST(request) {
-  const { email } = await request.json();
+  const { email: rawEmail } = await request.json();
+  const email = parseEmail(rawEmail);
   let conn;
+
+  if (!email) {
+    return Response.json({ message: INVALID_EMAIL_MESSAGE }, { status: 400 });
+  }
 
   try {
     conn = await pool.getConnection();
@@ -38,7 +44,13 @@ export async function POST(request) {
     await conn.commit();
 
     const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${token}`;
-    await sendResetEmail(email, resetLink);
+    try {
+      await sendResetEmail(email, resetLink);
+    } catch (error) {
+      // Log, but keep the generic response below - surfacing a send failure
+      // here would reveal that the account exists
+      console.error(`Password reset email to ${email} failed:`, error.message);
+    }
 
     return Response.json({
       message: "If an account exists, a reset link has been sent",

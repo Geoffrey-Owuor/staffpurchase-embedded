@@ -1,1 +1,1 @@
-<!-- The skills.md file -->
+<!-- The CHANGES.md file -->
