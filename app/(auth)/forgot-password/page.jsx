@@ -4,6 +4,7 @@ import Link from "next/link";
 import Alert from "@/components/Alert";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
 import { basePath } from "@/public/assets";
+import { isValidEmail, normalizeEmail } from "@/lib/emailValidation";
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1); // step 1 = form, step 2 = message
@@ -15,10 +16,8 @@ export default function ForgotPassword() {
   const [coolDown, setCoolDown] = useState(0);
   const [emailError, setEmailError] = useState("");
 
-  // Simple email format validation regex
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  // Same rules the server enforces (lib/emailValidation.js)
+  const validateEmail = (email) => isValidEmail(normalizeEmail(email));
 
   useEffect(() => {
     if (email && !validateEmail(email)) {

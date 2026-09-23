@@ -1,10 +1,21 @@
 import { verifyPassword, createSession } from "@/app/lib/auth";
 import pool from "@/lib/db";
 import { MAX_LOGIN_ATTEMPTS } from "@/lib/loginPolicy";
+import { parseEmail } from "@/lib/emailValidation";
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
+    const { email: rawEmail, password } = await request.json();
+    const email = parseEmail(rawEmail);
+
+    // A malformed email can't belong to an account - answer exactly like an
+    // unknown user so this doesn't reveal anything extra
+    if (!email) {
+      return Response.json(
+        { success: false, message: "Wrong email or password" },
+        { status: 401 },
+      );
+    }
 
     // 1. Find user by email (added is_active and password_attempts to SELECT)
     const [users] = await pool.execute(

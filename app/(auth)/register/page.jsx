@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
 import { basePath } from "@/public/assets";
+import { isValidEmail, normalizeEmail } from "@/lib/emailValidation";
 
 export default function Step1Page() {
   const router = useRouter();
@@ -13,10 +14,8 @@ export default function Step1Page() {
   const [emailError, setEmailError] = useState("");
   const [error, setError] = useState("");
 
-  // Simple email format validation regex
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  // Same rules the server enforces (lib/emailValidation.js)
+  const validateEmail = (email) => isValidEmail(normalizeEmail(email));
 
   useEffect(() => {
     if (email && !validateEmail(email)) {
@@ -28,6 +27,10 @@ export default function Step1Page() {
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
     setLoading(true);
     setError("");
 
