@@ -22,13 +22,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      data-font="geist"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
       <head>
         <meta name="apple-mobile-web-app-title" content="Hotpoint" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-base-classes antialiased`}
-      >
+      <body className="bg-base-classes antialiased">
         <ThemeProvider
           enableSystem={true}
           defaultTheme="system"
