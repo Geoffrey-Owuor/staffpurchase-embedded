@@ -395,7 +395,7 @@ export default function GeneralViewPurchases({ id }) {
 
             <div className="md:col-span-2">
               <DetailField
-                label="Purchase History Comments"
+                label="Credit Control Comments"
                 value={purchase.purchase_history_comments || "n/a"}
               />
             </div>

@@ -57,7 +57,7 @@ const generateBIRejectionEmailHTML = ({
                          <p><strong>Name:</strong> ${staffName}</p>
                          <p><strong>Payroll No:</strong> ${payrollNo}</p>
                          <p><strong>Credit Control Approver:</strong> ${bi_approver_name}</p>
-                         <p><strong>Purchase History Comments:</strong> ${purchase_history_comments}</p>
+                         <p><strong>Comments:</strong> ${purchase_history_comments}</p>
                          
                          <h3 style="color: #333;">Requested Items</h3>
                       
