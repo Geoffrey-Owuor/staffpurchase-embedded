@@ -1,5 +1,6 @@
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
 
 const EMPLOYMENT_STATUS_OPTIONS = [
@@ -16,6 +17,13 @@ const APPROVAL_STATUS_OPTIONS = [
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "declined", label: "Declined" },
+];
+
+// Placeholder options - value is the label text itself, so the view page,
+// PDF, export and emails display it as-is.
+const HR_COMMENT_OPTIONS = [
+  { value: "Purchase Request Approved", label: "Purchase Request Approved" },
+  { value: "Purchase Request Declined", label: "Purchase Request Declined" },
 ];
 
 export default function HRApprovalSection({
@@ -148,26 +156,15 @@ export default function HRApprovalSection({
 
         {/* Comments */}
         <div className="md:col-span-2">
-          <label
-            htmlFor="hr_comments"
-            className="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-400"
-          >
-            HR Comments <FormAsterisk />
-          </label>
-          <textarea
+          <PresetCommentField
             id="hr_comments"
-            name="hr_comments"
-            rows={4}
+            label="HR Comments"
             value={formData.hr_comments}
-            onChange={handleChange}
+            options={HR_COMMENT_OPTIONS}
+            handleChange={handleChange}
             readOnly={isReadOnly}
-            required
-            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
-              isReadOnly
-                ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-                : "bg-white dark:bg-gray-950"
-            }`}
-            placeholder="Enter HR comments"
+            selectPlaceholder="Select HR comment"
+            textPlaceholder="Enter HR comments"
           />
         </div>
       </div>

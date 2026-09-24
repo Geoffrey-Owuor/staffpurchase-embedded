@@ -1,4 +1,5 @@
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
 import { formatDateLong } from "@/public/assets";
 
@@ -6,6 +7,13 @@ const APPROVAL_STATUS_OPTIONS = [
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "declined", label: "Declined" },
+];
+
+// Placeholder options - value is the label text itself, so the view page,
+// PDF, export and emails display it as-is.
+const ONE_THIRD_RULE_OPTIONS = [
+  { value: "1/3 Rule Met", label: "1/3 Rule Met" },
+  { value: "1/3 Rule Not Met", label: "1/3 Rule Not Met" },
 ];
 
 export default function PayrollApprovalSection({
@@ -24,22 +32,15 @@ export default function PayrollApprovalSection({
       <div className="grid grid-cols-1 gap-6 px-2 py-4 md:grid-cols-2">
         {/* Third Rule Assessment */}
         <div className="md:col-span-2">
-          <label
-            htmlFor="one_third_rule"
-            className="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-400"
-          >
-            1/3 Rule Assessment <FormAsterisk />
-          </label>
-          <textarea
+          <PresetCommentField
             id="one_third_rule"
-            name="one_third_rule"
-            rows={4}
+            label="1/3 Rule Assessment"
             value={formData.one_third_rule}
-            onChange={handleChange}
+            options={ONE_THIRD_RULE_OPTIONS}
+            handleChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
-            placeholder="Enter 1/3 rule compliance assessment"
-            required
+            selectPlaceholder="Select 1/3 rule assessment"
+            textPlaceholder="Enter 1/3 rule compliance assessment"
           />
         </div>
 
