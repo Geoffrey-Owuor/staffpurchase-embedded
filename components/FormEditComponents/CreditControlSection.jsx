@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
 
 const APPROVAL_STATUS_OPTIONS = [
@@ -9,8 +9,8 @@ const APPROVAL_STATUS_OPTIONS = [
   { value: "declined", label: "Declined" },
 ];
 
-// Placeholder options - value is the label text itself, so the view page,
-// PDF, export and emails display it as-is.
+// Value is the label text itself, so the view page, PDF, export and emails
+// display it as-is.
 const PURCHASE_HISTORY_COMMENT_OPTIONS = [
   {
     value: "Item not purchased in the last 1 year period",
@@ -32,33 +32,6 @@ export default function CreditControlSection({
   userRole,
 }) {
   const isReadOnly = userRole !== "cc";
-
-  // Purchase History Comments is a preset dropdown by default, with a toggle
-  // to type free text instead. Records already holding a non-preset comment
-  // (older free-text records, or a previously typed custom one) open in
-  // free-text mode so the full comment stays visible and editable.
-  const comment = formData.purchase_history_comments || "";
-  const isPresetComment = (value) =>
-    PURCHASE_HISTORY_COMMENT_OPTIONS.some((o) => o.value === value);
-  const [isCustomComment, setIsCustomComment] = useState(
-    () => comment !== "" && !isPresetComment(comment),
-  );
-  // Remembers typed text across toggles so switching to the list and back
-  // doesn't lose it.
-  const customDraftRef = useRef(isCustomComment ? comment : "");
-
-  const setComment = (value) =>
-    handleChange({ target: { name: "purchase_history_comments", value } });
-
-  const toggleCommentMode = () => {
-    if (isCustomComment) {
-      customDraftRef.current = comment;
-      if (!isPresetComment(comment)) setComment("");
-    } else if (customDraftRef.current) {
-      setComment(customDraftRef.current);
-    }
-    setIsCustomComment(!isCustomComment);
-  };
 
   return (
     <div className="rounded-xl">
@@ -99,51 +72,14 @@ export default function CreditControlSection({
         </div>
 
         <div className="md:col-span-2">
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <label
-              htmlFor="purchase_history_comments"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-400"
-            >
-              Credit Control Comments <FormAsterisk />
-            </label>
-            {!isReadOnly && (
-              <button
-                type="button"
-                onClick={toggleCommentMode}
-                className="cursor-pointer text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-900 hover:underline dark:text-gray-400 dark:hover:text-white"
-              >
-                {isCustomComment ? "Choose from list" : "Type my own comment"}
-              </button>
-            )}
-          </div>
-          {isCustomComment ? (
-            <textarea
-              id="purchase_history_comments"
-              name="purchase_history_comments"
-              rows={4}
-              value={comment}
-              onChange={(e) => {
-                customDraftRef.current = e.target.value;
-                handleChange(e);
-              }}
-              readOnly={isReadOnly}
-              className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
-              placeholder="Enter your comments"
-              required
-            />
-          ) : (
-            <Select
-              id="purchase_history_comments"
-              name="purchase_history_comments"
-              value={comment}
-              onChange={setComment}
-              options={PURCHASE_HISTORY_COMMENT_OPTIONS}
-              placeholder="Select comment"
-              className="w-full"
-              disabled={isReadOnly}
-              required
-            />
-          )}
+          <PresetCommentField
+            id="purchase_history_comments"
+            label="Credit Control Comments"
+            value={formData.purchase_history_comments}
+            options={PURCHASE_HISTORY_COMMENT_OPTIONS}
+            handleChange={handleChange}
+            readOnly={isReadOnly}
+          />
         </div>
 
         {/* Two-column fields */}
