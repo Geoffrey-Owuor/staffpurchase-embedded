@@ -120,6 +120,14 @@ former ~700-800-line near-duplicate components:
   `Pagination.jsx`'s rows-per-page picker. Use it for any new dropdown
   instead of a native `<select>`.
 
+## Database schema changes
+
+There is no migration framework or runner in this repo. Schema changes are
+applied by hand against MySQL. When a change needs one, write the SQL to
+`db/migrations/<date>_<description>.sql` (documentation only — nothing runs
+it automatically) and note in the PR/commit that it must be run manually
+before the code that depends on it deploys.
+
 ## Query params & pagination
 
 - `utils/FetchPurchases/buildPurchaseQueryParams.js` is the single place

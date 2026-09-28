@@ -229,7 +229,7 @@ export default function Select({
         className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-300 bg-white px-3 py-[11px] text-sm focus:border-gray-500 focus:outline-none disabled:opacity-50 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
       >
         <span
-          className={selectedOption ? "" : "text-gray-400 dark:text-gray-500"}
+          className={`min-w-0 text-left wrap-break-word whitespace-pre-line ${selectedOption ? "" : "text-gray-400 dark:text-gray-500"}`}
         >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
@@ -253,7 +253,7 @@ export default function Select({
               y: openDirection === "down" ? -6 : 6,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-10 w-max min-w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
+            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-10 w-max max-w-[min(32rem,90vw)] min-w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
           >
             <div className="p-1">
               {showSearch && (
@@ -310,7 +310,9 @@ export default function Select({
                         : "text-gray-700 dark:text-gray-300"
                     }`}
                   >
-                    <span>{option.label}</span>
+                    <span className="min-w-0 wrap-break-word whitespace-pre-line">
+                      {option.label}
+                    </span>
                     {option.value === value && (
                       <Check className="h-3.5 w-3.5 shrink-0" />
                     )}

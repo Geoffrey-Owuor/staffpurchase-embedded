@@ -1,5 +1,6 @@
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
+import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
 
 const APPROVAL_STATUS_OPTIONS = [
@@ -8,12 +9,30 @@ const APPROVAL_STATUS_OPTIONS = [
   { value: "declined", label: "Declined" },
 ];
 
+// Value is the label text itself, so the view page, PDF, export and emails
+// display it as-is.
+const PURCHASE_HISTORY_COMMENT_OPTIONS = [
+  {
+    value: "Item not purchased in the last 1 year period",
+    label: "Item not purchased in the last 1 year period",
+  },
+  {
+    value: "Same item purchased in the last 1 year period",
+    label: "Same item purchased in the last 1 year period",
+  },
+  {
+    value: "Change of mind, staff no longer wants to purchase",
+    label: "Change of mind, staff no longer wants to purchase",
+  },
+];
+
 export default function CreditControlSection({
   formData,
   handleChange,
   userRole,
 }) {
   const isReadOnly = userRole !== "cc";
+
   return (
     <div className="rounded-xl">
       <div className="px-2 py-3">
@@ -22,11 +41,9 @@ export default function CreditControlSection({
         </h3>
       </div>
       {userRole === "cc" && (
-        <div className="px-2">
+        <div className="mx-2 rounded-lg bg-amber-100 p-2 dark:bg-amber-950">
           <p className="text-xs">
-            <span className="font-semibold text-red-500 dark:text-red-400">
-              Note:{" "}
-            </span>
+            <span className="font-semibold">Note: </span>
             Don't forget to check the "Other Details" field for items being
             bought at offer prices
           </p>
@@ -55,22 +72,13 @@ export default function CreditControlSection({
         </div>
 
         <div className="md:col-span-2">
-          <label
-            htmlFor="purchase_history_comments"
-            className="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-400"
-          >
-            Purchase History Comments <FormAsterisk />
-          </label>
-          <textarea
+          <PresetCommentField
             id="purchase_history_comments"
-            name="purchase_history_comments"
-            rows={4}
+            label="Credit Control Comments"
             value={formData.purchase_history_comments}
-            onChange={handleChange}
+            options={PURCHASE_HISTORY_COMMENT_OPTIONS}
+            handleChange={handleChange}
             readOnly={isReadOnly}
-            className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
-            placeholder="Enter comments on purchase history"
-            required
           />
         </div>
 

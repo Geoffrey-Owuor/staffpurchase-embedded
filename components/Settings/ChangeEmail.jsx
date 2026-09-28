@@ -2,16 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Mail, Loader2, X } from "lucide-react";
-import { useUser } from "@/context/UserContext";
 import Alert from "../Alert";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { LoggingOutOverlay } from "../Reusables/LoadingBar";
 import { basePath } from "@/public/assets";
+import { isValidEmail, normalizeEmail } from "@/lib/emailValidation";
 
 export default function ChangeEmail({ onClose }) {
   const router = useRouter();
-  const { email: oldEmail } = useUser();
   const [step, setStep] = useState("step1");
   const [newEmail, setNewEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
@@ -31,10 +30,8 @@ export default function ChangeEmail({ onClose }) {
   // Derived state to check if code is full
   const isCodeFull = otp.join("").length === 6;
 
-  // Simple email format validation regex
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  // Same rules the server enforces (lib/emailValidation.js)
+  const validateEmail = (email) => isValidEmail(normalizeEmail(email));
 
   // Effect to validate inputs on change
   useEffect(() => {
@@ -92,7 +89,6 @@ export default function ChangeEmail({ onClose }) {
           body: JSON.stringify({
             newemail: newEmail,
             code: codeToSubmit,
-            oldemail: oldEmail,
           }),
         });
 
@@ -131,7 +127,7 @@ export default function ChangeEmail({ onClose }) {
         setUpdating(false);
       }
     },
-    [newEmail, oldEmail],
+    [newEmail],
   );
 
   //useEffect for auto-submission

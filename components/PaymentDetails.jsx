@@ -193,7 +193,7 @@ const PaymentDetails = ({
               }`}
               required
               disabled={staffReadonly}
-              placeholder="Enter other details applicable to this purchase request e.g., delivery/pickup details..."
+              placeholder="Enter other details applicable to this purchase request e.g., delivery details, offer/special prices, etc..."
             />
           </div>
         </div>
