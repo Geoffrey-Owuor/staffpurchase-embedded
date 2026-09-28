@@ -1,6 +1,7 @@
 // app/api/register/completeregistration/route.js - Complete Registration
 import { hashPassword, createSession } from "@/app/lib/auth";
 import pool from "@/lib/db";
+import { parseEmail, INVALID_EMAIL_MESSAGE } from "@/lib/emailValidation";
 import { cookies } from "next/headers";
 
 const getRoleFromEmail = (email) => {
@@ -20,8 +21,21 @@ const getRoleFromEmail = (email) => {
 export async function POST(request) {
   let conn;
   try {
-    const { name, email, password, payrollNo, department } =
-      await request.json();
+    const {
+      name,
+      email: rawEmail,
+      password,
+      payrollNo,
+      department,
+    } = await request.json();
+    const email = parseEmail(rawEmail);
+
+    if (!email) {
+      return Response.json(
+        { success: false, message: INVALID_EMAIL_MESSAGE },
+        { status: 400 },
+      );
+    }
 
     conn = await pool.getConnection();
 

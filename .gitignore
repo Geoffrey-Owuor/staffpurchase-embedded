@@ -35,6 +35,9 @@ yarn-error.log*
 .prettierrc*
 ecosystem.config.js*
 
+# Migration files
+/db
+
 # vercel
 .vercel
 

@@ -83,17 +83,20 @@ export default function SecuritySettingsPage() {
     <>
       <AnimatePresence>
         {showChangeEmail && (
-          <ChangeEmail onClose={() => setShowChangeEmail(false)} />
+          <ChangeEmail
+            key="change-email"
+            onClose={() => setShowChangeEmail(false)}
+          />
         )}
-
-        <ConfirmationDialog
-          title="Confirm password update"
-          message="Are you sure you want to update your password?"
-          onConfirm={handleUpdatePassword}
-          showDialog={confirmationDialogue}
-          onCancel={() => setConfirmationDialogue(false)}
-        />
       </AnimatePresence>
+
+      <ConfirmationDialog
+        title="Confirm password update"
+        message="Are you sure you want to update your password?"
+        onConfirm={handleUpdatePassword}
+        showDialog={confirmationDialogue}
+        onCancel={() => setConfirmationDialogue(false)}
+      />
 
       {showAlert && (
         <Alert

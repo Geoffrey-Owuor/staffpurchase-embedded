@@ -4,17 +4,15 @@ import VerifyCodeComponent from "@/components/RegistrationComponents/VerifyCodeC
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-export default async function Step2Page() {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get("verify_email")?.value;
-  if (!cookie) return redirect("/register");
-
+// Returns the email awaiting verification, or null if there isn't a valid,
+// unexpired pending code for it.
+async function getPendingEmail(cookie) {
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jwtVerify(cookie, secret);
     const email = payload.email;
 
-    if (!email) return redirect("/register");
+    if (!email) return null;
 
     const [results] = await pool.execute(
       `SELECT * FROM verification_codes
@@ -22,13 +20,22 @@ export default async function Step2Page() {
       [email],
     );
 
-    if (results.length === 0) {
-      return redirect("/register");
-    }
-
-    return <VerifyCodeComponent email={email} />;
+    return results.length > 0 ? email : null;
   } catch (error) {
-    console.error(error);
-    return redirect("/register");
+    console.error("Verify code page error:", error);
+    return null;
   }
+}
+
+export default async function Step2Page() {
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get("verify_email")?.value;
+  if (!cookie) redirect("/register");
+
+  // redirect() works by throwing, so it must stay outside the try/catch above -
+  // otherwise the catch logs every redirect as an "Error: NEXT_REDIRECT"
+  const email = await getPendingEmail(cookie);
+  if (!email) redirect("/register");
+
+  return <VerifyCodeComponent email={email} />;
 }

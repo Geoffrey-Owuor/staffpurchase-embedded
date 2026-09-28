@@ -1,10 +1,20 @@
 // app/api/register/verifycode/route.js - Code Verification
 import pool from "@/lib/db";
+import { parseEmail, INVALID_EMAIL_MESSAGE } from "@/lib/emailValidation";
+import { requireAuth } from "@/lib/apiAuth";
 
 export async function POST(request) {
   let conn;
   try {
-    const { email, code } = await request.json();
+    const { email: rawEmail, code } = await request.json();
+    const email = parseEmail(rawEmail);
+
+    if (!email) {
+      return Response.json(
+        { success: false, message: INVALID_EMAIL_MESSAGE },
+        { status: 400 },
+      );
+    }
 
     conn = await pool.getConnection();
 
@@ -45,11 +55,19 @@ export async function POST(request) {
   }
 }
 
-export async function PUT(request) {
+// Change email for the logged-in user. The account being changed always comes
+// from the session - never from the request body - otherwise anyone who can
+// verify an address they own could move another user's account onto it.
+export const PUT = requireAuth(async (request, { user }) => {
   let conn;
 
   try {
-    const { code, newemail, oldemail } = await request.json();
+    const { code, newemail: rawNewEmail } = await request.json();
+    const newemail = parseEmail(rawNewEmail);
+
+    if (!newemail) {
+      return Response.json({ message: INVALID_EMAIL_MESSAGE }, { status: 400 });
+    }
 
     conn = await pool.getConnection();
 
@@ -70,15 +88,29 @@ export async function PUT(request) {
     // --- Start Transaction for Modification Steps ---
     await conn.beginTransaction();
 
+    // The address may have been registered since the code was issued
+    const [taken] = await conn.execute(
+      `SELECT id FROM users WHERE email = ? AND id <> ? LIMIT 1 FOR UPDATE`,
+      [newemail, user.id],
+    );
+
+    if (taken.length > 0) {
+      await conn.rollback();
+      return Response.json(
+        { message: "We couldn't update your email. Try another email." },
+        { status: 409 },
+      );
+    }
+
     const [emailUpdate] = await conn.execute(
-      `UPDATE users SET email = ? WHERE email = ?`,
-      [newemail, oldemail],
+      `UPDATE users SET email = ? WHERE id = ?`,
+      [newemail, user.id],
     );
 
     if (emailUpdate.affectedRows === 0) {
       await conn.rollback();
       return Response.json(
-        { message: "Email not updated or old email not found" },
+        { message: "Email not updated or account not found" },
         { status: 400 },
       );
     }
@@ -102,4 +134,4 @@ export async function PUT(request) {
   } finally {
     if (conn) conn.release();
   }
-}
+});

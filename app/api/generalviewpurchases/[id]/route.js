@@ -20,9 +20,13 @@ export const GET = requireAuth(async (_req, { params }) => {
     itemStatus,
     productPolicy,
     productCode,
+    priceCode,
     tdPrice,
     discountRate,
-    discountedValue
+    discountedValue,
+    tradePrice,
+    retailPrice,
+    onlinePrice
     FROM purchase_products
     WHERE purchase_id = ?
       `,

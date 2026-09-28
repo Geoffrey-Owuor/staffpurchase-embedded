@@ -6,6 +6,8 @@
   --breakpoint-custom: 1200px;
   --breakpoint-navigation: 900px;
   --breakpoint-footerBottom: 900px;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 :root {
@@ -18,6 +20,10 @@
     rgba(255, 255, 255, 0.8) 60%,
     rgba(255, 255, 255, 0) 100%
   );
+}
+
+html[data-font="geist"] {
+  font-family: var(--font-sans);
 }
 
 [data-theme="dark"] {

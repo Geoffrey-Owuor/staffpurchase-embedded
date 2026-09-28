@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { PackagePlus, PlusCircle, Trash2 } from "lucide-react";
+import { HandCoins, PackagePlus, PlusCircle, Trash2 } from "lucide-react";
 import Alert from "../Alert";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
 import StaffInformation from "../StaffInformation";
-import ProductPricing from "../ProductPricing";
+import ProductPricing from "../ProductPricing/ProductPricing";
 import PaymentDetails from "../PaymentDetails";
 import EditFormSkeleton from "../skeletons/EditFormSkeleton";
 import PayrollApprovalSection from "../FormEditComponents/PayrollApprovalSection";
@@ -28,9 +28,13 @@ const initialProductState = {
   itemStatus: "",
   productPolicy: "",
   productCode: "",
+  priceCode: "",
   tdPrice: "",
   discountRate: "",
   discountedValue: "",
+  tradePrice: "",
+  retailPrice: "",
+  onlinePrice: "",
 };
 
 //Getting today's date in mm/dd/yy format (Server time zone)
@@ -154,6 +158,22 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       ? purchase.products
       : [{ ...initialProductState }],
   );
+
+  // Tracks which product rows currently have an in-progress Orion price
+  // fetch, so submission can be blocked until every fetch settles.
+  const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
+  const handleFetchStatusChange = (index, isFetching) => {
+    setFetchingIndices((prev) => {
+      const next = new Set(prev);
+      if (isFetching) {
+        next.add(index);
+      } else {
+        next.delete(index);
+      }
+      return next;
+    });
+  };
+  const isFetchingAnyPrice = fetchingIndices.size > 0;
 
   const [submitting, setIsSubmitting] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -341,13 +361,13 @@ function PurchaseForm({ purchase, userRole, name, id }) {
           {/* Main Product Pricing title */}
           <div className="mt-8 mb-4 flex items-center gap-2 px-2 text-gray-900 dark:text-white">
             <PackagePlus className="h-6 w-6" />
-            <span className="text-xl">Product & Pricing Details</span>
+            <span className="text-xl font-semibold">
+              Product & Pricing Details
+            </span>
           </div>
           {userRole === "cc" && (
-            <p className="px-2 text-xs">
-              <span className="font-semibold text-red-500 dark:text-red-400">
-                Note:{" "}
-              </span>
+            <p className="mx-2 rounded-lg bg-amber-100 p-2 text-xs dark:bg-amber-950">
+              <span className="font-semibold">Note: </span>
               Don't forget to check the "Other Details" field for items being
               bought at offer prices
             </p>
@@ -355,7 +375,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
           {/* Map over the products array to render a component for each */}
           {products.map((product, index) => (
-            <div key={index} className="relative">
+            <div key={index} className="relative space-y-4">
               <ProductPricing
                 formData={product}
                 handleChange={(e) => handleProductChange(index, e)}
@@ -365,13 +385,16 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                 userRole={userRole}
                 paymentTerms={paymentInfo.employee_payment_terms}
                 approversPurchasing={false}
+                onFetchStatusChange={(isFetching) =>
+                  handleFetchStatusChange(index, isFetching)
+                }
               />
               {/* Removing a product - Only when role is cc */}
               {products.length > 1 && userRole === "cc" && (
                 <button
                   type="button"
                   onClick={() => removeProduct(index)}
-                  className="absolute top-2 right-4 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
+                  className="absolute top-4 right-6 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
                   title="Remove Product"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -382,9 +405,12 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
           <div className="my-8 flex items-center justify-between px-2">
             {purchaseTotal > 0 && (
-              <span className="text-lg">
-                Total Purchase Value:{" "}
-                <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
+              <span className="inline-flex items-center gap-2 rounded-xl bg-slate-200 px-4 py-2.5 text-sm dark:bg-slate-900">
+                <HandCoins className="h-4.5 w-4.5" />
+                <span>
+                  Total Purchase Value:{" "}
+                  <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
+                </span>
               </span>
             )}
             {/* Adding a product - Only when role is cc */}
@@ -392,7 +418,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
               <button
                 type="button"
                 onClick={addProduct}
-                className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+                className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2.5 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
               >
                 <PlusCircle className="h-5 w-5" />
                 Add <span className="hidden sm:block">Product</span>
@@ -432,6 +458,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
             payrollApproval={purchase.Payroll_Approval}
             hrApproval={purchase.HR_Approval}
             ccApproval={purchase.CC_Approval}
+            disabled={submitting || isFetchingAnyPrice}
           />
         </form>
       </div>

@@ -2,12 +2,13 @@
 import { useState, useMemo, useEffect } from "react";
 import StaffInformation from "../StaffInformation";
 import { useQueryClient } from "@tanstack/react-query";
-import ProductPricing from "../ProductPricing";
+import ProductPricing from "../ProductPricing/ProductPricing";
 import Alert from "../Alert";
 import { LoadingBarWave } from "../Reusables/LoadingBar";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
+  HandCoins,
   PackagePlus,
   PlusCircle,
   SendHorizonal,
@@ -27,9 +28,13 @@ const initialProductState = {
   itemStatus: "",
   productPolicy: "",
   productCode: "",
+  priceCode: "",
   tdPrice: "",
   discountRate: "",
   discountedValue: "",
+  tradePrice: "",
+  retailPrice: "",
+  onlinePrice: "",
 };
 
 export default function NewPurchase({ approversPurchasing }) {
@@ -49,6 +54,22 @@ export default function NewPurchase({ approversPurchasing }) {
   const [periods, setPeriods] = useState([]);
 
   const [products, setProducts] = useState(() => [{ ...initialProductState }]);
+
+  // Tracks which product rows currently have an in-progress Orion price
+  // fetch, so submission can be blocked until every fetch settles.
+  const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
+  const handleFetchStatusChange = (index, isFetching) => {
+    setFetchingIndices((prev) => {
+      const next = new Set(prev);
+      if (isFetching) {
+        next.add(index);
+      } else {
+        next.delete(index);
+      }
+      return next;
+    });
+  };
+  const isFetchingAnyPrice = fetchingIndices.size > 0;
 
   //Calculating the total discountedValue from the products
   const purchaseTotal = useMemo(() => {
@@ -155,7 +176,7 @@ export default function NewPurchase({ approversPurchasing }) {
       setShowAlert(true);
       setAlertType("error");
       setAlertMessage(
-        "Price is missing, click the search icon in product code field to insert the price",
+        "Price is missing, enter a valid product code so it can be fetched",
       );
     } else {
       setShowConfirmDialog(true);
@@ -255,24 +276,25 @@ export default function NewPurchase({ approversPurchasing }) {
           {/* Main Product Pricing title */}
           <div className="mt-8 mb-4 flex items-center gap-2 px-2 text-gray-900 dark:text-white">
             <PackagePlus className="h-6 w-6" />
-            <span className="text-xl">Product & Pricing Details</span>
+            <span className="text-xl font-semibold">
+              Product & Pricing Details
+            </span>
           </div>
-          {(user.role === "staff" || approversPurchasing) && (
-            <p className="mb-4 px-2 text-xs">
-              <span className="font-semibold text-red-500 dark:text-red-400">
-                Please note:
-              </span>{" "}
-              To maintain accurate pricing, product prices cannot be edited by
-              users. If you are buying an item at an offer price, kindly include
-              the item and its offer price along with other necessary details in
-              the “Other Details” section. The Credit Control Team will make the
-              necessary adjustment for you.
-            </p>
-          )}
+          {(user.role === "staff" || approversPurchasing) &&
+            user.role !== "cc" && (
+              <p className="mx-2 mb-4 rounded-lg bg-amber-100 p-2 text-xs dark:bg-amber-950">
+                <span className="font-semibold">Please note:</span> To maintain
+                accurate pricing, product prices cannot be edited by users. If
+                you are buying an item at an offer price, kindly include the
+                item and its offer price along with other necessary details in
+                the “Other Details” section. The Credit Control Team will make
+                the necessary adjustment for you.
+              </p>
+            )}
 
           {/* Map over the products array to render a component for each */}
           {products.map((product, index) => (
-            <div key={index} className="relative">
+            <div key={index} className="relative space-y-4">
               <ProductPricing
                 formData={product}
                 handleChange={(e) => handleProductChange(index, e)}
@@ -282,12 +304,15 @@ export default function NewPurchase({ approversPurchasing }) {
                 userRole={user.role}
                 approversPurchasing={approversPurchasing}
                 paymentTerms={paymentInfo.employee_payment_terms}
+                onFetchStatusChange={(isFetching) =>
+                  handleFetchStatusChange(index, isFetching)
+                }
               />
               {products.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeProduct(index)}
-                  className="absolute top-2 right-4 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
+                  className="absolute top-4 right-6 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
                   title="Remove Product"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -298,15 +323,18 @@ export default function NewPurchase({ approversPurchasing }) {
 
           <div className="my-4 flex flex-col items-center space-y-3 px-2 md:flex-row md:justify-between md:space-y-0">
             {purchaseTotal > 0 && (
-              <span className="text-lg">
-                Total Purchase Value:{" "}
-                <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
+              <span className="inline-flex items-center gap-2 rounded-xl bg-slate-200 px-4 py-2.5 text-sm dark:bg-slate-900">
+                <HandCoins className="h-4.5 w-4.5" />
+                <span>
+                  Total Purchase Value:{" "}
+                  <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
+                </span>
               </span>
             )}
             <button
               type="button"
               onClick={addProduct}
-              className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+              className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2.5 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
             >
               <PlusCircle className="h-5 w-5" />
               Add <span className="hidden sm:block">Product</span>
@@ -315,8 +343,8 @@ export default function NewPurchase({ approversPurchasing }) {
 
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="mx-auto mt-8 flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm text-white transition-colors hover:bg-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
+            disabled={isSubmitting || isFetchingAnyPrice}
+            className="mx-auto mt-8 flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
           >
             <SendHorizonal className="h-5 w-5" />
             Submit Purchase

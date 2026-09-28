@@ -1,10 +1,15 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { ApproversEmailHandler } from "@/lib/Email/ApproversEmailHandler";
+import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
 
 const parseNumber = (value) => {
   return value === "" || value == null ? null : parseFloat(value);
 };
+
+const VALID_PRICE_CODES = [...PRICE_CODES, "MANUAL"];
+const normalizePriceCode = (value) =>
+  VALID_PRICE_CODES.includes(value) ? value : "TRADE";
 
 // Thrown for expected business-rule rejections (404/403) so withTransaction
 // rolls back automatically while still letting the route return the right status.
@@ -164,17 +169,21 @@ export const PUT = requireAuth(async (request, { params, user }) => {
         const itemInsertPromises = products.map((product) => {
           return connection.execute(
             `INSERT INTO purchase_products
-          (purchase_id, itemName, itemStatus, productPolicy, productCode, tdPrice, discountRate, discountedValue)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
               product.itemName,
               product.itemStatus,
               product.productPolicy,
-              product.productCode,
+              product.productCode?.trim(),
+              normalizePriceCode(product.priceCode),
               parseNumber(product.tdPrice),
               parseNumber(product.discountRate),
               parseNumber(product.discountedValue),
+              parseNumber(product.tradePrice) ?? 0,
+              parseNumber(product.retailPrice) ?? 0,
+              parseNumber(product.onlinePrice) ?? 0,
             ],
           );
         });

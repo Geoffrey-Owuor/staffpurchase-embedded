@@ -1,3 +1,5 @@
+import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
+
 export default function ProductItemsInfo({ products }) {
   //Calculate total discounted value using the reduce function
   const totalDiscountedValue = products
@@ -18,6 +20,7 @@ export default function ProductItemsInfo({ products }) {
                 "Status",
                 "Policy",
                 "Code",
+                "Price Basis",
                 "Initial Price",
                 "Discount",
                 "Discounted Value",
@@ -34,41 +37,48 @@ export default function ProductItemsInfo({ products }) {
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {products.length > 0 ? (
-              products.map((product, index) => (
-                <tr key={index}>
-                  <td
-                    className="overflow-hidden px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-white"
-                    title={product.itemName}
-                  >
-                    {product.itemName}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
-                    {product.itemStatus}
-                  </td>
-                  <td
-                    className="overflow-hidden px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300"
-                    title={product.productPolicy}
-                  >
-                    {product.productPolicy || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
-                    {product.productCode}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
-                    {Number(product.tdPrice).toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
-                    {Number(product.discountRate).toFixed(2)}%
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-white">
-                    {Number(product.discountedValue).toFixed(2)}
-                  </td>
-                </tr>
-              ))
+              products.map((product, index) => {
+                const priceCode = product.priceCode || "TRADE";
+
+                return (
+                  <tr key={index}>
+                    <td
+                      className="overflow-hidden px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-white"
+                      title={product.itemName}
+                    >
+                      {product.itemName}
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
+                      {product.itemStatus}
+                    </td>
+                    <td
+                      className="overflow-hidden px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300"
+                      title={product.productPolicy}
+                    >
+                      {product.productPolicy || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
+                      {product.productCode}
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
+                      {PRICE_CODE_LABELS[priceCode] || priceCode}
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
+                      {Number(product.tdPrice).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-300">
+                      {Number(product.discountRate).toFixed(2)}%
+                    </td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900 dark:text-white">
+                      {Number(product.discountedValue).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
-                  colSpan="7"
+                  colSpan="8"
                   className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
                 >
                   No products found for this purchase.
