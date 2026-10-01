@@ -182,6 +182,52 @@ html[data-theme="dark"] {
   scrollbar-color: #4b5563 transparent;
 }
 
+/* Fake rounded corners for the dashboard scroller (ReusableLayoutShell).
+   Each ear is transparent inside the arc, border-coloured on the arc and
+   page-coloured outside it, so a square scroller looks rounded without the
+   per-frame clip-mask cost of border-radius on a scroll container. */
+.shell-ear {
+  --ear-r: 1rem;
+  --ear-line: var(--color-gray-300);
+  --ear-out: var(--color-white);
+  position: absolute;
+  z-index: 1;
+  width: var(--ear-r);
+  height: var(--ear-r);
+  pointer-events: none;
+  background: radial-gradient(
+    circle var(--ear-r) at var(--ear-at),
+    transparent calc(var(--ear-r) - 1.25px),
+    var(--ear-line) calc(var(--ear-r) - 0.75px),
+    var(--ear-line) calc(var(--ear-r) - 0.25px),
+    var(--ear-out) calc(var(--ear-r) + 0.25px)
+  );
+}
+[data-theme="dark"] .shell-ear {
+  --ear-line: var(--color-gray-800);
+  --ear-out: var(--color-gray-950);
+}
+.shell-ear-tl {
+  top: 0;
+  left: 0;
+  --ear-at: 100% 100%;
+}
+.shell-ear-tr {
+  top: 0;
+  right: 0;
+  --ear-at: 0 100%;
+}
+.shell-ear-bl {
+  bottom: 0;
+  left: 0;
+  --ear-at: 100% 0;
+}
+.shell-ear-br {
+  right: 0;
+  bottom: 0;
+  --ear-at: 0 0;
+}
+
 .custom-blur {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);

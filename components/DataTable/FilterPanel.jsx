@@ -114,7 +114,7 @@ export default function FilterPanel({
     activeField && fieldHasValue(activeField, staged, committed);
 
   return (
-    <div className="sticky top-0 z-20 mb-3 rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
+    <div className="sticky top-0 z-20 mb-3 rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-sm dark:border-gray-800 dark:bg-gray-950/95">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative shrink-0" ref={selectorRef}>
           <button

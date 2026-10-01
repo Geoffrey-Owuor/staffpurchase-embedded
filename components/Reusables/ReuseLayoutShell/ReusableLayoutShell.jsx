@@ -33,14 +33,31 @@ export default function ReusableLayoutShell({ user, children }) {
       <div className="min-h-screen">
         <MobileHeader />
         <ReusableSidebar />
-        <main
-          className={`fixed right-0 ${mainMarginClass} bg-base-classes custom:right-2 custom:bottom-2 custom:rounded-b-2xl top-16 bottom-0 left-0 overflow-auto rounded-t-2xl border border-gray-300 px-2 transition-all duration-200 dark:border-gray-800`}
+        {/* The scroller itself must stay square: a border-radius on it makes
+            Chrome recomposite a rounded clip mask on every scroll frame
+            whenever it contains a nested scroller (the tables), which halved
+            the frame rate on 4K screens. The rounded look comes from the
+            corner "ears" painted on top instead (see .shell-ear). */}
+        <div
+          className={`fixed right-0 ${mainMarginClass} custom:right-2 custom:bottom-2 top-16 bottom-0 left-0 transition-all duration-200`}
         >
-          <div className="mx-auto mt-2 flex h-full max-w-7xl flex-col">
-            <div className="flex-1">{children}</div>
-            <DashboardFooter />
-          </div>
-        </main>
+          <main className="bg-base-classes absolute inset-0 overflow-auto border border-gray-300 px-2 dark:border-gray-800">
+            <div className="mx-auto mt-2 flex h-full max-w-7xl flex-col">
+              <div className="flex-1">{children}</div>
+              <DashboardFooter />
+            </div>
+          </main>
+          <span aria-hidden="true" className="shell-ear shell-ear-tl" />
+          <span aria-hidden="true" className="shell-ear shell-ear-tr" />
+          <span
+            aria-hidden="true"
+            className="shell-ear shell-ear-bl custom:block hidden"
+          />
+          <span
+            aria-hidden="true"
+            className="shell-ear shell-ear-br custom:block hidden"
+          />
+        </div>
       </div>
     </UserContext.Provider>
   );

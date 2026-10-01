@@ -48,8 +48,8 @@ const TopSidebar = ({
 
   return (
     <header
-      className={`custom:flex fixed top-0 right-0 left-0 z-50 hidden h-16 transition-all duration-200 ${
-        isScrolled ? "custom-blur shadow-xs" : ""
+      className={`custom:flex bg-base-classes fixed top-0 right-0 left-0 z-50 hidden h-16 transition-all duration-200 ${
+        isScrolled ? "shadow-xs" : ""
       }`}
     >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4">
