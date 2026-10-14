@@ -6,6 +6,7 @@ import UserContext from "@/context/UserContext";
 import { useAuthSync } from "@/hooks/useAuthSync";
 import { useSidebarStore } from "@/store/useSidebarStore";
 import ChangeLogAlert from "@/components/ChangeLog/ChangeLogAlert";
+import SystemBanners from "@/components/Banners/SystemBanners";
 import { useEffect } from "react";
 
 export default function ReusableLayoutShell({ user, children }) {
@@ -43,6 +44,8 @@ export default function ReusableLayoutShell({ user, children }) {
         >
           <main className="bg-base-classes absolute inset-0 overflow-auto border border-gray-300 px-2 dark:border-gray-800">
             <div className="mx-auto mt-2 flex h-full max-w-7xl flex-col">
+              {/* DB-driven announcements (system_banners table) */}
+              <SystemBanners />
               <div className="flex-1">{children}</div>
               <DashboardFooter />
             </div>
