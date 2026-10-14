@@ -128,6 +128,25 @@ applied by hand against MySQL. When a change needs one, write the SQL to
 it automatically) and note in the PR/commit that it must be run manually
 before the code that depends on it deploys.
 
+## Cached reference data & banners
+
+- DB-managed reference data (credit periods, discount policies, T&Cs,
+  approver emails, changelogs, banners) is cached with `unstable_cache`, and
+  every loader is tagged from `utils/Cache/cacheTags.js` (`CACHE_TAGS`). New
+  cached loaders must add their tag there too.
+- `POST /api/revalidate` (header `x-revalidate-secret: $REVALIDATE_SECRET`,
+  body `{"tags": [...]}` or `{"tags": "all"}`) busts those tags on demand
+  after hand-edits in MySQL. It's secret-protected, not session-protected,
+  since there's no admin role. It refuses all requests if the env var is unset.
+- Dashboard banners come from the `system_banners` table
+  (`db/migrations/2026-10-14_create_system_banners.sql`), managed by hand in
+  the DB. `utils/Cache/CachedBanners.js` is intentionally not `"use server"`
+  (it would leak role-targeted rows as a callable action); only
+  `app/api/banners/route.js` reads it and filters by the JWT role.
+  `components/Banners/SystemBanners.jsx` applies `starts_at`/`ends_at`
+  client-side and handles dismissal (info/warning only; critical can't be
+  dismissed).
+
 ## Query params & pagination
 
 - `utils/FetchPurchases/buildPurchaseQueryParams.js` is the single place

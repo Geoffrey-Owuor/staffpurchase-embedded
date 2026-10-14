@@ -1,6 +1,7 @@
 "use server";
 import pool from "@/lib/db";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS } from "@/utils/Cache/cacheTags";
 
 // Caching Terms & Conditions
 export const CachedConditions = unstable_cache(
@@ -20,7 +21,8 @@ export const CachedConditions = unstable_cache(
     }
   },
   ["all_conditions"], // Unique key for this particular cache
-  { revalidate: 3600 }, // Revalidate every 1hr (3600 seconds)
+  // Revalidate every 1hr (3600 seconds), or on demand via /api/revalidate
+  { revalidate: 3600, tags: [CACHE_TAGS.termsConditions] },
 );
 
 // Caching discount policies
@@ -42,7 +44,7 @@ export const CachedPolicies = unstable_cache(
     }
   },
   ["all_policies"],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: [CACHE_TAGS.discountPolicies] },
 );
 
 // Caching credit periods
@@ -63,7 +65,7 @@ export const CachedPeriods = unstable_cache(
     }
   },
   ["all_periods"],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: [CACHE_TAGS.creditPeriods] },
 );
 
 // Caching Approver Emails
@@ -87,5 +89,5 @@ export const CachedEmails = unstable_cache(
     }
   },
   ["all_approver_emails"],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: [CACHE_TAGS.approverEmails] },
 );
