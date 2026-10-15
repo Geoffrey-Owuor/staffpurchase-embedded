@@ -1,7 +1,12 @@
 import { getAuthToken } from "@/utils/tokenManager";
 import { requireAuth } from "@/lib/apiAuth";
 import { unstable_cache } from "next/cache";
-import { PRICE_CODES, PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
+import { withConnection } from "@/lib/db";
+import { getActiveStaffOffer } from "@/lib/staffOffers";
+import {
+  ORION_PRICE_CODES,
+  PRICE_CODE_LABELS,
+} from "@/utils/Pricing/priceCodes";
 
 // Set a timeout constant for resilience (e.g., 15 seconds)
 const API_TIMEOUT = 15000;
@@ -107,13 +112,26 @@ export const POST = requireAuth(async (request) => {
   }
 
   try {
-    const results = await Promise.all(
-      PRICE_CODES.map((priceCode) =>
-        getCachedOrionPrice(productCode, priceCode, formattedDate).then(
-          (result) => ({ priceCode, ...result }),
+    // Staff Offers are looked up alongside Orion (uncached, see
+    // lib/staffOffers.js). A failed lookup only drops the offer from the
+    // comparison - it never blocks the Orion prices.
+    const staffOfferPromise = withConnection((connection) =>
+      getActiveStaffOffer(connection, productCode),
+    ).catch((error) => {
+      console.error("Staff offer lookup error:", error);
+      return null;
+    });
+
+    const [results, staffOffer] = await Promise.all([
+      Promise.all(
+        ORION_PRICE_CODES.map((priceCode) =>
+          getCachedOrionPrice(productCode, priceCode, formattedDate).then(
+            (result) => ({ priceCode, ...result }),
+          ),
         ),
       ),
-    );
+      staffOfferPromise,
+    ]);
 
     const prices = {};
     const warnings = [];
@@ -133,10 +151,12 @@ export const POST = requireAuth(async (request) => {
       }
     }
 
+    // Orion is still required (it supplies the item name the discount
+    // policy depends on): a Staff Offer alone doesn't make a code priceable.
     const anySuccess = Object.values(prices).some((p) => p != null);
 
     if (!anySuccess) {
-      if (timedOutCount === PRICE_CODES.length) {
+      if (timedOutCount === ORION_PRICE_CODES.length) {
         return Response.json(
           { message: "External API response timeout" },
           { status: 504 },
@@ -148,7 +168,7 @@ export const POST = requireAuth(async (request) => {
       );
     }
 
-    return Response.json({ itemName, prices, warnings });
+    return Response.json({ itemName, prices, staffOffer, warnings });
   } catch (error) {
     console.error("Price api error:", error);
     return Response.json({ message: error.message }, { status: 500 });

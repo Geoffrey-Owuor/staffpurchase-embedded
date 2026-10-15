@@ -26,7 +26,9 @@ export const GET = requireAuth(async (_req, { params }) => {
     discountedValue,
     tradePrice,
     retailPrice,
-    onlinePrice
+    onlinePrice,
+    staffOfferPrice,
+    staffOfferId
     FROM purchase_products
     WHERE purchase_id = ?
       `,
