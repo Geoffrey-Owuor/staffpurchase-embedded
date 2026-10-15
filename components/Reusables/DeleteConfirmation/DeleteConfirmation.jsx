@@ -21,7 +21,7 @@ export default function DeleteConfirmation({
       onClose={onCancel}
       dismissible={!busy}
       labelledBy={titleId}
-      className="mx-auto w-full max-w-md"
+      className="border-t border-gray-200 bg-gray-50 p-4 shadow-2xl md:max-w-md md:border dark:border-gray-700 dark:bg-gray-950"
     >
       <DeleteSteps
         titleId={titleId}
@@ -75,7 +75,7 @@ function DeleteSteps({ titleId, onConfirm, onCancel, busy }) {
   return (
     <>
       {step === 1 && (
-        <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-950">
+        <div>
           <div className="flex items-start justify-between">
             <h3
               id={titleId}
@@ -146,7 +146,7 @@ function DeleteSteps({ titleId, onConfirm, onCancel, busy }) {
       )}
 
       {step === 2 && (
-        <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-950">
+        <div>
           <div className="flex items-start justify-between">
             <h3
               id={titleId}

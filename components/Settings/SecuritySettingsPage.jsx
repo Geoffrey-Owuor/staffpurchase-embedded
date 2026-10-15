@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
-import { AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react"; // Import icons
 import Alert from "../Alert";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
@@ -81,14 +80,10 @@ export default function SecuritySettingsPage() {
   };
   return (
     <>
-      <AnimatePresence>
-        {showChangeEmail && (
-          <ChangeEmail
-            key="change-email"
-            onClose={() => setShowChangeEmail(false)}
-          />
-        )}
-      </AnimatePresence>
+      <ChangeEmail
+        open={showChangeEmail}
+        onClose={() => setShowChangeEmail(false)}
+      />
 
       <ConfirmationDialog
         title="Confirm password update"

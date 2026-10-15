@@ -76,15 +76,11 @@ const ChangeLogAlert = () => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {isModalOpen && (
-          <ChangeLogModal
-            isModalOpen={isModalOpen}
-            changelogs={changelogs}
-            setIsModalOpen={setIsModalOpen}
-          />
-        )}
-      </AnimatePresence>
+      <ChangeLogModal
+        isModalOpen={isModalOpen}
+        changelogs={changelogs}
+        setIsModalOpen={setIsModalOpen}
+      />
     </>
   );
 };
