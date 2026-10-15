@@ -1,6 +1,7 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { ApproversEmailHandler } from "@/lib/Email/ApproversEmailHandler";
+import { StaffOfferError, verifyStaffOffers } from "@/lib/staffOffers";
 import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
 
 const parseNumber = (value) => {
@@ -159,6 +160,19 @@ export const PUT = requireAuth(async (request, { params, user }) => {
         Array.isArray(products) &&
         products.length > 0
       ) {
+        // Re-check Staff Offer prices against the DB. Rows unchanged from
+        // what's stored keep their offer even after the promo has ended.
+        const [storedProducts] = await connection.execute(
+          `SELECT productCode, priceCode, tdPrice, discountedValue, staffOfferPrice, staffOfferId
+           FROM purchase_products WHERE purchase_id = ?`,
+          [id],
+        );
+        const staffOffers = await verifyStaffOffers(
+          connection,
+          products,
+          storedProducts,
+        );
+
         //Delete the existing products for this purchase
         await connection.execute(
           "DELETE FROM purchase_products WHERE purchase_id = ?",
@@ -166,11 +180,11 @@ export const PUT = requireAuth(async (request, { params, user }) => {
         );
 
         //Insert new products into the table (per product)
-        const itemInsertPromises = products.map((product) => {
+        const itemInsertPromises = products.map((product, index) => {
           return connection.execute(
             `INSERT INTO purchase_products
-          (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice, staffOfferPrice, staffOfferId)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
               product.itemName,
@@ -184,6 +198,8 @@ export const PUT = requireAuth(async (request, { params, user }) => {
               parseNumber(product.tradePrice) ?? 0,
               parseNumber(product.retailPrice) ?? 0,
               parseNumber(product.onlinePrice) ?? 0,
+              staffOffers[index].staffOfferPrice,
+              staffOffers[index].staffOfferId,
             ],
           );
         });
@@ -211,7 +227,7 @@ export const PUT = requireAuth(async (request, { params, user }) => {
       { status: 200 },
     );
   } catch (error) {
-    if (error instanceof RouteError) {
+    if (error instanceof RouteError || error instanceof StaffOfferError) {
       return Response.json(
         { message: error.message },
         { status: error.status },
