@@ -10,6 +10,7 @@ import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButt
 import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { formatDateLong } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import Alert from "../Alert";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
@@ -170,7 +171,7 @@ export default function ApproverPurchasesTable() {
       label: "Credit Period",
       title: "Credit Period",
       toggleable: true,
-      render: (p) => p.user_credit_period || "N/A",
+      render: (p) => formatCreditPeriod(p.user_credit_period),
     },
     {
       key: "payrollApproval",

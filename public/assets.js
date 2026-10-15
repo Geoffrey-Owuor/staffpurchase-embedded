@@ -28,11 +28,6 @@ export const formatDateLong = (dateString) => {
 
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
-export const formatCreditPeriod = (period) => {
-  if (!period) return "N/A";
-  return `${period} month${Number(period) != 1 ? "s" : ""}`;
-};
-
 export const AuthPagesLogo = () => {
   return (
     <Link href="/">

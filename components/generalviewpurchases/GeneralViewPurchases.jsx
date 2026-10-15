@@ -22,7 +22,7 @@ import { basePath, formatDateLong } from "@/public/assets";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
-import { formatCreditPeriod } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import Alert from "../Alert";
 import { LoadingBarWave } from "../Reusables/LoadingBar";
