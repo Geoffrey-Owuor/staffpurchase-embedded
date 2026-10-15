@@ -47,7 +47,6 @@ export default function SecuritySettingsPage() {
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     setUpdating(true);
-    setConfirmationDialogue(false);
 
     try {
       const response = await fetch(`${basePath}/api/reset-password`, {
@@ -60,7 +59,7 @@ export default function SecuritySettingsPage() {
       if (response.ok) {
         setShowAlert(true);
         setErrorType("success");
-        setMessage(data.message || "Password reset successfull");
+        setMessage(data.message || "Password updated successfully");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
@@ -77,6 +76,7 @@ export default function SecuritySettingsPage() {
       console.error("Failed to update password:", error);
     } finally {
       setUpdating(false);
+      setConfirmationDialogue(false);
     }
   };
   return (
@@ -96,6 +96,8 @@ export default function SecuritySettingsPage() {
         onConfirm={handleUpdatePassword}
         showDialog={confirmationDialogue}
         onCancel={() => setConfirmationDialogue(false)}
+        busy={updating}
+        busyLabel="Updating..."
       />
 
       {showAlert && (

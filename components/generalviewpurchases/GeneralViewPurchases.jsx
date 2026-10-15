@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 import PurchaseDetailSkeleton from "../skeletons/PurchaseDetailsSkeleton";
 import DetailField from "../Reusables/DetailField";
 import { generateClientPDF } from "@/utils/returnPurchasePDF";
-import { LoadingBar } from "../Reusables/LoadingBar";
 import { basePath, formatDateLong } from "@/public/assets";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
@@ -25,7 +24,6 @@ import { useUser } from "@/context/UserContext";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import Alert from "../Alert";
-import { LoadingBarWave } from "../Reusables/LoadingBar";
 
 export default function GeneralViewPurchases({ id }) {
   const queryClient = useQueryClient();
@@ -57,7 +55,6 @@ export default function GeneralViewPurchases({ id }) {
 
   const handleUpdateClose = async () => {
     setUpdating(true);
-    setShowConfirmationDialog(false);
 
     try {
       const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
@@ -83,6 +80,7 @@ export default function GeneralViewPurchases({ id }) {
       setShowAlert(true);
     } finally {
       setUpdating(false);
+      setShowConfirmationDialog(false);
     }
   };
 
@@ -155,8 +153,6 @@ export default function GeneralViewPurchases({ id }) {
 
   return (
     <>
-      {isEditing && <LoadingBar isLoading={true} />}
-
       {/* Details Card */}
       <div className="mx-auto rounded-xl pb-6">
         {/* Header with back button */}
@@ -538,9 +534,9 @@ export default function GeneralViewPurchases({ id }) {
         showDialog={showConfirmationDialog}
         onCancel={() => setShowConfirmationDialog(false)}
         title="Close Purchase Request"
+        busy={updating}
+        busyLabel="Closing..."
       />
-
-      <LoadingBarWave isLoading={updating} />
     </>
   );
 }

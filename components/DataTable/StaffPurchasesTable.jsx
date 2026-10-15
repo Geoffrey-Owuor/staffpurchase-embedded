@@ -12,7 +12,6 @@ import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoute
 import { formatDateLong } from "@/public/assets";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import Alert from "../Alert";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { fetchStaffPurchases } from "@/utils/FetchPurchases/fetchStaffPurchases";
 
 const APPROVAL_STATUS_OPTIONS = [
@@ -80,7 +79,6 @@ export default function StaffPurchasesTable() {
     message: "",
   });
 
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
 
   const table = useTableQuery({
     queryKeyPrefix: ["staffPurchases"],
@@ -95,10 +93,7 @@ export default function StaffPurchasesTable() {
     handleViewClick(id);
   };
 
-  const handleTableRowClick = (row) => {
-    startLoading();
-    handleViewClick(row.id);
-  };
+  const handleTableRowClick = (row) => handleViewClick(row.id);
 
   const handleDeleteSuccess = useCallback(
     (deletedId, message) => {
@@ -137,10 +132,7 @@ export default function StaffPurchasesTable() {
         <Link
           href={getViewPathName(p.id)}
           className="hover:text-blue-400 hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            startLoading();
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
           {p.reference_number}
         </Link>
@@ -236,7 +228,6 @@ export default function StaffPurchasesTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
-        goingTo={goingTo}
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}

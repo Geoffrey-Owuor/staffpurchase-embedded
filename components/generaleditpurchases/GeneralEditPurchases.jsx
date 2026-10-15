@@ -14,7 +14,6 @@ import CreditControlSection from "../FormEditComponents/CreditControlSection";
 import BIApprovalSection from "../FormEditComponents/BIApprovalSection";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UnauthorizedEdit from "../Reusables/UnauthorizedEdit";
-import { LoadingBarWave } from "../Reusables/LoadingBar";
 import EditPurchaseHeading from "../EditPurchaseComponents/EditPurchaseHeading";
 import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
 import { useUser } from "@/context/UserContext";
@@ -278,7 +277,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
   const handleConfirmSubmit = async () => {
     setIsSubmitting(true);
-    setShowConfirmation(false);
 
     //Consolidate all form data into a single object
     const fullFormData = {
@@ -336,6 +334,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       setShowAlert(true);
     } finally {
       setIsSubmitting(false);
+      setShowConfirmation(false);
     }
   };
 
@@ -345,8 +344,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
         <EditPurchaseHeading />
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          {submitting && <LoadingBarWave isLoading={true} />}
-
           {/* Staff Info Component */}
           <StaffInformation
             formData={staffInfo}
@@ -477,6 +474,8 @@ function PurchaseForm({ purchase, userRole, name, id }) {
         showDialog={showConfirmation}
         onCancel={() => setShowConfirmation(false)}
         title="Confirm Changes"
+        busy={submitting}
+        busyLabel="Saving..."
       />
 
       {/* Alert Component */}

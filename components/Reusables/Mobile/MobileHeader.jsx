@@ -12,10 +12,8 @@ import {
   NotebookText,
 } from "lucide-react";
 import HotpointLogo from "../HotpointLogo";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
 import UserMenu from "../UserMenu";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
@@ -26,15 +24,6 @@ export default function MobileHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { role } = useUser();
   const router = useRouter();
-  const pathname = usePathname();
-
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
-  const stopLoading = useLoadingLineStore((state) => state.stopLoading);
-
-  // useEffect to stop Loading when pathname changes
-  useEffect(() => {
-    stopLoading();
-  }, [pathname]);
 
   // UseEffect to disable scrolling when sidebar is open (for screens wider than 640px)
   useEffect(() => {
@@ -50,41 +39,16 @@ export default function MobileHeader() {
     };
   }, [isMobileMenuOpen]);
 
-  const {
-    handleHomeRoute,
-    homePath,
-    handlePurchaseRoute,
-    purchasePath,
-    paymentTrackingPath,
-  } = useDashboardRoutes();
+  const { homePath, purchasePath, paymentTrackingPath, navigate } =
+    useDashboardRoutes();
 
-  const handleHomeClick = () => {
-    const isSameRoute = homePath === pathname;
-    if (!isSameRoute) {
-      startLoading();
-      handleHomeRoute();
-    }
-    setIsMobileMenuOpen(false); // Close menu on click
-  };
-
-  const handlePurchaseClick = () => {
-    const isSameRoute = purchasePath === pathname;
-    if (!isSameRoute) {
-      startLoading();
-      handlePurchaseRoute();
-    }
+  // navigate() is a no-op for the current page; the menu closes either way
+  const handleNavClick = (path) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
   };
-
-  // Generic handler for other links
-  const handleNavClick = (path) => {
-    const isSameRoute = path === pathname;
-    if (!isSameRoute) {
-      startLoading();
-      router.push(path);
-    }
-    setIsMobileMenuOpen(false); // Close menu on click
-  };
+  const handleHomeClick = () => handleNavClick(homePath);
+  const handlePurchaseClick = () => handleNavClick(purchasePath);
 
   return (
     <>

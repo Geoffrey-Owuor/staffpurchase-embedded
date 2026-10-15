@@ -2,17 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { ChevronLeft, Home } from "lucide-react";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 
 export default function TopBarButtons() {
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
   const { handleHomeRoute } = useDashboardRoutes();
   const router = useRouter();
-
-  const gotoHomeClick = () => {
-    startLoading();
-    handleHomeRoute();
-  };
 
   return (
     <div className="hidden items-center justify-end gap-4 md:flex">
@@ -24,7 +17,7 @@ export default function TopBarButtons() {
         Back
       </button>
       <button
-        onClick={gotoHomeClick}
+        onClick={handleHomeRoute}
         className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-900 hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-900/50 dark:text-white dark:hover:bg-gray-800/50"
       >
         <Home className="h-4.5 w-4.5" />

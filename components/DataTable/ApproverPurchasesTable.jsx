@@ -13,7 +13,6 @@ import { formatDateLong } from "@/public/assets";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import Alert from "../Alert";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { fetchApproverPurchases } from "@/utils/FetchPurchases/fetchApproverPurchases";
 
 const APPROVAL_STATUS_OPTIONS = [
@@ -79,7 +78,6 @@ export default function ApproverPurchasesTable() {
   const [visibleColumns, setVisibleColumns] = useState(DEFAULT_VISIBLE_COLUMNS);
   const [alertInfo, setAlertInfo] = useState({ show: false, type: "", message: "" });
 
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
   const { handleViewClick, handleEditClick, getViewPathName } =
     useDashboardRoutes();
 
@@ -99,10 +97,7 @@ export default function ApproverPurchasesTable() {
     setGoingTo(id);
     handleViewClick(id);
   };
-  const handleTableRowClick = (row) => {
-    startLoading();
-    handleViewClick(row.id);
-  };
+  const handleTableRowClick = (row) => handleViewClick(row.id);
 
   const handleDeleteSuccess = useCallback(
     (deletedId, message) => {
@@ -141,10 +136,7 @@ export default function ApproverPurchasesTable() {
         <Link
           href={getViewPathName(p.id)}
           className="hover:text-blue-400 hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            startLoading();
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
           {p.reference_number}
         </Link>
@@ -247,7 +239,6 @@ export default function ApproverPurchasesTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
-        goingTo={goingTo}
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}
