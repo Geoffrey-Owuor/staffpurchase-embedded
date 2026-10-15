@@ -8,7 +8,10 @@ import { RotateCcw } from "lucide-react";
 import { useOrionPrices } from "@/hooks/useOrionPrices";
 import { selectLowestPrice } from "@/utils/Pricing/selectLowestPrice";
 import { resolveDiscountPolicy } from "@/utils/Pricing/resolveDiscountPolicy";
-import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
+import {
+  PRICE_CODE_LABELS,
+  STAFF_OFFER_CODE,
+} from "@/utils/Pricing/priceCodes";
 
 const ITEM_STATUS_OPTIONS = [
   { value: "New", label: "New" },
@@ -18,11 +21,24 @@ const ITEM_STATUS_OPTIONS = [
 const STATUS_TEXT = {
   idle: "Prices load automatically as you type.",
   debouncing: "Prices load automatically as you type.",
-  loading: "Checking Orion for Trade, Retail & Online prices…",
+  loading: "Checking Trade, Retail, Online & Staff Offer prices…",
   success: "Prices fetched.",
   notfound: null, // errorMessage is shown instead
   error: null,
 };
+
+// Hydrated (DB) values arrive as DECIMAL strings - selectLowestPrice only
+// accepts positive numbers, so normalize them first.
+const toStoredPrice = (value) => {
+  const parsed = parseFloat(value);
+  return parsed > 0 ? parsed : null;
+};
+
+// The fetched Orion prices plus the Staff Offer, when there is one.
+const withStaffOffer = (prices, staffOffer) => ({
+  ...prices,
+  [STAFF_OFFER_CODE]: staffOffer?.price ?? null,
+});
 
 const ProductPricing = ({
   formData,
@@ -112,10 +128,12 @@ const ProductPricing = ({
     if (!policyResolution.resolved) return;
 
     const { policyRate, productPolicy } = policyResolution;
-    // RTLRRP/ONLINE never carry a discount (only TRADE does) — never let a
-    // resolved policy rate land on top of one of those bases.
+    // STAFFOFFER/RTLRRP/ONLINE never carry a discount (only TRADE does) —
+    // never let a resolved policy rate land on top of one of those bases.
     const isNonTradeFetchedBasis =
-      priceCode === "RTLRRP" || priceCode === "ONLINE";
+      priceCode === STAFF_OFFER_CODE ||
+      priceCode === "RTLRRP" ||
+      priceCode === "ONLINE";
 
     if (orion.status === "success") {
       // Mark this fetch result consumed regardless of outcome, so an
@@ -123,8 +141,16 @@ const ProductPricing = ({
       // keep treating it as fresh.
       appliedFetchRef.current = orion.prices;
 
+      // Recorded whenever an offer was live (even if another price wins),
+      // for audit; the server re-checks it against the DB on submit.
+      const { staffOffer } = orion;
+      const staffOfferFields = {
+        staffOfferPrice: staffOffer?.price ?? "",
+        staffOfferId: staffOffer?.id ?? "",
+      };
+
       const { winner } = selectLowestPrice({
-        prices: orion.prices,
+        prices: withStaffOffer(orion.prices, staffOffer),
         discountRate: policyRate,
       });
 
@@ -139,11 +165,12 @@ const ProductPricing = ({
           tradePrice: orion.prices.TRADE ?? 0,
           retailPrice: orion.prices.RTLRRP ?? 0,
           onlinePrice: orion.prices.ONLINE ?? 0,
+          ...staffOfferFields,
         }));
         return;
       }
 
-      // All three fetched prices unusable: keep the existing tdPrice (don't
+      // All fetched prices unusable: keep the existing tdPrice (don't
       // blank a previously-good value), but still persist the raw fetch
       // results (0.00 fallback) for audit. A prior MANUAL entry is left
       // fully intact here (price, basis and discount) rather than wiping it
@@ -155,13 +182,14 @@ const ProductPricing = ({
         tradePrice: orion.prices.TRADE ?? 0,
         retailPrice: orion.prices.RTLRRP ?? 0,
         onlinePrice: orion.prices.ONLINE ?? 0,
+        ...staffOfferFields,
       }));
       return;
     }
 
     // No fresh fetch result yet (e.g. hydrated edit-page values) — keep the
     // policy current, and the discount rate current *for a TRADE basis
-    // only*. For an RTLRRP/ONLINE basis this also self-heals a stale
+    // only*. For a STAFFOFFER/RTLRRP/ONLINE basis this also self-heals a stale
     // nonzero discountRate that may have been saved before price-basis
     // gating existed.
     setFormData((prev) => ({
@@ -179,10 +207,11 @@ const ProductPricing = ({
     approversPurchasing,
     orion.status,
     orion.prices,
+    orion.staffOffer,
   ]);
 
   // Discounted value = tdPrice less discountRate. `0` is a legitimate
-  // discount rate (every RTLRRP/ONLINE selection), so only "" / null /
+  // discount rate (every STAFFOFFER/RTLRRP/ONLINE selection), so only "" / null /
   // undefined block the calculation.
   useEffect(() => {
     if (!["staff", "cc"].includes(userRole) && !approversPurchasing) return;
@@ -219,7 +248,8 @@ const ProductPricing = ({
 
   // Discount policies only apply to a TRADE basis; MANUAL is a full CC
   // hand-entry so a custom discount on top of it is still meaningful.
-  // RTLRRP/ONLINE never take a discount, so the field is locked to 0 then.
+  // STAFFOFFER/RTLRRP/ONLINE never take a discount, so the field is locked
+  // to 0 then.
   const isDiscountableBasis =
     formData.priceCode === "TRADE" || formData.priceCode === "MANUAL";
   const discountRateReadOnly = ccReadOnly || !isDiscountableBasis;
@@ -240,7 +270,7 @@ const ProductPricing = ({
   let pending = false;
 
   if (isLiveFetch && !isManual) {
-    comparisonPrices = orion.prices;
+    comparisonPrices = withStaffOffer(orion.prices, orion.staffOffer);
     const policyResolution = resolveDiscountPolicy({
       itemName: formData.itemName,
       itemStatus: formData.itemStatus,
@@ -255,9 +285,10 @@ const ProductPricing = ({
     }
   } else {
     comparisonPrices = {
-      TRADE: formData.tradePrice || null,
-      RTLRRP: formData.retailPrice || null,
-      ONLINE: formData.onlinePrice || null,
+      [STAFF_OFFER_CODE]: toStoredPrice(formData.staffOfferPrice),
+      TRADE: toStoredPrice(formData.tradePrice),
+      RTLRRP: toStoredPrice(formData.retailPrice),
+      ONLINE: toStoredPrice(formData.onlinePrice),
     };
     comparisonDiscountRate = formData.discountRate;
   }
