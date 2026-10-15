@@ -2,6 +2,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ClientPortal from "../ClientPortal/ClientPortal";
+import { lockPageScroll } from "@/utils/scrollLock";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -93,7 +94,7 @@ export default function Modal({
     const previouslyFocused = document.activeElement;
 
     openPanels.push(panel);
-    document.documentElement.style.overflow = "hidden";
+    const unlockScroll = lockPageScroll();
     (
       panel?.querySelector("[data-autofocus]") ||
       panel?.querySelector(FOCUSABLE) ||
@@ -125,9 +126,7 @@ export default function Modal({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       openPanels.splice(openPanels.indexOf(panel), 1);
-      if (openPanels.length === 0) {
-        document.documentElement.style.overflow = "";
-      }
+      unlockScroll();
       previouslyFocused?.focus?.({ preventScroll: true });
     };
   }, [open]);
