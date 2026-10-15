@@ -107,7 +107,11 @@ former ~700-800-line near-duplicate components:
   field always reads/writes `fromDate`+`toDate` together as one unit (one
   staged editor, one pill, one removal). The whole panel is a sticky
   (`sticky top-0`) rounded card so it stays visible while scrolling the
-  table.
+  table; once stuck (`useStickyBleed`: a sentinel + IntersectionObserver,
+  plus a ResizeObserver measurement) it flattens into a toolbar whose
+  bottom border spans `<main>`'s inner edges (scrollbar excluded) at every
+  width, with padding compensated so the controls don't shift. The shell's
+  rounded corner "ears" (`.shell-ear`, z-30) sit above it.
 - Three consumers compose this foundation: `ApproverPurchasesTable.jsx`
   (hr/payroll/cc/bi), `StaffPurchasesTable.jsx`, `PaymentTrackingTable.jsx`
   (cc-only, adds invoice/closure columns and a Close action instead of
@@ -119,6 +123,36 @@ former ~700-800-line near-duplicate components:
   everywhere a native `<select>` used to be, including inside
   `Pagination.jsx`'s rows-per-page picker. Use it for any new dropdown
   instead of a native `<select>`.
+
+## Overlays & navigation feedback
+
+- **Loading line**: one global line, `components/Reusables/LoadingLine.jsx`
+  (root layout) + `store/useLoadingLineStore.js`. It starts itself on
+  internal link clicks and back/forward, and on
+  `useDashboardRoutes().navigate(path)` (which `handleHomeRoute`/
+  `handleViewClick`/etc. use); it only shows after 150ms and stops on a
+  pathname change. Don't call `startLoading`/`stopLoading` from components
+  and don't add full-screen spinners for route changes - navigate through
+  `useDashboardRoutes` instead of a bare `router.push`.
+- **Modals**: every modal/dialog uses `components/Reusables/Modal/Modal.jsx`
+  (portal, z-100 layer, Escape/backdrop close, focus trap + restore, scroll
+  lock, enter/exit animation, and stops portaled clicks reaching e.g. a
+  table row). Keep it mounted and toggle `open` so the exit animation runs;
+  put per-open state in a child component so it resets on reopen. Below
+  `md` it's either `mobile="sheet"` (default; bottom sheet - short
+  dialogs) or `mobile="fullscreen"` (content-heavy: Settings, Change Email,
+  Price Comparison, Changelog). `className` must give the panel an `md:`
+  width; don't set width/height/rounding without `md:`.
+- **Confirming async actions**: `ConfirmationDialog`/`DeleteConfirmation`
+  take `busy` (+ `busyLabel`). Keep the dialog open with `busy` while the
+  request runs and close it in `finally` - don't close it first and mount
+  a separate full-screen loader (that swap caused a visible backdrop flash).
+- **Scroll locking**: overlays lock the page via `lockPageScroll()` from
+  `utils/scrollLock.js` (a shared counter), never by writing
+  `document.documentElement.style.overflow` directly.
+- **Delete action** in `RecentActionButtons.jsx` is deliberately disabled
+  (it checks a non-existent `"admin"` role); the comment there explains how
+  to re-enable it to match the server rule.
 
 ## Database schema changes
 
