@@ -191,7 +191,10 @@ html[data-theme="dark"] {
   --ear-line: var(--color-gray-300);
   --ear-out: var(--color-white);
   position: absolute;
-  z-index: 1;
+  /* Above sticky content inside <main> (e.g. the stuck filter panel, z-20)
+     so its square corners never show over the rounded ones. Safe: ears are
+     16px, pointer-events: none, and only paint outside the curve. */
+  z-index: 30;
   width: var(--ear-r);
   height: var(--ear-r);
   pointer-events: none;

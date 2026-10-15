@@ -13,29 +13,39 @@ import {
 } from "lucide-react";
 import HotpointLogo from "../HotpointLogo";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import UserMenu from "../UserMenu";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
 import Link from "next/link";
+import { lockPageScroll } from "@/utils/scrollLock";
+
+const navItemClass =
+  "flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-base font-semibold";
+const navItemIdle =
+  "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100";
+const navItemActive =
+  "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white";
 
 export default function MobileHeader() {
   // --- State and logic for Mobile Sidebar ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { role } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
-  // UseEffect to disable scrolling when sidebar is open (for screens wider than 640px)
+  // While open: lock page scroll (screens wider than 640px) and close on Escape
   useEffect(() => {
-    if (isMobileMenuOpen && window.innerWidth >= 640) {
-      document.documentElement.style.overflow = "hidden";
-    } else {
-      document.documentElement.style.overflow = "unset";
-    }
-
-    // Cleanup function to restore scrolling when component unmounts
+    if (!isMobileMenuOpen) return;
+    const unlockScroll =
+      window.innerWidth >= 640 ? lockPageScroll() : () => {};
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.documentElement.style.overflow = "unset";
+      unlockScroll();
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isMobileMenuOpen]);
 
@@ -47,8 +57,20 @@ export default function MobileHeader() {
     navigate(path);
     setIsMobileMenuOpen(false);
   };
-  const handleHomeClick = () => handleNavClick(homePath);
-  const handlePurchaseClick = () => handleNavClick(purchasePath);
+
+  const navItems = [
+    { path: homePath, label: "Home", Icon: HomeIcon },
+    { path: purchasePath, label: "New Purchase", Icon: ShoppingBagIcon },
+    ...(role === "cc"
+      ? [
+          {
+            path: paymentTrackingPath,
+            label: "Fully Approved",
+            Icon: BookOpenCheck,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <>
@@ -98,7 +120,10 @@ export default function MobileHeader() {
       ></div>
 
       {/* Sidebar Content */}
+      {/* inert while closed: it's only translated off-screen, so keep it out
+          of the tab order and the accessibility tree */}
       <div
+        inert={!isMobileMenuOpen}
         className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-70 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
@@ -118,37 +143,22 @@ export default function MobileHeader() {
         {/* Navigation Links */}
         <nav className="mt-6 grow">
           <ul className="space-y-2">
-            <li>
-              <div
-                onClick={handleHomeClick}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-              >
-                <HomeIcon className="h-5 w-5 shrink-0" />
-                <span>Home</span>
-              </div>
-            </li>
-
-            <li>
-              <div
-                onClick={handlePurchaseClick}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-              >
-                <ShoppingBagIcon className="h-5 w-5 shrink-0" />
-                <span>New Purchase</span>
-              </div>
-            </li>
-
-            {role === "cc" && (
-              <li>
-                <div
-                  onClick={() => handleNavClick(paymentTrackingPath)}
-                  className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-base font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-                >
-                  <BookOpenCheck className="h-5 w-5 shrink-0" />
-                  <span>Fully Approved</span>
-                </div>
-              </li>
-            )}
+            {navItems.map(({ path, label, Icon }) => {
+              const isActive = pathname === path;
+              return (
+                <li key={path}>
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick(path)}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`${navItemClass} ${isActive ? navItemActive : navItemIdle}`}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span>{label}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
