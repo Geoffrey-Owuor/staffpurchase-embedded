@@ -35,6 +35,8 @@ const initialProductState = {
   tradePrice: "",
   retailPrice: "",
   onlinePrice: "",
+  staffOfferPrice: "",
+  staffOfferId: "",
 };
 
 //Getting today's date in mm/dd/yy format (Server time zone)

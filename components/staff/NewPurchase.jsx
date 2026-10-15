@@ -35,6 +35,8 @@ const initialProductState = {
   tradePrice: "",
   retailPrice: "",
   onlinePrice: "",
+  staffOfferPrice: "",
+  staffOfferId: "",
 };
 
 export default function NewPurchase({ approversPurchasing }) {
@@ -204,11 +206,13 @@ export default function NewPurchase({ approversPurchasing }) {
         body: JSON.stringify(finalFormData),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit form");
-      }
+      const data = await response.json().catch(() => ({}));
 
-      const data = await response.json();
+      // Surface the server's reason (e.g. an ended Staff Offer asking the
+      // user to re-fetch prices) instead of a generic failure.
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit form");
+      }
 
       setAlertMessage(data.message || "Purchase request sent");
       setAlertType("success");

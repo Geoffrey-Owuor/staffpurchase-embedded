@@ -3,7 +3,10 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import ClientPortal from "../Reusables/ClientPortal/ClientPortal";
-import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
+import {
+  PRICE_CODE_LABELS,
+  STAFF_OFFER_CODE,
+} from "@/utils/Pricing/priceCodes";
 
 export default function PriceComparisonModal({
   open,
@@ -101,6 +104,7 @@ export default function PriceComparisonModal({
                   // which aren't set yet while `pending` — Retail/Online are
                   // always 0%, so they're never "pending".
                   const discountPending = pending && c.priceCode === "TRADE";
+                  const isStaffOffer = c.priceCode === STAFF_OFFER_CODE;
 
                   return (
                     <tr
@@ -118,7 +122,9 @@ export default function PriceComparisonModal({
                       <td className="px-3 py-2 text-sm whitespace-nowrap">
                         {c.available
                           ? Number(c.basePrice).toFixed(2)
-                          : "Unavailable"}
+                          : isStaffOffer
+                            ? "No active offer"
+                            : "Unavailable"}
                       </td>
                       <td className="px-3 py-2 text-sm whitespace-nowrap">
                         {!c.available
