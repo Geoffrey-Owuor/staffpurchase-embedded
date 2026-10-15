@@ -147,6 +147,19 @@ before the code that depends on it deploys.
   client-side and handles dismissal (info/warning only; critical can't be
   dismissed).
 
+## Email
+
+- Every email goes through `sendEmail` in `lib/emailSender.js` (Microsoft
+  Graph). Workflow notifications (`lib/Email/userEmailHandler.js`,
+  `lib/Email/ApproversEmailHandler.js`) must use `sendNotificationEmail`
+  instead, which honors `NOTIFICATION_EMAILS_ENABLED`: only the value
+  `false` (case-insensitive) skips them, logging each skipped subject and
+  recipient; unset or any other value sends normally. Server-only env var,
+  read at runtime — a restart applies it, no rebuild needed.
+- Auth emails (`lib/verificationEmail.js`, `lib/nodemailer.js` password
+  reset) deliberately call `sendEmail` directly and are never skipped —
+  registration, Change Email and password reset can't complete without them.
+
 ## Query params & pagination
 
 - `utils/FetchPurchases/buildPurchaseQueryParams.js` is the single place
