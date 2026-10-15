@@ -147,6 +147,24 @@ before the code that depends on it deploys.
   client-side and handles dismissal (info/warning only; critical can't be
   dismissed).
 
+## Pricing & Staff Offers
+
+- `getpurchasedetails` fetches TRADE/RTLRRP/ONLINE from Orion
+  (`ORION_PRICE_CODES`) plus the active Staff Offer for the product code
+  (one per code, regardless of item status or payment terms) from the
+  hand-managed `staff_offer_prices` table
+  (`db/migrations/2026-10-15_staff_offer_prices.sql`, via
+  `lib/staffOffers.js`). `selectLowestPrice` compares all four
+  (`PRICE_CODES`, which is also the tie-break order: STAFFOFFER first). Only
+  TRADE takes a discount policy; STAFFOFFER is already discounted.
+- Staff Offers are intentionally **not** cached (unlike other reference
+  data): the date window is checked against the DB's `NOW()` on every
+  lookup. Overlapping active offers resolve to the most recently created.
+- `staffposts` and `generaleditpurchases` re-check STAFFOFFER rows against
+  the DB with `verifyStaffOffers` and persist `staffOfferPrice`/
+  `staffOfferId` from the DB, never the client. On edit, a row unchanged
+  from what's stored keeps its offer even after the promo ends.
+
 ## Email
 
 - Every email goes through `sendEmail` in `lib/emailSender.js` (Microsoft
