@@ -25,7 +25,7 @@ const ConfirmationDialog = ({
       onClose={onCancel}
       dismissible={!busy}
       labelledBy={titleId}
-      className="mx-auto max-w-90 rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-2xl md:max-w-md dark:border-gray-700 dark:bg-gray-950"
+      className="border-t border-gray-200 bg-gray-50 p-4 shadow-2xl md:max-w-md md:border dark:border-gray-700 dark:bg-gray-950"
     >
       <div className="flex items-start justify-between">
         <h3
@@ -47,13 +47,13 @@ const ConfirmationDialog = ({
       <p className="mb-4 text-center text-sm text-gray-700 dark:text-gray-400">
         {message}
       </p>
-      <div className="flex justify-center space-x-4">
+      <div className="flex justify-center gap-3 md:gap-4">
         <button
           onClick={onCancel}
           type="button"
           disabled={busy}
           data-autofocus
-          className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-300 py-2.5 md:flex-none md:py-2 bg-white px-4 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
         >
           <X className="h-4 w-4" />
           Cancel
@@ -63,7 +63,7 @@ const ConfirmationDialog = ({
           type="button"
           disabled={busy}
           aria-busy={busy}
-          className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:cursor-wait disabled:hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 dark:disabled:hover:bg-gray-200"
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 py-2.5 md:flex-none md:py-2 px-4 text-sm text-white hover:bg-gray-700 disabled:cursor-wait disabled:hover:bg-gray-900 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300 dark:disabled:hover:bg-gray-200"
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" />
