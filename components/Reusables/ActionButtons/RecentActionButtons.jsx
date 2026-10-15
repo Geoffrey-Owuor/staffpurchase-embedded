@@ -11,8 +11,6 @@ import { motion } from "framer-motion";
 import ClientPortal from "../ClientPortal/ClientPortal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import ConfirmationDialog from "../ConfirmationDialog";
-import { DeletingOverlay } from "../LoadingBar";
-import { LoadingBarWave } from "../LoadingBar";
 import { useUser } from "@/context/UserContext";
 import { basePath } from "@/public/assets";
 
@@ -60,10 +58,8 @@ export const RecentActionButtons = ({
     setIsOpen(false);
   };
 
-  const handleClose = async (e) => {
-    e.stopPropagation();
+  const handleClose = async () => {
     setIsClosing(true);
-    setShowCloseConfirmation(false);
 
     try {
       const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
@@ -80,12 +76,11 @@ export const RecentActionButtons = ({
       onCloseError(error.message);
     } finally {
       setIsClosing(false);
+      setShowCloseConfirmation(false);
     }
   };
 
-  const handleDelete = async (e) => {
-    e.stopPropagation();
-    setShowConfirmation(false);
+  const handleDelete = async () => {
     setIsDeleting(true);
     try {
       const response = await fetch(`${basePath}/api/deletepurchases/${id}`, {
@@ -103,6 +98,7 @@ export const RecentActionButtons = ({
       onDeleteError(error.message);
     } finally {
       setIsDeleting(false);
+      setShowConfirmation(false);
     }
   };
 
@@ -242,7 +238,11 @@ export const RecentActionButtons = ({
                 handleConfirmDelete();
               }}
               disabled={
-                //Only staff can delete, and only their own not-yet-invoiced requests
+                // Deliberately switched off: "admin" isn't a real role, so this
+                // is always disabled. To re-enable, match the server rule in
+                // app/api/deletepurchases/[id]/route.js (staff only, own
+                // request, not yet BI-approved) - e.g. userRole !== "staff" ||
+                // biApproval === "approved" - and drop the ccApproval check.
                 goingTo === id ||
                 disableDelete ||
                 userRole !== "admin" ||
@@ -278,29 +278,23 @@ export const RecentActionButtons = ({
 
   return (
     <>
-      {showConfirmation && (
-        <DeleteConfirmation
-          onConfirm={(e) => handleDelete(e)}
-          onCancel={(e) => {
-            e.stopPropagation();
-            setShowConfirmation(false);
-          }}
-        />
-      )}
+      {/* Modal stops portaled clicks from bubbling up to the table row */}
+      <DeleteConfirmation
+        open={showConfirmation}
+        onConfirm={handleDelete}
+        onCancel={() => setShowConfirmation(false)}
+        busy={deleting}
+      />
 
       <ConfirmationDialog
         message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"
-        onConfirm={(e) => handleClose(e)}
-        onCancel={(e) => {
-          e.stopPropagation();
-          setShowCloseConfirmation(false);
-        }}
+        onConfirm={handleClose}
+        onCancel={() => setShowCloseConfirmation(false)}
         showDialog={showCloseConfirmation}
         title="Close Purchase Request"
+        busy={isClosing}
+        busyLabel="Closing..."
       />
-
-      {deleting && <DeletingOverlay />}
-      <LoadingBarWave isLoading={isClosing} />
 
       <div className="relative inline-block text-left" ref={menuRef}>
         <button

@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from "react";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { usePathname, useRouter } from "next/navigation";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
@@ -13,15 +12,13 @@ export default function ReusableSidebar() {
   const { role } = useUser();
   const router = useRouter();
 
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
-  const stopLoading = useLoadingLineStore((state) => state.stopLoading);
-
   const {
     homePath,
     purchasePath,
     paymentTrackingPath,
     handleHomeRoute,
     handlePurchaseRoute,
+    navigate,
   } = useDashboardRoutes();
 
   //Determining active tabs
@@ -36,28 +33,9 @@ export default function ReusableSidebar() {
     activeTab = "paymentTracking";
   }
 
-  const handleHomeClick = () => {
-    if (pathname === homePath) return; //Do not start loading
-    startLoading();
-    handleHomeRoute();
-  };
-
-  const handlePurchaseClick = () => {
-    if (pathname === purchasePath) return;
-    startLoading();
-    handlePurchaseRoute();
-  };
-
-  const handleNavClick = (path) => {
-    if (pathname === path) return;
-    startLoading();
-    router.push(path);
-  };
-
-  // Hook for stopping loading line when pathname changes
-  useEffect(() => {
-    stopLoading();
-  }, [pathname]);
+  const handleHomeClick = handleHomeRoute;
+  const handlePurchaseClick = handlePurchaseRoute;
+  const handleNavClick = navigate;
 
   // Hook for managing the new purchase shortcut (Applys for all roles)
   useEffect(() => {

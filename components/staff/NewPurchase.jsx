@@ -4,7 +4,6 @@ import StaffInformation from "../StaffInformation";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing/ProductPricing";
 import Alert from "../Alert";
-import { LoadingBarWave } from "../Reusables/LoadingBar";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
@@ -188,7 +187,6 @@ export default function NewPurchase({ approversPurchasing }) {
   const handleSubmit = async (e) => {
     e?.preventDefault();
     setIsSubmitting(true);
-    setShowConfirmDialog(false);
 
     //Combine all state parts into 1 object for the API
     const finalFormData = {
@@ -236,6 +234,7 @@ export default function NewPurchase({ approversPurchasing }) {
       setShowAlert(true);
     } finally {
       setIsSubmitting(false);
+      setShowConfirmDialog(false);
     }
   };
 
@@ -259,8 +258,6 @@ export default function NewPurchase({ approversPurchasing }) {
           onSubmit={handleConfirmSubmit}
           autoComplete="off"
         >
-          {isSubmitting && <LoadingBarWave isLoading={true} />}
-
           <StaffInformation
             formData={staffInfo}
             handleChange={handleStaffChange}
@@ -371,6 +368,8 @@ export default function NewPurchase({ approversPurchasing }) {
         showDialog={showConfirmDialog}
         onCancel={() => setShowConfirmDialog(false)}
         title="Submit Purchase"
+        busy={isSubmitting}
+        busyLabel="Submitting..."
       />
     </>
   );

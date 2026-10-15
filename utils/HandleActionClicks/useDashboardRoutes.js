@@ -1,7 +1,8 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { isValidRole } from "@/utils/routes";
+import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 
 // Replaces the old per-role UseHandleHomeRoute/UseHandlePurchaseRoute/
 // UseHandleHistoryRoute/UseHandleViewClick/UseHandleEditClick hooks. Every
@@ -11,6 +12,8 @@ import { isValidRole } from "@/utils/routes";
 export function useDashboardRoutes() {
   const { role } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
+  const startLoading = useLoadingLineStore((state) => state.startLoading);
   const valid = isValidRole(role);
 
   const homePath = valid ? "/dashboard" : "/login";
@@ -21,15 +24,25 @@ export function useDashboardRoutes() {
   const getEditPathName = (id) =>
     valid ? `/dashboard/${id}/edit` : "/login";
 
+  // Programmatic navigation that drives the global loading line (link clicks
+  // and back/forward are picked up by LoadingLine itself). A no-op for the
+  // current page.
+  const navigate = (path) => {
+    if (path === pathname) return;
+    startLoading();
+    router.push(path);
+  };
+
   return {
     homePath,
     purchasePath,
     paymentTrackingPath,
     getViewPathName,
     getEditPathName,
-    handleHomeRoute: () => router.push(homePath),
-    handlePurchaseRoute: () => router.push(purchasePath),
-    handleViewClick: (id) => router.push(getViewPathName(id)),
-    handleEditClick: (id) => router.push(getEditPathName(id)),
+    navigate,
+    handleHomeRoute: () => navigate(homePath),
+    handlePurchaseRoute: () => navigate(purchasePath),
+    handleViewClick: (id) => navigate(getViewPathName(id)),
+    handleEditClick: (id) => navigate(getEditPathName(id)),
   };
 }
