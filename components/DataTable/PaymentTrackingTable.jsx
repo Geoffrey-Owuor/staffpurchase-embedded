@@ -8,6 +8,7 @@ import TrackingApprovalCards from "../Reusables/ReusableApprovalCards/TrackingAp
 import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButtons";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { formatDateLong } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import {
   PaymentStatus,
   TableApprovalStatus,
@@ -191,7 +192,7 @@ export default function PaymentTrackingTable() {
       label: "Credit Period",
       title: "Credit Period",
       toggleable: true,
-      render: (p) => p.user_credit_period || "N/A",
+      render: (p) => formatCreditPeriod(p.user_credit_period),
     },
     {
       key: "invoiceAmount",

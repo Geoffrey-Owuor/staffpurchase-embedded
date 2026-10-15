@@ -21,6 +21,7 @@ import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useRouter } from "next/navigation";
 import { basePath } from "@/public/assets";
+import { parseCreditPeriod } from "@/utils/formatCreditPeriod";
 
 // The initial state for a single product
 const initialProductState = {
@@ -83,14 +84,17 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     }, 0);
 
     // Get default data for credit_period field
+    // Wording is stored in the DB, so it intentionally stays "X Months Period"
+    // rather than using formatCreditPeriod's display text.
     const formulateCreditPeriod = () => {
       let formulatedPeriod;
+      const months = parseCreditPeriod(purchase.user_credit_period);
       if (
         (purchase.employee_payment_terms === "CREDIT" ||
           purchase.employee_payment_terms === "CASH AND CREDIT") &&
-        purchase.user_credit_period
+        months !== null
       ) {
-        formulatedPeriod = `${purchase.user_credit_period} ${purchase.user_credit_period === 1 ? "Month" : "Months"} Period`;
+        formulatedPeriod = `${months} ${months === 1 ? "Month" : "Months"} Period`;
       } else if (purchase.employee_payment_terms === "CASH") {
         formulatedPeriod = "Cash Payment";
       } else {

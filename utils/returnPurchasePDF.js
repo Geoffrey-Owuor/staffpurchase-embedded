@@ -9,7 +9,7 @@ import {
   pdf,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import { formatCreditPeriod } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
 
 // Register a standard font (actually Lato)
