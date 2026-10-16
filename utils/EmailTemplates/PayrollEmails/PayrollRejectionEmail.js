@@ -1,3 +1,5 @@
+import { multilineHtml } from "../formatEmailText";
+
 const generatePayrollRejectionEmailHTML = ({
   staffName,
   payrollNo,
@@ -57,7 +59,7 @@ const generatePayrollRejectionEmailHTML = ({
                          <p><strong>Name:</strong> ${staffName}</p>
                          <p><strong>Payroll No:</strong> ${payrollNo}</p>
                          <p><strong>Payroll Approver:</strong> ${payroll_approver_name}</p>
-                         <p><strong>One Third Rule Comments:</strong> ${one_third_rule}</p>
+                         <p><strong>One Third Rule Comments:</strong> ${multilineHtml(one_third_rule)}</p>
                          
                          <h3 style="color: #333;">Requested Items</h3>
                       

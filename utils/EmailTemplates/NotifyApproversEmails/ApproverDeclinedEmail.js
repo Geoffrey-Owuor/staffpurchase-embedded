@@ -1,3 +1,5 @@
+import { multilineHtml } from "../formatEmailText";
+
 const generateApproverDeclinedEmail = ({
   staffName,
   products,
@@ -55,7 +57,7 @@ const generateApproverDeclinedEmail = ({
                          <p><strong> Staff Name:</strong> ${staffName}</p>
                          <p><strong>Payroll No:</strong> ${payrollNo}</p>
                          <p><strong>Approver:</strong> ${approver_name}</p>
-                         <p><strong>Comments:</strong> ${approver_comments}</p>
+                         <p><strong>Comments:</strong> ${multilineHtml(approver_comments)}</p>
                          
                          <h3 style="color: #333;">Requested Items</h3>
                       
