@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { HandCoins, PackagePlus, PlusCircle, Trash2 } from "lucide-react";
+import { HandCoins, PackagePlus } from "lucide-react";
 import Alert from "../Alert";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
@@ -235,20 +235,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     );
   };
 
-  //Adding a product
-  const addProduct = () => {
-    setProducts([...products, { ...initialProductState }]);
-  };
-
-  //Removing a product
-  const removeProduct = (index) => {
-    if (products.length > 1) {
-      //Prevent removing the last item
-      const updatedProducts = products.filter((_, i) => i !== index);
-      setProducts(updatedProducts);
-    }
-  };
-
   //Calculating the total discountedValue from the products
   const purchaseTotal = useMemo(() => {
     //Using reduce to sum up discounted value of all products
@@ -376,9 +362,11 @@ function PurchaseForm({ purchase, userRole, name, id }) {
             </p>
           )}
 
-          {/* Map over the products array to render a component for each */}
+          {/* Map over the products array to render a component for each.
+          The product list is fixed at submission - no adding/removing here
+          (also enforced by api/generaleditpurchases). */}
           {products.map((product, index) => (
-            <div key={index} className="relative space-y-4">
+            <div key={index} className="space-y-4">
               <ProductPricing
                 formData={product}
                 handleChange={(e) => handleProductChange(index, e)}
@@ -391,18 +379,8 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                 onFetchStatusChange={(isFetching) =>
                   handleFetchStatusChange(index, isFetching)
                 }
+                recordedProduct={purchase.products?.[index]}
               />
-              {/* Removing a product - Only when role is cc */}
-              {products.length > 1 && userRole === "cc" && (
-                <button
-                  type="button"
-                  onClick={() => removeProduct(index)}
-                  className="absolute top-4 right-6 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
-                  title="Remove Product"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
-              )}
             </div>
           ))}
 
@@ -415,17 +393,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                   <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
                 </span>
               </span>
-            )}
-            {/* Adding a product - Only when role is cc */}
-            {userRole === "cc" && (
-              <button
-                type="button"
-                onClick={addProduct}
-                className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2.5 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
-              >
-                <PlusCircle className="h-5 w-5" />
-                Add <span className="hidden sm:block">Product</span>
-              </button>
             )}
           </div>
 

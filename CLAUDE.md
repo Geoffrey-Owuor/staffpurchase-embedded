@@ -194,10 +194,20 @@ before the code that depends on it deploys.
 - Staff Offers are intentionally **not** cached (unlike other reference
   data): the date window is checked against the DB's `NOW()` on every
   lookup. Overlapping active offers resolve to the most recently created.
-- `staffposts` and `generaleditpurchases` re-check STAFFOFFER rows against
-  the DB with `verifyStaffOffers` and persist `staffOfferPrice`/
-  `staffOfferId` from the DB, never the client. On edit, a row unchanged
-  from what's stored keeps its offer even after the promo ends.
+- `staffposts` re-checks STAFFOFFER rows against the DB with
+  `verifyStaffOffers` and persists `staffOfferPrice`/`staffOfferId` from
+  the DB, never the client.
+- Prices are fetched only when a request is created (`NewPurchase`). On the
+  edit page CC works from what was recorded at submission: no re-fetch, no
+  discount-policy recalculation, product codes and item names locked, no
+  adding/removing products (`isCcEdit` in `ProductPricing.jsx`). The one
+  price change CC can make is a manual (`MANUAL`) price + discount, e.g.
+  one approved by a product manager; "Restore recorded price" undoes it
+  back to the submitted row (`recordedProduct`). `generaleditpurchases` enforces this
+  (`buildCcProductRows`): it re-writes every locked field from the stored
+  row, so a saved Staff Offer sticks after the promo ends. Other price
+  corrections at that stage are made by hand in the DB. One-off data
+  scripts like the Staff Offer backfill live in `db/queries/`.
 
 ## Email
 
