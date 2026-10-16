@@ -1,16 +1,9 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { ApproversEmailHandler } from "@/lib/Email/ApproversEmailHandler";
-import { StaffOfferError, verifyStaffOffers } from "@/lib/staffOffers";
-import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
-
 const parseNumber = (value) => {
   return value === "" || value == null ? null : parseFloat(value);
 };
-
-const VALID_PRICE_CODES = [...PRICE_CODES, "MANUAL"];
-const normalizePriceCode = (value) =>
-  VALID_PRICE_CODES.includes(value) ? value : "TRADE";
 
 // Thrown for expected business-rule rejections (404/403) so withTransaction
 // rolls back automatically while still letting the route return the right status.
@@ -19,6 +12,76 @@ class RouteError extends Error {
     super(message);
     this.status = status;
   }
+}
+
+// A submitted amount equals the stored DECIMAL (both empty counts as equal).
+const sameAsStored = (submitted, stored) => {
+  const a = parseNumber(submitted);
+  const b = parseNumber(stored);
+  if (a == null || b == null) return a == null && b == null;
+  return Math.abs(a - b) < 0.005;
+};
+
+// CC edits products against what was recorded at submission: the product
+// list and codes, fetched prices, discount policy and Staff Offer fields are
+// all locked and re-written from the DB, as is the item name. CC may only set
+// a manual (MANUAL) price + discount, e.g. one approved by a product manager.
+// Mirrored client-side by ProductPricing's `isCcEdit`.
+function buildCcProductRows(storedProducts, products) {
+  if (products.length !== storedProducts.length) {
+    throw new RouteError(
+      400,
+      "Products can't be added or removed at Credit Control approval",
+    );
+  }
+
+  const unmatched = [...storedProducts];
+
+  return products.map((product) => {
+    const code = product.productCode?.trim() ?? "";
+    const index = unmatched.findIndex((p) => p.productCode === code);
+    if (index === -1) {
+      throw new RouteError(
+        400,
+        "Product codes can't be changed at Credit Control approval",
+      );
+    }
+    const [stored] = unmatched.splice(index, 1);
+
+    if (product.priceCode !== "MANUAL") {
+      const unchanged =
+        product.priceCode === stored.priceCode &&
+        sameAsStored(product.tdPrice, stored.tdPrice) &&
+        sameAsStored(product.discountRate, stored.discountRate);
+      if (!unchanged) {
+        throw new RouteError(
+          409,
+          "Prices are locked as recorded at submission. Reload the page and try again.",
+        );
+      }
+      return stored;
+    }
+
+    const tdPrice = parseNumber(product.tdPrice);
+    const discountRate = parseNumber(product.discountRate);
+    if (
+      !(tdPrice > 0) ||
+      !(discountRate >= 0 && discountRate <= 100)
+    ) {
+      throw new RouteError(
+        400,
+        `Enter a valid manual price and discount rate for ${stored.itemName || code}`,
+      );
+    }
+
+    return {
+      ...stored,
+      priceCode: "MANUAL",
+      tdPrice,
+      discountRate,
+      discountedValue: (tdPrice * (1 - discountRate / 100)).toFixed(2),
+    };
+  });
 }
 
 export const PUT = requireAuth(async (request, { params, user }) => {
@@ -160,18 +223,13 @@ export const PUT = requireAuth(async (request, { params, user }) => {
         Array.isArray(products) &&
         products.length > 0
       ) {
-        // Re-check Staff Offer prices against the DB. Rows unchanged from
-        // what's stored keep their offer even after the promo has ended.
         const [storedProducts] = await connection.execute(
-          `SELECT productCode, priceCode, tdPrice, discountedValue, staffOfferPrice, staffOfferId
+          `SELECT itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue,
+                  tradePrice, retailPrice, onlinePrice, staffOfferPrice, staffOfferId
            FROM purchase_products WHERE purchase_id = ?`,
           [id],
         );
-        const staffOffers = await verifyStaffOffers(
-          connection,
-          products,
-          storedProducts,
-        );
+        const rows = buildCcProductRows(storedProducts, products);
 
         //Delete the existing products for this purchase
         await connection.execute(
@@ -180,26 +238,26 @@ export const PUT = requireAuth(async (request, { params, user }) => {
         );
 
         //Insert new products into the table (per product)
-        const itemInsertPromises = products.map((product, index) => {
+        const itemInsertPromises = rows.map((row) => {
           return connection.execute(
             `INSERT INTO purchase_products
           (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice, staffOfferPrice, staffOfferId)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               id,
-              product.itemName,
-              product.itemStatus,
-              product.productPolicy,
-              product.productCode?.trim(),
-              normalizePriceCode(product.priceCode),
-              parseNumber(product.tdPrice),
-              parseNumber(product.discountRate),
-              parseNumber(product.discountedValue),
-              parseNumber(product.tradePrice) ?? 0,
-              parseNumber(product.retailPrice) ?? 0,
-              parseNumber(product.onlinePrice) ?? 0,
-              staffOffers[index].staffOfferPrice,
-              staffOffers[index].staffOfferId,
+              row.itemName,
+              row.itemStatus,
+              row.productPolicy,
+              row.productCode,
+              row.priceCode,
+              row.tdPrice,
+              row.discountRate,
+              row.discountedValue,
+              row.tradePrice,
+              row.retailPrice,
+              row.onlinePrice,
+              row.staffOfferPrice,
+              row.staffOfferId,
             ],
           );
         });
@@ -227,7 +285,7 @@ export const PUT = requireAuth(async (request, { params, user }) => {
       { status: 200 },
     );
   } catch (error) {
-    if (error instanceof RouteError || error instanceof StaffOfferError) {
+    if (error instanceof RouteError) {
       return Response.json(
         { message: error.message },
         { status: error.status },
