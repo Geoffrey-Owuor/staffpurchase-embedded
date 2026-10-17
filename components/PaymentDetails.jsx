@@ -2,6 +2,7 @@
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
 import Select from "./Reusables/Select";
 import { formatDateLong } from "@/public/assets";
+import { isRequesterRole } from "@/utils/routes";
 
 const LOCATION_OPTIONS = [
   { value: "SARIT", label: "Sarit" },
@@ -35,12 +36,14 @@ const PaymentDetails = ({
   periods,
   approversPurchasing,
 }) => {
-  const editableRoles = ["bi", "staff"];
-  const editCodeRoles = ["cc", "staff"];
-  const staffReadonly = userRole !== "staff" && !approversPurchasing;
-  const isReadOnly = !editableRoles.includes(userRole) && !approversPurchasing;
+  const isRequester = isRequesterRole(userRole);
+  const editableRoles = ["bi"];
+  const editCodeRoles = ["cc"];
+  const staffReadonly = !isRequester && !approversPurchasing;
+  const isReadOnly =
+    !isRequester && !editableRoles.includes(userRole) && !approversPurchasing;
   const isCodeReadonly =
-    !editCodeRoles.includes(userRole) && !approversPurchasing;
+    !isRequester && !editCodeRoles.includes(userRole) && !approversPurchasing;
   return (
     <div className="relative rounded-xl">
       <div className="rounded-t-xl px-2 py-3 text-lg font-semibold text-gray-900 dark:text-white">

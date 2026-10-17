@@ -77,7 +77,8 @@ export async function POST(request) {
     // --- COMMIT: Save all changes permanently to the DB ---
     await conn.commit();
 
-    await createSession(userId, role, name, email, payrollNo, department);
+    // A new account starts at session_version 0 (the column default)
+    await createSession(userId, role, name, email, payrollNo, department, 0);
 
     // Delete the verify_email cookie now that it's no longer needed
     const cookieStore = await cookies();

@@ -2,9 +2,7 @@ import {
   HomeIcon,
   ShoppingBagIcon,
   MessageCircleQuestion,
-  History,
   Link2,
-  BookOpenCheck,
   ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
@@ -20,8 +18,7 @@ const LeftSidebar = ({
   handlePurchaseClick,
   handleNavClick,
   activeTab,
-  role,
-  paymentTrackingPath,
+  roleNavItems,
 }) => {
   const sidebarOpen = useSidebarStore((state) => state.sidebarOpen);
   const setSidebarOpen = useSidebarStore((state) => state.setSidebarOpen);
@@ -104,27 +101,27 @@ const LeftSidebar = ({
               </div>
             </li>
 
-            {role === "cc" && (
-              <li>
+            {roleNavItems.map(({ key, path, label, Icon }) => (
+              <li key={key}>
                 <div
-                  onClick={() => handleNavClick(paymentTrackingPath)}
+                  onClick={() => handleNavClick(path)}
                   className={`flex cursor-default items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-                    activeTab === "paymentTracking"
+                    activeTab === key
                       ? "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
                   }`}
                 >
-                  <BookOpenCheck className="h-4 w-4 shrink-0" />
+                  <Icon className="h-4 w-4 shrink-0" />
                   <span
                     className={`overflow-hidden whitespace-nowrap transition-all duration-200 ${
                       sidebarOpen ? "w-40" : "w-0"
                     }`}
                   >
-                    Fully Approved
+                    {label}
                   </span>
                 </div>
               </li>
-            )}
+            ))}
           </ul>
         </nav>
         {/* Help & Support Hotpoint Website & User Menu */}

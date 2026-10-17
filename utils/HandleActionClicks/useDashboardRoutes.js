@@ -1,5 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
+import { BookOpenCheck, ScrollText, UsersRound } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { isValidRole } from "@/utils/routes";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
@@ -19,10 +20,43 @@ export function useDashboardRoutes() {
   const homePath = valid ? "/dashboard" : "/login";
   const purchasePath = valid ? "/dashboard/new-purchase" : "/login";
   const paymentTrackingPath = "/dashboard/payment-tracking";
+  const adminUsersPath = "/dashboard/admin/users";
+  const adminAuditLogPath = "/dashboard/admin/audit-log";
 
   const getViewPathName = (id) => (valid ? `/dashboard/${id}` : "/login");
-  const getEditPathName = (id) =>
-    valid ? `/dashboard/${id}/edit` : "/login";
+  const getEditPathName = (id) => (valid ? `/dashboard/${id}/edit` : "/login");
+
+  // Nav entries beyond Home/New Purchase, per role - the sidebar, topbar and
+  // mobile drawer all render this one list. Each page is still gated by its
+  // own layout.js; this only decides what's shown.
+  const roleNavItems = [
+    ...(role === "cc"
+      ? [
+          {
+            key: "paymentTracking",
+            path: paymentTrackingPath,
+            label: "Fully Approved",
+            Icon: BookOpenCheck,
+          },
+        ]
+      : []),
+    ...(role === "admin"
+      ? [
+          {
+            key: "adminUsers",
+            path: adminUsersPath,
+            label: "Users",
+            Icon: UsersRound,
+          },
+          {
+            key: "adminAuditLog",
+            path: adminAuditLogPath,
+            label: "Audit Log",
+            Icon: ScrollText,
+          },
+        ]
+      : []),
+  ];
 
   // Programmatic navigation that drives the global loading line (link clicks
   // and back/forward are picked up by LoadingLine itself). A no-op for the
@@ -37,6 +71,9 @@ export function useDashboardRoutes() {
     homePath,
     purchasePath,
     paymentTrackingPath,
+    adminUsersPath,
+    adminAuditLogPath,
+    roleNavItems,
     getViewPathName,
     getEditPathName,
     navigate,

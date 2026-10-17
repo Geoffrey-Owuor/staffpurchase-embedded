@@ -7,7 +7,6 @@ import {
   MessageCircleQuestion,
   Link2,
   ChevronLeft,
-  BookOpenCheck,
   Menu,
   NotebookText,
 } from "lucide-react";
@@ -16,7 +15,6 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import UserMenu from "../UserMenu";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { useUser } from "@/context/UserContext";
 import Link from "next/link";
 import { lockPageScroll } from "@/utils/scrollLock";
 
@@ -30,7 +28,6 @@ const navItemActive =
 export default function MobileHeader() {
   // --- State and logic for Mobile Sidebar ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { role } = useUser();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -49,7 +46,7 @@ export default function MobileHeader() {
     };
   }, [isMobileMenuOpen]);
 
-  const { homePath, purchasePath, paymentTrackingPath, navigate } =
+  const { homePath, purchasePath, roleNavItems, navigate } =
     useDashboardRoutes();
 
   // navigate() is a no-op for the current page; the menu closes either way
@@ -61,15 +58,7 @@ export default function MobileHeader() {
   const navItems = [
     { path: homePath, label: "Home", Icon: HomeIcon },
     { path: purchasePath, label: "New Purchase", Icon: ShoppingBagIcon },
-    ...(role === "cc"
-      ? [
-          {
-            path: paymentTrackingPath,
-            label: "Fully Approved",
-            Icon: BookOpenCheck,
-          },
-        ]
-      : []),
+    ...roleNavItems,
   ];
 
   return (
@@ -144,7 +133,9 @@ export default function MobileHeader() {
         <nav className="mt-6 grow">
           <ul className="space-y-2">
             {navItems.map(({ path, label, Icon }) => {
-              const isActive = pathname === path;
+              const isActive =
+                pathname === path ||
+                (path !== homePath && pathname.startsWith(`${path}/`));
               return (
                 <li key={path}>
                   <button
