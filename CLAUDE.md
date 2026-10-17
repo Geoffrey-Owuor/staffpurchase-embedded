@@ -84,6 +84,30 @@ correctness check available.
   transaction* as the change. Snapshots never include password/token
   columns. Add any new action's label to `ADMIN_AUDIT_ACTIONS` in
   `utils/Admin/adminConstants.js`. Viewer: `/dashboard/admin/audit-log`.
+- **Admin request editor**: `/dashboard/admin/requests` (all requests,
+  `AdminRequestsTable`) and `/dashboard/admin/requests/[id]`
+  (`AdminEditPurchase`) -> `GET/PUT/DELETE /api/admin/purchases/[id]`. It
+  is deliberately separate from `generaleditpurchases` (the approval
+  workflow): it can write any stage's data fields (`EDITABLE_FIELDS`) and
+  products, but approval statuses only change via `reopenFromStage`, which
+  resets that stage and every later one to pending, clears their sign-offs
+  and reopens `request_closure` - it never marks a stage approved. Every save
+  needs a reason, is audited (`purchase.edit`), sends no workflow emails
+  (requester email only if "notify" is ticked, via `sendNotificationEmail`),
+  and is refused with 409 if the request changed since it was opened
+  (`version` = hash of the row + products, `lib/adminPurchases.js`).
+  Unchanged product rows (matched by `purchase_products.id`) keep their
+  stored values; changed rows are re-validated, `discountedValue` is
+  recomputed server-side, and STAFFOFFER rows go through
+  `verifyStaffOffers`. `ProductPricing`'s `adminEdit` prop mirrors this
+  (no policy recalculation without a fresh fetch; manual price allowed).
+  Delete is a hard delete with the full request + products kept in the
+  audit entry's `before_data`. Stage definitions/option lists are shared
+  via `utils/Approvals/` (`approvalStages.js`, `stageFieldOptions.js`).
+- `/api/tablesdata/purchaseshistorydata` (every request) is approvers +
+  admin only; for admin, `approvalStatus` means the overall outcome
+  (declined anywhere / BI-approved / in progress). Staff use
+  `/api/staffpurchaseshistory`.
 - Role-specific nav entries (cc's Fully Approved, admin's pages) come from
   `useDashboardRoutes().roleNavItems`; the sidebar, topbar and mobile
   drawer all render that list - add new role pages there, not per component.
@@ -312,7 +336,8 @@ before the code that depends on it deploys.
   logic is intentionally duplicated in three places (client `useTableQuery`
   usage doesn't encode it — it's server-side only now, in
   `purchaseshistorydata/route.js` and `approval-counts/route.js`) — keep
-  them in sync if the chain ever changes.
+  them in sync if the chain ever changes, along with
+  `utils/Approvals/approvalStages.js` (the admin editor's stage order).
 - `deletepurchases` is requester-only (staff/admin), and only for the requester's own,
   not-yet-BI-approved request (enforced server-side by
   `app/api/deletepurchases/[id]/route.js`, mirrored client-side in

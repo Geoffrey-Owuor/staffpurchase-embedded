@@ -7,6 +7,7 @@ import {
   GitPullRequestClosed,
   RotateCcw,
   Blocks,
+  ClipboardPen,
 } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
@@ -103,7 +104,8 @@ export default function GeneralViewPurchases({ id }) {
     }
   };
 
-  const { handleEditClick } = useDashboardRoutes();
+  const { handleEditClick, navigate, getAdminEditPathName } =
+    useDashboardRoutes();
 
   // const handleCustomAlertShow = () => {
   //   setAlertType("success");
@@ -205,6 +207,17 @@ export default function GeneralViewPurchases({ id }) {
                   Edit
                 </button>
               )}
+
+            {/* Admin override editor (any stage) */}
+            {userRole === "admin" && (
+              <button
+                onClick={() => navigate(getAdminEditPathName(id))}
+                className="flex items-center justify-center gap-1 rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+              >
+                <ClipboardPen className="h-4 w-4" />
+                Admin edit
+              </button>
+            )}
 
             <button
               onClick={handleDownload}

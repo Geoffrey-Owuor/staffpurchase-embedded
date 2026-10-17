@@ -33,6 +33,8 @@ export const ADMIN_AUDIT_ACTIONS = {
   "user.reactivate": "Account reactivated",
   "user.unlock": "Account unlocked",
   "user.send_reset": "Reset link sent",
+  "purchase.edit": "Request edited",
+  "purchase.delete": "Request deleted",
 };
 
 export const ADMIN_AUDIT_ACTION_OPTIONS = Object.entries(

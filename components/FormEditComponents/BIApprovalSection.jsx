@@ -1,12 +1,7 @@
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import Select from "../Reusables/Select";
-
-const APPROVAL_STATUS_OPTIONS = [
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "declined", label: "Declined" },
-];
+import { APPROVAL_STATUS_OPTIONS } from "@/utils/Approvals/stageFieldOptions";
 
 export default function BIApprovalSection({
   formData,

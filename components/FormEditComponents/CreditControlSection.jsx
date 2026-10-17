@@ -2,29 +2,10 @@ import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
-
-const APPROVAL_STATUS_OPTIONS = [
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "declined", label: "Declined" },
-];
-
-// Value is the label text itself, so the view page, PDF, export and emails
-// display it as-is.
-const PURCHASE_HISTORY_COMMENT_OPTIONS = [
-  {
-    value: "Item not purchased in the last 1 year period",
-    label: "Item not purchased in the last 1 year period",
-  },
-  {
-    value: "Same item purchased in the last 1 year period",
-    label: "Same item purchased in the last 1 year period",
-  },
-  {
-    value: "Change of mind, staff no longer wants to purchase",
-    label: "Change of mind, staff no longer wants to purchase",
-  },
-];
+import {
+  APPROVAL_STATUS_OPTIONS,
+  PURCHASE_HISTORY_COMMENT_OPTIONS,
+} from "@/utils/Approvals/stageFieldOptions";
 
 export default function CreditControlSection({
   formData,
