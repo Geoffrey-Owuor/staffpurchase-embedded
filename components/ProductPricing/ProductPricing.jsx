@@ -52,6 +52,7 @@ const ProductPricing = ({
   approversPurchasing,
   onFetchStatusChange,
   recordedProduct,
+  adminEdit = false,
 }) => {
   const [hasUserEditedCode, setHasUserEditedCode] = useState(false);
 
@@ -67,6 +68,10 @@ const ProductPricing = ({
   const isCcEdit = userRole === "cc" && !approversPurchasing;
   // CC still sees the stored price comparison, just without a live fetch.
   const showComparison = canFetch || isCcEdit;
+  // Admin request editor (components/Admin/AdminEditPurchase.jsx): rows keep
+  // the values recorded at submission until the admin retypes the product
+  // code (a fresh fetch then prices it as at creation) or enters a manual
+  // price/discount. Mirrored server-side in api/admin/purchases/[id].
 
   const orion = useOrionPrices({
     productCode: formData.productCode,
@@ -131,6 +136,9 @@ const ProductPricing = ({
     const isFreshFetch =
       orion.status === "success" && orion.prices !== appliedFetchRef.current;
     if (formData.priceCode === "MANUAL" && !isFreshFetch) return;
+    // Admin edit: without a fresh fetch the recorded policy and discount
+    // stay as they are (policies may have changed since submission).
+    if (adminEdit && !isFreshFetch) return;
 
     const { itemName, itemStatus, priceCode } = formData;
     const policyResolution = resolveDiscountPolicy({
@@ -256,7 +264,7 @@ const ProductPricing = ({
 
   const editableRoles = ["cc"];
   const staffReadOnly = !isRequester && !approversPurchasing;
-  const ccReadOnly = userRole !== "cc";
+  const ccReadOnly = userRole !== "cc" && !adminEdit;
   const isReadonlyGeneral =
     !isRequester && !editableRoles.includes(userRole) && !approversPurchasing;
 
@@ -275,7 +283,7 @@ const ProductPricing = ({
   // CC edit page: undo a mistyped manual price back to what was recorded at
   // submission (price basis, price and discount).
   const isPriceChanged =
-    isCcEdit &&
+    (isCcEdit || adminEdit) &&
     recordedProduct != null &&
     (formData.priceCode !== recordedProduct.priceCode ||
       parseFloat(formData.tdPrice) !== parseFloat(recordedProduct.tdPrice) ||
@@ -388,15 +396,22 @@ const ProductPricing = ({
                 </button>
               )}
             </div>
-            {canFetch && (
+            {canFetch &&
+              !(adminEdit && recordedProduct && !hasUserEditedCode) && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {statusText || orion.errorMessage || STATUS_TEXT.idle}
+                </p>
+              )}
+            {adminEdit && recordedProduct && !hasUserEditedCode && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {statusText || orion.errorMessage || STATUS_TEXT.idle}
+                As recorded at submission. Retype the code to re-fetch current
+                prices, or edit the Initial Price for a manual price.
               </p>
             )}
             {isCcEdit && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Product and prices as recorded at submission. To use an
-                approved manual price, edit the Initial Price.
+                Product and prices as recorded at submission. To use an approved
+                manual price, edit the Initial Price.
               </p>
             )}
             {showComparison && !isBusy && (

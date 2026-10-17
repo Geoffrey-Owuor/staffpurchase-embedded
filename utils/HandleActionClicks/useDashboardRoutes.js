@@ -1,6 +1,11 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpenCheck, ScrollText, UsersRound } from "lucide-react";
+import {
+  BookOpenCheck,
+  ClipboardPen,
+  ScrollText,
+  UsersRound,
+} from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { isValidRole } from "@/utils/routes";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
@@ -22,6 +27,8 @@ export function useDashboardRoutes() {
   const paymentTrackingPath = "/dashboard/payment-tracking";
   const adminUsersPath = "/dashboard/admin/users";
   const adminAuditLogPath = "/dashboard/admin/audit-log";
+  const adminRequestsPath = "/dashboard/admin/requests";
+  const getAdminEditPathName = (id) => `${adminRequestsPath}/${id}`;
 
   const getViewPathName = (id) => (valid ? `/dashboard/${id}` : "/login");
   const getEditPathName = (id) => (valid ? `/dashboard/${id}/edit` : "/login");
@@ -49,6 +56,12 @@ export function useDashboardRoutes() {
             Icon: UsersRound,
           },
           {
+            key: "adminRequests",
+            path: adminRequestsPath,
+            label: "All Requests",
+            Icon: ClipboardPen,
+          },
+          {
             key: "adminAuditLog",
             path: adminAuditLogPath,
             label: "Audit Log",
@@ -73,6 +86,8 @@ export function useDashboardRoutes() {
     paymentTrackingPath,
     adminUsersPath,
     adminAuditLogPath,
+    adminRequestsPath,
+    getAdminEditPathName,
     roleNavItems,
     getViewPathName,
     getEditPathName,

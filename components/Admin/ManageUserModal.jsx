@@ -136,7 +136,8 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
   };
 
   const busy = busyAction !== null;
-  const needsReason = (action) => REASON_REQUIRED.includes(action) && !hasReason;
+  const needsReason = (action) =>
+    REASON_REQUIRED.includes(action) && !hasReason;
 
   return (
     <>
@@ -176,8 +177,8 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
 
       {isSelf && (
         <p className="mt-4 rounded-lg bg-blue-50 p-2 text-xs text-blue-800 dark:bg-blue-950 dark:text-blue-200">
-          This is your own account - its role and active status can't be
-          changed here. Ask another admin if that's needed.
+          This is your own account - its role and active status can't be changed
+          here. Ask another admin if that's needed.
         </p>
       )}
       {error && (
@@ -274,8 +275,8 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
             className={inputClass}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Required to change the role, deactivate or reactivate. Optional
-            for the other actions.
+            Required to change the role, deactivate or reactivate. Optional for
+            the other actions.
           </p>
         </div>
 
@@ -297,7 +298,10 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
               type="button"
               onClick={() => request("change_role", { role })}
               disabled={
-                busy || isSelf || role === user.role || needsReason("change_role")
+                busy ||
+                isSelf ||
+                role === user.role ||
+                needsReason("change_role")
               }
               className={primaryButton}
             >

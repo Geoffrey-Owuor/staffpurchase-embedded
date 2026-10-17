@@ -2,29 +2,12 @@ import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
-
-const EMPLOYMENT_STATUS_OPTIONS = [
-  { value: "contract", label: "Contract" },
-  { value: "permanent", label: "Permanent" },
-];
-
-const PROBATION_OPTIONS = [
-  { value: "yes", label: "Yes" },
-  { value: "no", label: "No" },
-];
-
-const APPROVAL_STATUS_OPTIONS = [
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "declined", label: "Declined" },
-];
-
-// Placeholder options - value is the label text itself, so the view page,
-// PDF, export and emails display it as-is.
-const HR_COMMENT_OPTIONS = [
-  { value: "Purchase Request Approved", label: "Purchase Request Approved" },
-  { value: "Purchase Request Declined", label: "Purchase Request Declined" },
-];
+import {
+  EMPLOYMENT_STATUS_OPTIONS,
+  PROBATION_OPTIONS,
+  APPROVAL_STATUS_OPTIONS,
+  HR_COMMENT_OPTIONS,
+} from "@/utils/Approvals/stageFieldOptions";
 
 export default function HRApprovalSection({
   formData,

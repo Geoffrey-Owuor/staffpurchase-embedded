@@ -81,10 +81,7 @@ export const GET = requireAuth(
       });
     } catch (error) {
       console.error("Admin users list error:", error);
-      return Response.json(
-        { message: "Error loading users" },
-        { status: 500 },
-      );
+      return Response.json({ message: "Error loading users" }, { status: 500 });
     }
   },
   { roles: ["admin"] },

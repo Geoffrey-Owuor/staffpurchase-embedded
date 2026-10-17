@@ -69,14 +69,19 @@ export default function Select({
     }
   }, [isOpen, showSearch]);
 
-  // Keep the highlighted index valid whenever the filtered list changes.
+  // Keep the highlighted index valid whenever the filtered list grows or
+  // shrinks. Keyed on the length, not the array: callers often pass a fresh
+  // `options` array every render (e.g. `periods.map(...)`), and an update
+  // queued on every parent render piles up during fast typing in the same
+  // form until React aborts with "Maximum update depth exceeded".
+  const filteredCount = filteredOptions.length;
   useEffect(() => {
     setHighlightedIndex((current) =>
-      filteredOptions.length === 0
+      filteredCount === 0
         ? -1
-        : Math.min(Math.max(current, 0), filteredOptions.length - 1),
+        : Math.min(Math.max(current, 0), filteredCount - 1),
     );
-  }, [filteredOptions]);
+  }, [filteredCount]);
 
   const openList = (initialIndex) => {
     setIsOpen(true);

@@ -86,7 +86,9 @@ async function lastApproverWarning(connection, target) {
 export const GET = requireAuth(
   async (_request, { params }) => {
     const { id } = await params;
-    const user = await withConnection((connection) => fetchUser(connection, id));
+    const user = await withConnection((connection) =>
+      fetchUser(connection, id),
+    );
     if (!user) {
       return Response.json({ message: "User not found" }, { status: 404 });
     }
@@ -135,8 +137,16 @@ export const PATCH = requireAuth(
           switch (action) {
             case "update_profile": {
               const name = readProfileField(body, "name", "Name");
-              const payrollNo = readProfileField(body, "payrollNo", "Payroll No");
-              const department = readProfileField(body, "department", "Department");
+              const payrollNo = readProfileField(
+                body,
+                "payrollNo",
+                "Payroll No",
+              );
+              const department = readProfileField(
+                body,
+                "department",
+                "Department",
+              );
               if (
                 name === target.name &&
                 payrollNo === target.payrollNo &&
@@ -175,7 +185,10 @@ export const PATCH = requireAuth(
 
             case "deactivate": {
               if (!target.is_active) {
-                throw new RouteError(409, "This account is already deactivated");
+                throw new RouteError(
+                  409,
+                  "This account is already deactivated",
+                );
               }
               warning = await lastApproverWarning(connection, target);
               await connection.execute(
@@ -225,7 +238,8 @@ export const PATCH = requireAuth(
               after = { ...before, password_attempts: 0 };
               message = `Reset link sent to ${target.email} (valid for 1 hour).`;
               if (!target.is_active) {
-                warning = "The account is deactivated - reactivate it before the user can sign in.";
+                warning =
+                  "The account is deactivated - reactivate it before the user can sign in.";
               }
               break;
             }

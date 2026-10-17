@@ -52,3 +52,37 @@ export async function runAdminUserAction(userId, body) {
   }
   return data;
 }
+
+async function sendJson(url, method, body) {
+  const response = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || "Request failed");
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
+
+// One request for the admin editor: { purchase, products, version }
+export function fetchAdminPurchase(id) {
+  return getJson(
+    `${basePath}/api/admin/purchases/${id}`,
+    "Failed to load the request",
+  );
+}
+
+// body: { version, reason, notifyRequester, reopenFromStage, purchase, products }
+// Throws an Error with `status` (409 = changed since it was opened).
+export function saveAdminPurchase(id, body) {
+  return sendJson(`${basePath}/api/admin/purchases/${id}`, "PUT", body);
+}
+
+// body: { reason, notifyRequester }
+export function deleteAdminPurchase(id, body) {
+  return sendJson(`${basePath}/api/admin/purchases/${id}`, "DELETE", body);
+}

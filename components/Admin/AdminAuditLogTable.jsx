@@ -64,9 +64,7 @@ function diffSnapshots(before, after) {
     }));
   }
   return keys
-    .filter(
-      (key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]),
-    )
+    .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]))
     .map((key) => ({ key, before: before[key], after: after[key] }));
 }
 
