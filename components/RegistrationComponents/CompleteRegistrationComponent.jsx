@@ -6,13 +6,9 @@ import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import Alert from "../Alert";
 import Select from "../Reusables/Select";
-import { baseDepartments, basePath } from "@/public/assets";
+import { basePath } from "@/public/assets";
+import { useDepartments } from "@/hooks/useReferenceData";
 import { isValidRole } from "@/utils/routes";
-
-const DEPARTMENT_OPTIONS = baseDepartments.map((department) => ({
-  value: department.value,
-  label: department.option,
-}));
 
 export default function CompleteRegistrationComponent({ email }) {
   const [formData, setFormData] = useState({
@@ -26,6 +22,8 @@ export default function CompleteRegistrationComponent({ email }) {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
+  // DB-managed (admin Reference Data) - active departments only
+  const { options: departmentOptions } = useDepartments();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -123,7 +121,7 @@ export default function CompleteRegistrationComponent({ email }) {
                 required
                 placeholder="Your full name"
                 // Standard Input Style
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
               />
             </div>
 
@@ -144,7 +142,7 @@ export default function CompleteRegistrationComponent({ email }) {
                 required
                 placeholder="12345"
                 // Standard Input Style
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
               />
             </div>
 
@@ -163,7 +161,7 @@ export default function CompleteRegistrationComponent({ email }) {
                 onChange={(value) =>
                   handleChange({ target: { name: "department", value } })
                 }
-                options={DEPARTMENT_OPTIONS}
+                options={departmentOptions}
                 placeholder="Select a department"
                 className="w-full"
                 required
@@ -189,7 +187,7 @@ export default function CompleteRegistrationComponent({ email }) {
                   minLength="8"
                   placeholder="••••••••"
                   // Standard Input Style
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
                 />
                 <button
                   type="button"
@@ -218,7 +216,7 @@ export default function CompleteRegistrationComponent({ email }) {
                 required
                 placeholder="••••••••"
                 // Standard Input Style
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
               />
               {formData.confirmPassword &&
                 formData.password !== formData.confirmPassword && (
@@ -238,7 +236,7 @@ export default function CompleteRegistrationComponent({ email }) {
                   formData.password !== formData.confirmPassword)
               }
               // Standard Button Style
-              className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-gray-600"
+              className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-gray-600"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

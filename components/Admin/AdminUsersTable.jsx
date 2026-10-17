@@ -13,8 +13,9 @@ import {
   USER_STATUS_OPTIONS,
 } from "@/utils/Admin/adminConstants";
 import { formatDateLong } from "@/public/assets";
+import { useDepartments } from "@/hooks/useReferenceData";
 
-const FILTER_FIELDS = [
+const BASE_FILTER_FIELDS = [
   {
     key: "search",
     type: "text",
@@ -34,12 +35,6 @@ const FILTER_FIELDS = [
     label: "Status",
     placeholder: "Status",
     options: USER_STATUS_OPTIONS,
-  },
-  {
-    key: "department",
-    type: "text",
-    label: "Department",
-    placeholder: "Department...",
   },
 ];
 
@@ -66,6 +61,19 @@ export default function AdminUsersTable() {
     type: "",
     message: "",
   });
+
+  // Every department, retired ones included, since they're existing data
+  const { allOptions: departmentOptions } = useDepartments();
+  const filterFields = [
+    ...BASE_FILTER_FIELDS,
+    {
+      key: "department",
+      type: "select",
+      label: "Department",
+      placeholder: "Department",
+      options: departmentOptions,
+    },
+  ];
 
   const table = useTableQuery({
     queryKeyPrefix: ["adminUsers"],
@@ -125,7 +133,7 @@ export default function AdminUsersTable() {
         heading={<UsersHeading />}
         columns={columns}
         visibleColumns={{}}
-        filterFields={FILTER_FIELDS}
+        filterFields={filterFields}
         filters={table.filters}
         staged={table.staged}
         stagedKeys={table.stagedKeys}

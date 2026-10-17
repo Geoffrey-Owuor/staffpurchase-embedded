@@ -108,6 +108,13 @@ correctness check available.
   admin only; for admin, `approvalStatus` means the overall outcome
   (declined anywhere / BI-approved / in progress). Staff use
   `/api/staffpurchaseshistory`.
+- **Admin analytics**: `/dashboard/admin/analytics` (the `/dashboard/admin`
+  landing page) <- `GET /api/admin/analytics?fromDate&toDate`. Request
+  metrics follow the date range, user metrics are all-time; request value
+  is the sum of its products' `discountedValue`; stage durations exclude
+  cash auto-approvals. Charts are dependency-free single-series bar lists/
+  columns in `components/Admin/Analytics/Charts.jsx` (one hue, values in
+  text colours, tooltip + table view).
 - Role-specific nav entries (cc's Fully Approved, admin's pages) come from
   `useDashboardRoutes().roleNavItems`; the sidebar, topbar and mobile
   drawer all render that list - add new role pages there, not per component.
@@ -232,6 +239,19 @@ before the code that depends on it deploys.
   approver emails, changelogs, banners) is cached with `unstable_cache`, and
   every loader is tagged from `utils/Cache/cacheTags.js` (`CACHE_TAGS`). New
   cached loaders must add their tag there too.
+- **Admin-managed reference data** (`db/migrations/2026-10-18_reference_data.sql`):
+  `invoicing_locations` (code PK, stored on `purchasesinfo`; label
+  editable), `departments` (name stored on `users`/`purchasesinfo`; a
+  rename via the admin page also renames it on `users`) and `app_settings`
+  (only keys whitelisted in `APP_SETTINGS`, `utils/Admin/adminConstants.js`
+  - currently `mpesa_till_number`). Edited at `/dashboard/admin/reference-data`
+  (`/api/admin/reference-data`, audited, revalidates the tag itself).
+  Entries are deactivated, never deleted: inactive ones aren't offered but
+  still label existing records. Client components read them through
+  `hooks/useReferenceData.js` (`useInvoicingLocations`, `useDepartments`,
+  `useAppSettings`; react-query keys under `"referenceData"`). Registration
+  and the admin profile edit only accept an active department. New accounts
+  are always `staff` - there's no email->role mapping any more.
 - `POST /api/revalidate` (header `x-revalidate-secret: $REVALIDATE_SECRET`,
   body `{"tags": [...]}` or `{"tags": "all"}`) busts those tags on demand
   after hand-edits in MySQL. It's secret-protected, not session-protected,

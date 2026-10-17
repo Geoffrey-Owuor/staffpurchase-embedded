@@ -16,6 +16,7 @@ import Select from "../Reusables/Select";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UserStatusBadge, { getUserStatus } from "./UserStatusBadge";
 import { useUser } from "@/context/UserContext";
+import { useDepartments } from "@/hooks/useReferenceData";
 import { runAdminUserAction } from "@/utils/FetchAdmin/fetchAdmin";
 import {
   ROLE_LABELS,
@@ -76,6 +77,8 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
     department: initialUser.department ?? "",
   });
   const [role, setRole] = useState(initialUser.role);
+  // Active departments, plus the user's current one if it's been retired
+  const { options: departmentOptions } = useDepartments(user.department);
   const [reason, setReason] = useState("");
   const [busyAction, setBusyAction] = useState(null);
   const [pendingConfirm, setPendingConfirm] = useState(null);
@@ -221,18 +224,32 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
                 <label htmlFor={`admin-user-${key}`} className={labelClass}>
                   {label}
                 </label>
-                <input
-                  id={`admin-user-${key}`}
-                  type="text"
-                  required
-                  maxLength={PROFILE_FIELD_MAX_LENGTH}
-                  value={profile[key]}
-                  disabled={busy}
-                  onChange={(e) =>
-                    setProfile((prev) => ({ ...prev, [key]: e.target.value }))
-                  }
-                  className={inputClass}
-                />
+                {key === "department" ? (
+                  <Select
+                    id="admin-user-department"
+                    className="w-full"
+                    value={profile.department}
+                    onChange={(value) =>
+                      setProfile((prev) => ({ ...prev, department: value }))
+                    }
+                    options={departmentOptions}
+                    placeholder="Select a department"
+                    disabled={busy}
+                  />
+                ) : (
+                  <input
+                    id={`admin-user-${key}`}
+                    type="text"
+                    required
+                    maxLength={PROFILE_FIELD_MAX_LENGTH}
+                    value={profile[key]}
+                    disabled={busy}
+                    onChange={(e) =>
+                      setProfile((prev) => ({ ...prev, [key]: e.target.value }))
+                    }
+                    className={inputClass}
+                  />
+                )}
               </div>
             ))}
           </div>

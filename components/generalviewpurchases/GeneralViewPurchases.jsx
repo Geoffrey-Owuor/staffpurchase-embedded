@@ -22,6 +22,7 @@ import { basePath, formatDateLong } from "@/public/assets";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
+import { useInvoicingLocations } from "@/hooks/useReferenceData";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import Alert from "../Alert";
@@ -30,6 +31,7 @@ export default function GeneralViewPurchases({ id }) {
   const queryClient = useQueryClient();
 
   const { role: userRole } = useUser();
+  const { labelFor: locationLabel } = useInvoicingLocations();
 
   const {
     data: purchase,
@@ -282,7 +284,7 @@ export default function GeneralViewPurchases({ id }) {
             <div className="space-y-4">
               <DetailField
                 label="Invoicing Location"
-                value={purchase.invoicing_location}
+                value={locationLabel(purchase.invoicing_location)}
               />
               <DetailField
                 label="Other Details"

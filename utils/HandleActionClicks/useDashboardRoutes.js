@@ -1,8 +1,10 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  BarChart3,
   BookOpenCheck,
   ClipboardPen,
+  Database,
   ScrollText,
   UsersRound,
 } from "lucide-react";
@@ -28,6 +30,8 @@ export function useDashboardRoutes() {
   const adminUsersPath = "/dashboard/admin/users";
   const adminAuditLogPath = "/dashboard/admin/audit-log";
   const adminRequestsPath = "/dashboard/admin/requests";
+  const adminAnalyticsPath = "/dashboard/admin/analytics";
+  const adminReferenceDataPath = "/dashboard/admin/reference-data";
   const getAdminEditPathName = (id) => `${adminRequestsPath}/${id}`;
 
   const getViewPathName = (id) => (valid ? `/dashboard/${id}` : "/login");
@@ -50,6 +54,12 @@ export function useDashboardRoutes() {
     ...(role === "admin"
       ? [
           {
+            key: "adminAnalytics",
+            path: adminAnalyticsPath,
+            label: "Analytics",
+            Icon: BarChart3,
+          },
+          {
             key: "adminUsers",
             path: adminUsersPath,
             label: "Users",
@@ -60,6 +70,12 @@ export function useDashboardRoutes() {
             path: adminRequestsPath,
             label: "All Requests",
             Icon: ClipboardPen,
+          },
+          {
+            key: "adminReferenceData",
+            path: adminReferenceDataPath,
+            label: "Reference Data",
+            Icon: Database,
           },
           {
             key: "adminAuditLog",
