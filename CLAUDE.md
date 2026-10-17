@@ -232,6 +232,12 @@ before the code that depends on it deploys.
   one in-flight call, Orion calls are capped at 6 per worker
   (`utils/createLimiter.js`), and `utils/tokenManager.js` fails fast for 15s
   after a failed Orion login.
+- `sendEmail` wraps every email (notifications and auth) with
+  `withNoReplyNotice` (`utils/EmailTemplates/noReplyNotice.js`): a slim
+  "automated, don't reply" line at the top (after a hidden subject preheader
+  so inbox previews stay useful) and an "unmonitored mailbox - open Staff
+  Purchase Portal" footer linking `NEXT_PUBLIC_BASE_URL`. Templates must not
+  add their own do-not-reply text.
 
 ## Query params & pagination
 
