@@ -127,7 +127,7 @@ const LeftSidebar = ({
         {/* Help & Support Hotpoint Website & User Menu */}
         <div className="space-y-4 px-2 py-3">
           <div
-            onClick={() => setShowTopbar((prev) => !prev)}
+            onClick={() => setShowTopbar(true)}
             className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
           >
             <LayoutPanelTop className="h-4 w-4 shrink-0" />

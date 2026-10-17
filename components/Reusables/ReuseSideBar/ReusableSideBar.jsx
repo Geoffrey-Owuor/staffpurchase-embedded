@@ -5,10 +5,10 @@ import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoute
 import { useUser } from "@/context/UserContext";
 import LeftSidebar from "./LeftSidebar";
 import TopSidebar from "./TopSidebar";
-import { useSidebarStore } from "@/store/useSidebarStore";
+import { useShowTopbar } from "@/store/useSidebarStore";
 
 export default function ReusableSidebar() {
-  const showTopbar = useSidebarStore((state) => state.showTopbar);
+  const showTopbar = useShowTopbar();
   const { role } = useUser();
   const router = useRouter();
 

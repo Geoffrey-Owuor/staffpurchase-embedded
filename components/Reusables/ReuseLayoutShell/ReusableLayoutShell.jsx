@@ -4,14 +4,32 @@ import DashboardFooter from "../DashboardFooter";
 import MobileHeader from "../Mobile/MobileHeader";
 import UserContext from "@/context/UserContext";
 import { useAuthSync } from "@/hooks/useAuthSync";
-import { useSidebarStore } from "@/store/useSidebarStore";
+import {
+  InitialTopbarContext,
+  useSidebarStore,
+  useShowTopbar,
+} from "@/store/useSidebarStore";
 import ChangeLogAlert from "@/components/ChangeLog/ChangeLogAlert";
 import SystemBanners from "@/components/Banners/SystemBanners";
 import { useEffect } from "react";
 
-export default function ReusableLayoutShell({ user, children }) {
+// The provider has to sit above every useShowTopbar() caller, including
+// this shell's own margin logic (ShellFrame).
+export default function ReusableLayoutShell({
+  user,
+  initialShowTopbar = false,
+  children,
+}) {
+  return (
+    <InitialTopbarContext.Provider value={initialShowTopbar}>
+      <ShellFrame user={user}>{children}</ShellFrame>
+    </InitialTopbarContext.Provider>
+  );
+}
+
+function ShellFrame({ user, children }) {
   const sidebarOpen = useSidebarStore((state) => state.sidebarOpen);
-  const showTopbar = useSidebarStore((state) => state.showTopbar);
+  const showTopbar = useShowTopbar();
 
   useEffect(() => {
     // Broadcast the new login to other tabs

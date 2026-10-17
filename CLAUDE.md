@@ -118,6 +118,19 @@ correctness check available.
 - Role-specific nav entries (cc's Fully Approved, admin's pages) come from
   `useDashboardRoutes().roleNavItems`; the sidebar, topbar and mobile
   drawer all render that list - add new role pages there, not per component.
+  In the desktop topbar (`TopSidebar.jsx`) labels never wrap: Home/New
+  Purchase are pinned and role items that don't fit (measured against an
+  invisible copy, re-fitted by a ResizeObserver) move into a "More" menu.
+  The topbar container is capped at `max-w-7xl`, so this is about the
+  number of role items, not just screen size.
+- **Topbar/sidebar preference** is a plain `nav_layout` cookie
+  (`utils/navLayout.js`), read by the dashboard `layout.js` and passed down
+  via `InitialTopbarContext` so the server renders the right layout (no
+  flash, no hydration mismatch). Read it with `useShowTopbar()` - never
+  `useSidebarStore((s) => s.showTopbar)` directly (it's `null` until the
+  user toggles in this tab). `setShowTopbar(boolean)` writes the cookie.
+  Don't switch to zustand `persist` for this - it only knows the value
+  after hydration.
 - `middleware.js` only checks session presence for `/dashboard/:path*` (a
   single prefix now). Role-specific gating (e.g. payment-tracking) lives in
   the relevant `layout.js`, not middleware.
