@@ -86,3 +86,25 @@ export function saveAdminPurchase(id, body) {
 export function deleteAdminPurchase(id, body) {
   return sendJson(`${basePath}/api/admin/purchases/${id}`, "DELETE", body);
 }
+
+// { locations, departments, settings } for the Reference Data page
+export function fetchReferenceData() {
+  return getJson(
+    `${basePath}/api/admin/reference-data`,
+    "Failed to load reference data",
+  );
+}
+
+// POST = add an entry, PATCH = change one (see api/admin/reference-data).
+// Resolves to { message, locations, departments, settings }.
+export function saveReferenceData(method, body) {
+  return sendJson(`${basePath}/api/admin/reference-data`, method, body);
+}
+
+// filters: { fromDate, toDate } - see api/admin/analytics
+export function fetchAdminAnalytics(filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/analytics?${toQueryString(filters)}`,
+    "Failed to load analytics",
+  );
+}

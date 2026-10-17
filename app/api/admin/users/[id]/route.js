@@ -154,6 +154,20 @@ export const PATCH = requireAuth(
               ) {
                 throw new RouteError(400, "No changes to save");
               }
+              // A changed department must be an active one from the
+              // departments table (keeping a since-retired one is fine)
+              if (department !== target.department) {
+                const [departmentRows] = await connection.execute(
+                  `SELECT 1 FROM departments WHERE name = ? AND is_active = 1`,
+                  [department],
+                );
+                if (departmentRows.length === 0) {
+                  throw new RouteError(
+                    400,
+                    "Choose a department from the list",
+                  );
+                }
+              }
               // These are copied into the session JWT, so end the user's
               // sessions to pick the new values up. Existing purchase
               // requests keep the snapshot they were submitted with.

@@ -49,8 +49,8 @@ export const GET = requireAuth(
       }
 
       if (department) {
-        whereClauses.push(`u.department LIKE ?`);
-        params.push(`%${department}%`);
+        whereClauses.push(`u.department = ?`);
+        params.push(department);
       }
 
       const whereSql =

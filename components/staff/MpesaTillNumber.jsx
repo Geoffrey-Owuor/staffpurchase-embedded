@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
 import { Copy, CheckCircle2 } from "lucide-react";
+import { useAppSettings } from "@/hooks/useReferenceData";
 
 export default function MpesaTillNumber() {
   const [copied, setCopied] = useState(false);
-  const tillNumber = "80057";
+  // Managed on the admin Reference Data page (app_settings)
+  const { settings } = useAppSettings();
+  const tillNumber = settings.mpesa_till_number;
 
   const handleCopy = async () => {
     try {
@@ -39,6 +42,9 @@ export default function MpesaTillNumber() {
       console.error("Failed to copy text: ", err);
     }
   };
+  // Nothing to show until the setting has loaded (or if it was never set)
+  if (!tillNumber) return null;
+
   return (
     <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white py-1 pr-1.5 pl-3 shadow-sm dark:border-gray-800 dark:bg-gray-950">
       <span className="font-mono text-[11px] font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">

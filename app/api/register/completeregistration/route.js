@@ -3,20 +3,11 @@ import { hashPassword, createSession } from "@/app/lib/auth";
 import pool from "@/lib/db";
 import { parseEmail, INVALID_EMAIL_MESSAGE } from "@/lib/emailValidation";
 import { cookies } from "next/headers";
+import { CachedDepartments } from "@/utils/Cache/CachedConditions";
 
-const getRoleFromEmail = (email) => {
-  // Get the normalized email
-  const normalizedEmail = email.toLowerCase();
-
-  const emailRoleMappings = {
-    "user@example.com": "payroll",
-    "user@example.com": "hr",
-    "user@example.com": "cc",
-    "user@example.com": "bi",
-  };
-
-  return emailRoleMappings[normalizedEmail] || "staff";
-};
+// Every new account starts as staff; admins assign other roles from the
+// Users page (there used to be a hardcoded email -> role map here).
+const NEW_USER_ROLE = "staff";
 
 export async function POST(request) {
   let conn;
@@ -33,6 +24,19 @@ export async function POST(request) {
     if (!email) {
       return Response.json(
         { success: false, message: INVALID_EMAIL_MESSAGE },
+        { status: 400 },
+      );
+    }
+
+    // Must be one of the active departments offered on the form
+    // (departments table, managed on the admin Reference Data page)
+    const departments = await CachedDepartments();
+    const isOfferedDepartment = departments.some(
+      (d) => d.is_active && d.name === department,
+    );
+    if (!isOfferedDepartment) {
+      return Response.json(
+        { success: false, message: "Choose a department from the list" },
         { status: 400 },
       );
     }
@@ -58,7 +62,7 @@ export async function POST(request) {
     // --- START TRANSACTION: Ensure atomicity for DB writes ---
     await conn.beginTransaction();
 
-    const role = getRoleFromEmail(email);
+    const role = NEW_USER_ROLE;
     const hashedPassword = await hashPassword(password);
 
     // Create user

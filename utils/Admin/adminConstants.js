@@ -35,6 +35,9 @@ export const ADMIN_AUDIT_ACTIONS = {
   "user.send_reset": "Reset link sent",
   "purchase.edit": "Request edited",
   "purchase.delete": "Request deleted",
+  "reference.create": "Reference data added",
+  "reference.update": "Reference data changed",
+  "setting.update": "Setting changed",
 };
 
 export const ADMIN_AUDIT_ACTION_OPTIONS = Object.entries(
@@ -44,7 +47,23 @@ export const ADMIN_AUDIT_ACTION_OPTIONS = Object.entries(
 export const ADMIN_AUDIT_TARGET_OPTIONS = [
   { value: "user", label: "Users" },
   { value: "purchase", label: "Purchase requests" },
+  { value: "reference", label: "Reference data & settings" },
 ];
+
+// Single-value settings (app_settings table) the app reads and the admin
+// Reference Data page edits. Only these keys are ever read or written.
+export const APP_SETTINGS = {
+  mpesa_till_number: {
+    label: "M-Pesa till number",
+    description: "Shown on the New Purchase form for cash payments",
+    pattern: /^\d{4,10}$/,
+    patternMessage: "Enter 4-10 digits",
+  },
+};
+
+export const LOCATION_CODE_PATTERN = /^[A-Z0-9_]{2,32}$/;
+export const LOCATION_LABEL_MAX_LENGTH = 100;
+export const DEPARTMENT_NAME_MAX_LENGTH = 55;
 
 // Free-text limits the admin user routes enforce (and the forms mirror).
 export const REASON_MAX_LENGTH = 500;

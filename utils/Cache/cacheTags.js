@@ -9,6 +9,9 @@ export const CACHE_TAGS = {
   approverEmails: "approver-emails",
   changelogs: "changelogs",
   banners: "banners",
+  invoicingLocations: "invoicing-locations",
+  departments: "departments",
+  appSettings: "app-settings",
 };
 
 export const VALID_CACHE_TAGS = Object.values(CACHE_TAGS);
