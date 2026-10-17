@@ -15,6 +15,9 @@ import { useUser } from "@/context/UserContext";
 import { basePath } from "@/public/assets";
 
 // Reusable style for the dropdown menu items
+// The table row's Delete action is switched off - see the comment on it.
+const TABLE_DELETE_ENABLED = false;
+
 const menuItemStyles =
   "flex items-center rounded-lg w-full p-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50 disabled:hover:bg-transparent";
 
@@ -238,14 +241,17 @@ export const RecentActionButtons = ({
                 handleConfirmDelete();
               }}
               disabled={
-                // Deliberately switched off: "admin" isn't a real role, so this
-                // is always disabled. To re-enable, match the server rule in
-                // app/api/deletepurchases/[id]/route.js (staff only, own
-                // request, not yet BI-approved) - e.g. userRole !== "staff" ||
-                // biApproval === "approved" - and drop the ccApproval check.
+                // Deliberately switched off (TABLE_DELETE_ENABLED). This used
+                // to hinge on a non-existent "admin" role; admin is real now
+                // and deletes from the admin Requests page instead. To
+                // re-enable, match the server rule in
+                // app/api/deletepurchases/[id]/route.js (requester roles, own
+                // request, not yet BI-approved) - e.g.
+                // !isRequesterRole(userRole) || biApproval === "approved" -
+                // and drop the ccApproval check.
                 goingTo === id ||
                 disableDelete ||
-                userRole !== "admin" ||
+                !TABLE_DELETE_ENABLED ||
                 biApproval !== "pending" ||
                 ccApproval !== "pending"
               }

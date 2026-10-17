@@ -1,7 +1,7 @@
 // app/api/forgot-password/route.js
 import pool from "@/lib/db";
-import { v4 as uuidv4 } from "uuid";
 import { sendResetEmail } from "@/lib/nodemailer";
+import { createPasswordResetLink } from "@/lib/passwordReset";
 import { parseEmail, INVALID_EMAIL_MESSAGE } from "@/lib/emailValidation";
 
 export async function POST(request) {
@@ -32,18 +32,11 @@ export async function POST(request) {
       );
     }
 
-    const userId = users[0].id;
-    const token = uuidv4();
-
-    await conn.execute(
-      "UPDATE users SET reset_token = ?, reset_token_expiry = NOW() + INTERVAL 1 HOUR WHERE id = ?",
-      [token, userId],
-    );
+    const resetLink = await createPasswordResetLink(conn, users[0].id);
 
     //Commit transaction
     await conn.commit();
 
-    const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${token}`;
     try {
       await sendResetEmail(email, resetLink);
     } catch (error) {

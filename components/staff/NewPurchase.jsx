@@ -20,6 +20,7 @@ import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
 import { basePath } from "@/public/assets";
+import { isRequesterRole } from "@/utils/routes";
 
 // The initial state for a single product
 const initialProductState = {
@@ -281,7 +282,7 @@ export default function NewPurchase({ approversPurchasing }) {
               Product & Pricing Details
             </span>
           </div>
-          {(user.role === "staff" || approversPurchasing) &&
+          {(isRequesterRole(user.role) || approversPurchasing) &&
             user.role !== "cc" && (
               <p className="mx-2 mb-4 rounded-lg bg-amber-100 p-2 text-xs dark:bg-amber-950">
                 <span className="font-semibold">Please note:</span> To maintain

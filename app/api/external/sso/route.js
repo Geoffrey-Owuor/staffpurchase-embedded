@@ -6,19 +6,13 @@ import crypto from "crypto";
 import { basePath } from "@/public/assets";
 import { isValidRole } from "@/utils/routes";
 import pool from "@/lib/db";
+import { getRequestBaseUrl } from "@/lib/requestBaseUrl";
+import { isSessionCurrent } from "@/lib/sessionCheck";
+import { isLockedOut } from "@/lib/loginPolicy";
 
 export async function GET(request) {
-  // 1. Inspect headers sent by Nginx, falling back to local headers if accessed directly
-  const proto = request.headers.get("x-forwarded-proto") || "http";
-  const host =
-    request.headers.get("x-forwarded-host") ||
-    request.headers.get("host") ||
-    "127.0.0.1:10556";
-
-  // 2. Mathematically construct the exact base URL the user is currently using
-  // Embedded via Nginx:   https://192.168.0.27:4443
-  // Accessed Directly:    http://192.168.0.27:10556
-  const baseUrl = `${proto}://${host}`;
+  // The base URL the user is currently using (Nginx-forwarded or direct)
+  const baseUrl = getRequestBaseUrl(request);
 
   try {
     const { searchParams } = new URL(request.url);
@@ -90,8 +84,8 @@ export async function GET(request) {
 
     // If there is already a valid session for this same user, redirect
     // directly to the dashboard - but only if the account hasn't been
-    // disabled since the session was issued (the JWT itself has no way of
-    // knowing that).
+    // disabled (or had its sessions ended) since the session was issued
+    // (the JWT itself has no way of knowing that).
     const existingSession = await getCurrentUser();
     const isSameUser =
       existingSession.valid &&
@@ -105,12 +99,7 @@ export async function GET(request) {
     }
 
     if (isSameUser) {
-      const [existingUser] = await pool.execute(
-        `SELECT is_active FROM users WHERE id = ? LIMIT 1`,
-        [existingSession.id],
-      );
-
-      if (existingUser.length === 0 || !existingUser[0].is_active) {
+      if (!(await isSessionCurrent(existingSession))) {
         const response = NextResponse.redirect(
           new URL(`${basePath}/login`, baseUrl),
         );
@@ -127,7 +116,7 @@ export async function GET(request) {
 
     // Check if the user exists or not
     const [user] = await pool.execute(
-      `SELECT id, name, payrollNo, department, role, is_active FROM users WHERE email = ? LIMIT 1`,
+      `SELECT id, name, payrollNo, department, role, is_active, password_attempts, session_version FROM users WHERE email = ? LIMIT 1`,
       [email],
     );
 
@@ -139,8 +128,9 @@ export async function GET(request) {
     // User exists assign the user object
     const userObject = user[0];
 
-    // User account is disabled
-    if (!userObject.is_active) {
+    // User account is disabled, or locked out after failed password
+    // attempts (a lockout blocks SSO too, as it did when it set is_active)
+    if (!userObject.is_active || isLockedOut(userObject.password_attempts)) {
       return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 
@@ -152,6 +142,7 @@ export async function GET(request) {
       email,
       userObject.payrollNo,
       userObject.department,
+      userObject.session_version,
     );
 
     // Success: redirect the user to the dashboard

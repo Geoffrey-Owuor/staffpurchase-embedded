@@ -5,8 +5,9 @@ Guidance for future Claude Code sessions working in this repo.
 ## Project
 
 Staff Product Purchase Portal — an internal Next.js 15 (App Router) app for
-digitizing a staff purchase-request approval workflow. Five roles: `staff`,
-`payroll`, `hr`, `cc` (credit control), `bi` (billing/invoicing). Requests
+digitizing a staff purchase-request approval workflow. Six roles: `staff`,
+`payroll`, `hr`, `cc` (credit control), `bi` (billing/invoicing), and
+`admin` (a requester like staff, plus the `/dashboard/admin` tools). Requests
 flow through a fixed sequential approval chain: `payroll → hr → cc → bi`.
 
 This app is **embedded** (iframed) behind an Nginx reverse proxy and also
@@ -47,6 +48,45 @@ correctness check available.
   - `payment-tracking/` — **cc-only**, gated by its own nested `layout.js`
     (checks `user.role === "cc"`) since this feature doesn't apply to other
     roles at all.
+- **Session revocation**: the JWT carries `sessionVersion`
+  (`users.session_version`). `lib/sessionCheck.js` `isSessionCurrent(user)`
+  re-checks the account (exists, `is_active`, same version) in
+  `requireAuth`, the dashboard `layout.js` (redirects via
+  `/api/session-ended`, which clears the cookie - a plain `/login` redirect
+  would loop through middleware), `/api/check-session` (polled by
+  `useAuthSync` on focus/every 5 min) and SSO session reuse. Bump
+  `session_version` to end a user's sessions (deactivation, role change,
+  password reset). `getCurrentUser()` alone is JWT-only.
+- **Lockout vs deactivation**: a lockout is `password_attempts >=
+  MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
+  or admin unlock clears it. `is_active` is changed only by an admin - login
+  no longer sets it on lockout.
+- **Roles**: `admin` is a *requester* role (`REQUESTER_ROLES`/
+  `isRequesterRole` in `utils/routes.js`): it submits and sees its own
+  requests exactly like `staff` and is never part of the approval chain. Use
+  `isRequesterRole(role)` rather than `role === "staff"` for "acts like a
+  requester" checks; reserve `role === "staff"` for things admin must not
+  get (e.g. the own-requests-only rule in `generalviewpurchases`).
+- **Admin tools** live under `/dashboard/admin/*` (gated by
+  `admin/layout.js`) and `/api/admin/*` (`requireAuth(..., { roles:
+  ["admin"] })`). Users page: `components/Admin/AdminUsersTable.jsx` +
+  `ManageUserModal.jsx` -> `PATCH /api/admin/users/[id]` with an `action`
+  (`update_profile`, `change_role`, `deactivate`, `reactivate`, `unlock`,
+  `send_reset`). Guardrails are server-side: role change/deactivation can't
+  target yourself (so the acting admin always remains), and role change/
+  deactivate/reactivate need a reason. Removing the last active user of an
+  approval role is allowed but returns a `warning`. Admins never see or set
+  passwords - `send_reset` unlocks and emails a reset link
+  (`lib/passwordReset.js`, shared with forgot-password).
+- **Audit log**: every admin action writes `admin_audit_log`
+  (`db/migrations/2026-10-17_admin_audit_log.sql`) via
+  `lib/adminAudit.js` `writeAdminAudit(connection, ...)`, in the *same
+  transaction* as the change. Snapshots never include password/token
+  columns. Add any new action's label to `ADMIN_AUDIT_ACTIONS` in
+  `utils/Admin/adminConstants.js`. Viewer: `/dashboard/admin/audit-log`.
+- Role-specific nav entries (cc's Fully Approved, admin's pages) come from
+  `useDashboardRoutes().roleNavItems`; the sidebar, topbar and mobile
+  drawer all render that list - add new role pages there, not per component.
 - `middleware.js` only checks session presence for `/dashboard/:path*` (a
   single prefix now). Role-specific gating (e.g. payment-tracking) lives in
   the relevant `layout.js`, not middleware.
@@ -151,8 +191,8 @@ former ~700-800-line near-duplicate components:
   `utils/scrollLock.js` (a shared counter), never by writing
   `document.documentElement.style.overflow` directly.
 - **Delete action** in `RecentActionButtons.jsx` is deliberately disabled
-  (it checks a non-existent `"admin"` role); the comment there explains how
-  to re-enable it to match the server rule.
+  (`TABLE_DELETE_ENABLED = false`); the comment there explains how to
+  re-enable it to match the server rule.
 
 ## Database schema changes
 
@@ -273,7 +313,7 @@ before the code that depends on it deploys.
   usage doesn't encode it — it's server-side only now, in
   `purchaseshistorydata/route.js` and `approval-counts/route.js`) — keep
   them in sync if the chain ever changes.
-- `deletepurchases` is staff-only, and only for the requester's own,
+- `deletepurchases` is requester-only (staff/admin), and only for the requester's own,
   not-yet-BI-approved request (enforced server-side by
   `app/api/deletepurchases/[id]/route.js`, mirrored client-side in
   `RecentActionButtons.jsx`'s disabled-state logic).

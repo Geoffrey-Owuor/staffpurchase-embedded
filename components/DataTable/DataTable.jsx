@@ -40,6 +40,7 @@ export default function DataTable({
   onRowClick,
   emptyMessage = "No purchase data found",
   filteredEmptyMessage = "No purchases match the active filters.",
+  errorMessage = "Failed to load purchases. Please try refreshing the page.",
 }) {
   const hasActiveFilters = filterFields?.some((field) => {
     if (field.type === "dateRange") return filters.fromDate || filters.toDate;
@@ -93,7 +94,7 @@ export default function DataTable({
           <TableSkeleton />
         ) : isError ? (
           <div className="py-10 text-center text-sm text-red-500">
-            Failed to load purchases. Please try refreshing the page.
+            {errorMessage}
           </div>
         ) : (
           <>

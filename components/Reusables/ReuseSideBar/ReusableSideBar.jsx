@@ -15,7 +15,7 @@ export default function ReusableSidebar() {
   const {
     homePath,
     purchasePath,
-    paymentTrackingPath,
+    roleNavItems,
     handleHomeRoute,
     handlePurchaseRoute,
     navigate,
@@ -29,8 +29,13 @@ export default function ReusableSidebar() {
     activeTab = "home";
   } else if (pathname === purchasePath) {
     activeTab = "newpurchase";
-  } else if (pathname === paymentTrackingPath) {
-    activeTab = "paymentTracking";
+  } else {
+    // Role pages own their whole subtree (e.g. /dashboard/admin/users/...)
+    activeTab =
+      roleNavItems.find(
+        (item) =>
+          pathname === item.path || pathname.startsWith(`${item.path}/`),
+      )?.key ?? "";
   }
 
   const handleHomeClick = handleHomeRoute;
@@ -62,23 +67,21 @@ export default function ReusableSidebar() {
     <>
       {showTopbar ? (
         <TopSidebar
-          role={role}
           router={router}
           handleHomeClick={handleHomeClick}
           handlePurchaseClick={handlePurchaseClick}
           handleNavClick={handleNavClick}
           activeTab={activeTab}
-          paymentTrackingPath={paymentTrackingPath}
+          roleNavItems={roleNavItems}
         />
       ) : (
         <LeftSidebar
           router={router}
           activeTab={activeTab}
-          role={role}
           handleHomeClick={handleHomeClick}
           handlePurchaseClick={handlePurchaseClick}
           handleNavClick={handleNavClick}
-          paymentTrackingPath={paymentTrackingPath}
+          roleNavItems={roleNavItems}
         />
       )}
     </>

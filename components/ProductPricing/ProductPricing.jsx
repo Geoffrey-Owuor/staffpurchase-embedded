@@ -8,6 +8,7 @@ import { RotateCcw } from "lucide-react";
 import { useOrionPrices } from "@/hooks/useOrionPrices";
 import { selectLowestPrice } from "@/utils/Pricing/selectLowestPrice";
 import { resolveDiscountPolicy } from "@/utils/Pricing/resolveDiscountPolicy";
+import { isRequesterRole } from "@/utils/routes";
 import {
   PRICE_CODE_LABELS,
   STAFF_OFFER_CODE,
@@ -61,7 +62,8 @@ const ProductPricing = ({
   // price change CC can make there is a manual (MANUAL) price, e.g. one
   // approved by a product manager. Mirrored server-side in
   // api/generaleditpurchases.
-  const canFetch = userRole === "staff" || approversPurchasing;
+  const isRequester = isRequesterRole(userRole);
+  const canFetch = isRequester || approversPurchasing;
   const isCcEdit = userRole === "cc" && !approversPurchasing;
   // CC still sees the stored price comparison, just without a live fetch.
   const showComparison = canFetch || isCcEdit;
@@ -115,7 +117,7 @@ const ProductPricing = ({
   // Policy resolution + lowest-price selection. Skipped on the CC edit page:
   // the policy and discount stay as recorded at submission.
   useEffect(() => {
-    if (!["staff", "cc"].includes(userRole) && !approversPurchasing) return;
+    if (!isRequester && userRole !== "cc" && !approversPurchasing) return;
     if (isCcEdit) return;
 
     // A manually-entered price (CC override) sticks until a *fresh* fetch
@@ -226,7 +228,7 @@ const ProductPricing = ({
   // discount rate (every STAFFOFFER/RTLRRP/ONLINE selection), so only "" / null /
   // undefined block the calculation.
   useEffect(() => {
-    if (!["staff", "cc"].includes(userRole) && !approversPurchasing) return;
+    if (!isRequester && userRole !== "cc" && !approversPurchasing) return;
 
     const { tdPrice, discountRate } = formData;
     if (
@@ -252,11 +254,11 @@ const ProductPricing = ({
     setFormData((prev) => ({ ...prev, priceCode: "MANUAL" }));
   };
 
-  const editableRoles = ["staff", "cc"];
-  const staffReadOnly = userRole !== "staff" && !approversPurchasing;
+  const editableRoles = ["cc"];
+  const staffReadOnly = !isRequester && !approversPurchasing;
   const ccReadOnly = userRole !== "cc";
   const isReadonlyGeneral =
-    !editableRoles.includes(userRole) && !approversPurchasing;
+    !isRequester && !editableRoles.includes(userRole) && !approversPurchasing;
 
   // Discount policies only apply to a TRADE basis; MANUAL is a full CC
   // hand-entry so a custom discount on top of it is still meaningful.
