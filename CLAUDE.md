@@ -221,6 +221,17 @@ before the code that depends on it deploys.
 - Auth emails (`lib/verificationEmail.js`, `lib/nodemailer.js` password
   reset) deliberately call `sendEmail` directly and are never skipped —
   registration, Change Email and password reset can't complete without them.
+- `sendEmail` retries 429 (honouring `Retry-After`), 5xx, network failures and
+  MSAL token failures - up to 4 attempts with backoff, 30s per attempt - and
+  sends at most 2 at a time per PM2 worker (Exchange caps ~4 concurrent
+  requests per mailbox). Other 4xx fail immediately. A timed-out attempt may
+  still have been delivered, so a retry can rarely duplicate an email.
+- Orion price lookups (`getpurchasedetails`) cache only real answers (a price
+  or "not on this list"); timeouts/network/5xx/no-token are thrown inside
+  `unstable_cache` so they aren't cached. Concurrent identical lookups share
+  one in-flight call, Orion calls are capped at 6 per worker
+  (`utils/createLimiter.js`), and `utils/tokenManager.js` fails fast for 15s
+  after a failed Orion login.
 
 ## Query params & pagination
 
