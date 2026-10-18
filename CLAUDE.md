@@ -109,10 +109,15 @@ correctness check available.
   (declined anywhere / BI-approved / in progress). Staff use
   `/api/staffpurchaseshistory`.
 - **Admin analytics**: `/dashboard/admin/analytics` (the `/dashboard/admin`
-  landing page) <- `GET /api/admin/analytics?fromDate&toDate`. Request
-  metrics follow the date range, user metrics are all-time; request value
-  is the sum of its products' `discountedValue`; stage durations exclude
-  cash auto-approvals. Charts are dependency-free single-series bar lists/
+  landing page) <- `GET /api/admin/analytics?fromDate&toDate&status`. The
+  count tiles and approval pipeline cover requests *submitted* in the range;
+  the value tile, monthly charts, Volume & value and Products follow
+  `status` (`approved` default / `inProgress` / `declined` / `all`,
+  `STATUS_SCOPES` in the route) and range on the date each request reached
+  that status (BI approval date / decline date / submission date) - so
+  per-status figures don't sum to "all" for a period. User metrics are
+  all-time; request value is the sum of its products' `discountedValue`;
+  stage durations exclude cash auto-approvals. Charts are dependency-free single-series bar lists/
   columns in `components/Admin/Analytics/Charts.jsx` (one hue, values in
   text colours, tooltip + table view).
 - Role-specific nav entries (cc's Fully Approved, admin's pages) come from

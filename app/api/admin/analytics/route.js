@@ -1,6 +1,10 @@
 // app/api/admin/analytics/route.js - figures for the admin Analytics page.
-// Request metrics honour ?fromDate&toDate (YYYY-MM-DD, on createdAt); user
-// metrics are always all-time (an account isn't "in" a date range).
+// Request metrics honour ?fromDate&toDate (YYYY-MM-DD); user metrics are
+// always all-time (an account isn't "in" a date range).
+// The count tiles and approval pipeline cover every request submitted in the
+// range. Value, monthly, breakdown and product figures follow ?status
+// (STATUS_SCOPES, default approved) and range on the date each request
+// reached that status.
 import { withConnection } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { MAX_LOGIN_ATTEMPTS } from "@/lib/loginPolicy";
@@ -11,6 +15,34 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 // Request value = the sum of its line items' discounted values.
 const REQUEST_VALUE = `(SELECT COALESCE(SUM(pp.discountedValue), 0)
   FROM purchase_products pp WHERE pp.purchase_id = p.id)`;
+
+const anyDeclined = APPROVAL_STAGES.map(
+  (s) => `p.${s.approvalField} = 'declined'`,
+).join(" OR ");
+
+// The chain stops at the first decline, so at most one stage is declined
+const declinedDate = `CASE ${APPROVAL_STAGES.map(
+  (s) => `WHEN p.${s.approvalField} = 'declined' THEN p.${s.prefix}_approval_date`,
+).join(" ")} END`;
+
+// ?status -> which requests it covers and the date it reached that status
+// (falling back to submission if a decision date is missing)
+const STATUS_SCOPES = {
+  approved: {
+    where: `p.BI_Approval = 'approved'`,
+    date: `COALESCE(p.bi_approval_date, p.createdAt)`,
+  },
+  inProgress: {
+    where: `p.BI_Approval = 'pending' AND NOT (${anyDeclined})`,
+    date: `p.createdAt`,
+  },
+  declined: {
+    where: `(${anyDeclined})`,
+    date: `COALESCE(${declinedDate}, p.createdAt)`,
+  },
+  all: { where: `1=1`, date: `p.createdAt` },
+};
+const DEFAULT_STATUS = "approved";
 
 const toNumber = (value) => Number(value ?? 0);
 const round = (value, digits = 1) =>
@@ -56,6 +88,10 @@ export const GET = requireAuth(
       const toDate = searchParams.get("toDate");
       const hasRange =
         DATE_PATTERN.test(fromDate ?? "") && DATE_PATTERN.test(toDate ?? "");
+      const status = Object.hasOwn(STATUS_SCOPES, searchParams.get("status"))
+        ? searchParams.get("status")
+        : DEFAULT_STATUS;
+      const scope = STATUS_SCOPES[status];
 
       const rangeSql = hasRange ? ` AND DATE(p.createdAt) BETWEEN ? AND ?` : "";
       const rangeParams = hasRange ? [fromDate, toDate] : [];
@@ -63,6 +99,14 @@ export const GET = requireAuth(
       const requests = (sql, extraParams = []) => [
         sql.replace("/*RANGE*/", rangeSql),
         [...rangeParams, ...extraParams],
+      ];
+      // Status-scoped: /*SCOPE*/ = status + range on its date, /*SDATE*/ = that date
+      const scopeSql = `${scope.where}${
+        hasRange ? ` AND DATE(${scope.date}) BETWEEN ? AND ?` : ""
+      }`;
+      const scoped = (sql) => [
+        sql.replaceAll("/*SCOPE*/", scopeSql).replaceAll("/*SDATE*/", scope.date),
+        rangeParams,
       ];
 
       // A stage is waiting when it's pending and every earlier stage approved
@@ -95,10 +139,6 @@ export const GET = requireAuth(
                 SUM(CASE WHEN ${condition} THEN 1 ELSE 0 END) AS n_${stage.key}`;
       }).join(",\n");
 
-      const anyDeclined = APPROVAL_STAGES.map(
-        (s) => `p.${s.approvalField} = 'declined'`,
-      ).join(" OR ");
-
       const result = await withConnection(async (connection) => {
         const run = async ([sql, params]) =>
           (await connection.execute(sql, params))[0];
@@ -126,36 +166,44 @@ export const GET = requireAuth(
            GROUP BY month`,
         );
 
-        // ---- Requests (date range)
+        // ---- Requests submitted in range (every status)
         const [requestTotals] = await run(
           requests(
             `SELECT COUNT(*) AS total,
                SUM(p.BI_Approval = 'approved') AS approved,
                SUM(${anyDeclined}) AS declined,
                SUM(p.BI_Approval = 'pending' AND NOT (${anyDeclined})) AS inProgress,
-               COALESCE(SUM(${REQUEST_VALUE}), 0) AS value,
+               COALESCE(SUM(${REQUEST_VALUE}), 0) AS requestedValue,
                SUM(p.BI_Approval = 'approved' AND p.request_closure = 'closed') AS closed,
                SUM(p.BI_Approval = 'approved' AND COALESCE(p.request_closure, 'open') <> 'closed') AS awaitingClosure,
                ${waitingCases},
-               ${durationCases},
-               MIN(DATE_FORMAT(p.createdAt, '%Y-%m')) AS firstMonth
+               ${durationCases}
              FROM purchasesinfo p WHERE 1=1 /*RANGE*/`,
           ),
         );
 
+        // ---- Requests in the selected status (range on its date)
+        const [scopedTotals] = await run(
+          scoped(
+            `SELECT COUNT(*) AS count,
+               COALESCE(SUM(${REQUEST_VALUE}), 0) AS value,
+               MIN(DATE_FORMAT(/*SDATE*/, '%Y-%m')) AS firstMonth
+             FROM purchasesinfo p WHERE /*SCOPE*/`,
+          ),
+        );
         const byMonthRows = await run(
-          requests(
-            `SELECT DATE_FORMAT(p.createdAt, '%Y-%m') AS month, COUNT(*) AS count,
+          scoped(
+            `SELECT DATE_FORMAT(/*SDATE*/, '%Y-%m') AS month, COUNT(*) AS count,
                COALESCE(SUM(${REQUEST_VALUE}), 0) AS value
-             FROM purchasesinfo p WHERE 1=1 /*RANGE*/ GROUP BY month`,
+             FROM purchasesinfo p WHERE /*SCOPE*/ GROUP BY month`,
           ),
         );
         const groupBy = (column, labelSql = column) =>
           run(
-            requests(
+            scoped(
               `SELECT ${labelSql} AS label, COUNT(*) AS count,
                  COALESCE(SUM(${REQUEST_VALUE}), 0) AS value
-               FROM purchasesinfo p WHERE 1=1 /*RANGE*/
+               FROM purchasesinfo p WHERE /*SCOPE*/
                GROUP BY label ORDER BY value DESC, count DESC`,
             ),
           );
@@ -173,13 +221,13 @@ export const GET = requireAuth(
                     NULLIF(p.invoicing_location, ''), 'Not set')`,
         );
 
-        // ---- Products (line items of requests in range)
+        // ---- Products (line items of requests in the selected status)
         const productQuery = (select, groupOrder) =>
           run(
-            requests(
+            scoped(
               `SELECT ${select}
                FROM purchase_products pp JOIN purchasesinfo p ON p.id = pp.purchase_id
-               WHERE 1=1 /*RANGE*/ ${groupOrder}`,
+               WHERE /*SCOPE*/ ${groupOrder}`,
             ),
           );
         const topProducts = await productQuery(
@@ -203,6 +251,7 @@ export const GET = requireAuth(
           usersByDepartment,
           registrations,
           requestTotals,
+          scopedTotals,
           byMonthRows,
           byDepartment,
           byPaymentTerms,
@@ -214,6 +263,7 @@ export const GET = requireAuth(
       });
 
       const t = result.requestTotals;
+      const s = result.scopedTotals;
       const counted = (rows) =>
         rows.map((row) => ({
           ...row,
@@ -225,7 +275,7 @@ export const GET = requireAuth(
       const endMonth = hasRange ? toDate.slice(0, 7) : thisMonth();
       const startMonth = hasRange
         ? fromDate.slice(0, 7)
-        : (t.firstMonth ?? endMonth);
+        : (s.firstMonth ?? endMonth);
       const byMonth = monthRange(startMonth, endMonth).map((month) => {
         const row = result.byMonthRows.find((r) => r.month === month);
         return {
@@ -246,6 +296,7 @@ export const GET = requireAuth(
 
       return Response.json({
         range: hasRange ? { fromDate, toDate } : null,
+        status,
         users: {
           total: toNumber(result.userTotals.total),
           active: toNumber(result.userTotals.active),
@@ -260,7 +311,10 @@ export const GET = requireAuth(
           inProgress: toNumber(t.inProgress),
           approved: toNumber(t.approved),
           declined: toNumber(t.declined),
-          value: toNumber(t.value),
+          requestedValue: toNumber(t.requestedValue),
+          // Selected status: its request count and value
+          scopedCount: toNumber(s.count),
+          value: toNumber(s.value),
           closed: toNumber(t.closed),
           awaitingClosure: toNumber(t.awaitingClosure),
           stages: APPROVAL_STAGES.map((stage) => ({
