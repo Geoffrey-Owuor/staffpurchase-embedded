@@ -6,11 +6,20 @@ import {
   ClipboardPen,
   Database,
   ScrollText,
+  ShieldUser,
   UsersRound,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { isValidRole } from "@/utils/routes";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
+
+// Every navigable entry, with groups replaced by their pages
+export const flattenNavItems = (items) =>
+  items.flatMap((item) => item.children ?? [item]);
+
+// Whether `key` is this entry or one of its group's pages
+export const navItemContains = (item, key) =>
+  item.key === key || !!item.children?.some((child) => child.key === key);
 
 // Replaces the old per-role UseHandleHomeRoute/UseHandlePurchaseRoute/
 // UseHandleHistoryRoute/UseHandleViewClick/UseHandleEditClick hooks. Every
@@ -39,7 +48,9 @@ export function useDashboardRoutes() {
 
   // Nav entries beyond Home/New Purchase, per role - the sidebar, topbar and
   // mobile drawer all render this one list. Each page is still gated by its
-  // own layout.js; this only decides what's shown.
+  // own layout.js; this only decides what's shown. An entry with `children`
+  // is a group (no path of its own): a dropdown in the topbar, a collapsible
+  // section in the sidebar/drawer and a flyout in the collapsed sidebar.
   const roleNavItems = [
     ...(role === "cc"
       ? [
@@ -54,34 +65,41 @@ export function useDashboardRoutes() {
     ...(role === "admin"
       ? [
           {
-            key: "adminAnalytics",
-            path: adminAnalyticsPath,
-            label: "Analytics",
-            Icon: BarChart3,
-          },
-          {
-            key: "adminUsers",
-            path: adminUsersPath,
-            label: "Users",
-            Icon: UsersRound,
-          },
-          {
-            key: "adminRequests",
-            path: adminRequestsPath,
-            label: "All Requests",
-            Icon: ClipboardPen,
-          },
-          {
-            key: "adminReferenceData",
-            path: adminReferenceDataPath,
-            label: "Reference Data",
-            Icon: Database,
-          },
-          {
-            key: "adminAuditLog",
-            path: adminAuditLogPath,
-            label: "Audit Log",
-            Icon: ScrollText,
+            key: "admin",
+            label: "Admin",
+            Icon: ShieldUser,
+            children: [
+              {
+                key: "adminAnalytics",
+                path: adminAnalyticsPath,
+                label: "Analytics",
+                Icon: BarChart3,
+              },
+              {
+                key: "adminUsers",
+                path: adminUsersPath,
+                label: "Users",
+                Icon: UsersRound,
+              },
+              {
+                key: "adminRequests",
+                path: adminRequestsPath,
+                label: "All Requests",
+                Icon: ClipboardPen,
+              },
+              {
+                key: "adminReferenceData",
+                path: adminReferenceDataPath,
+                label: "Reference Data",
+                Icon: Database,
+              },
+              {
+                key: "adminAuditLog",
+                path: adminAuditLogPath,
+                label: "Audit Log",
+                Icon: ScrollText,
+              },
+            ],
           },
         ]
       : []),

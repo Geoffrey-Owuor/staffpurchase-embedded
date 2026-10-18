@@ -2,7 +2,8 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 /* Short viewports (e.g. landscape phones, or the embedding host's iframe,
-   which sits below a 64px header) - used to compact the mobile drawer */
+   which sits below a 64px header) - used to compact the mobile drawer and
+   the desktop sidebar */
 @custom-variant short (@media (max-height: 640px));
 
 @theme {
