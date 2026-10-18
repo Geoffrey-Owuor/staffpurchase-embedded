@@ -9,14 +9,17 @@ import {
   ChevronLeft,
   Menu,
   NotebookText,
+  ChevronDown,
 } from "lucide-react";
 import HotpointLogo from "../HotpointLogo";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import UserMenu from "../UserMenu";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import Link from "next/link";
 import { lockPageScroll } from "@/utils/scrollLock";
+import { useScrollFade } from "@/hooks/useScrollFade";
+import { useNavGroupOpen } from "../ReuseSideBar/useNavMenu";
 
 const navItemClass =
   "flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-base font-semibold";
@@ -24,6 +27,71 @@ const navItemIdle =
   "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100";
 const navItemActive =
   "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white";
+
+function DrawerNavItem({ path, label, Icon, isActive, onNavigate }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate(path)}
+      aria-current={isActive ? "page" : undefined}
+      className={`${navItemClass} ${isActive ? navItemActive : navItemIdle}`}
+    >
+      <Icon className="h-5 w-5 shrink-0" />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+// A nav group (e.g. Admin) as a collapsible section: open while one of its
+// pages is current, highlighted while closed over the current page
+function DrawerNavGroup({ group, isPathActive, onNavigate }) {
+  const active = group.children.some((child) => isPathActive(child.path));
+  const [expanded, setExpanded] = useNavGroupOpen(active);
+  const listId = useId();
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={listId}
+        onClick={() => setExpanded(!expanded)}
+        className={`${navItemClass} ${active && !expanded ? navItemActive : navItemIdle}`}
+      >
+        <group.Icon className="h-5 w-5 shrink-0" />
+        <span className="flex-1">{group.label}</span>
+        <ChevronDown
+          className={`h-5 w-5 shrink-0 transition-transform duration-200 ${
+            expanded ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {/* grid-rows 0fr -> 1fr animates to the content's natural height */}
+      <div
+        id={listId}
+        inert={!expanded}
+        className={`grid transition-[grid-template-rows] duration-200 ${
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <ul className="short:space-y-1 mt-1 ml-5 space-y-2 border-l border-gray-200 pl-1.5 dark:border-gray-800">
+            {group.children.map((child) => (
+              <li key={child.key}>
+                <DrawerNavItem
+                  path={child.path}
+                  label={child.label}
+                  Icon={child.Icon}
+                  isActive={isPathActive(child.path)}
+                  onNavigate={onNavigate}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function MobileHeader() {
   // --- State and logic for Mobile Sidebar ---
@@ -34,8 +102,7 @@ export default function MobileHeader() {
   // While open: lock page scroll (screens wider than 640px) and close on Escape
   useEffect(() => {
     if (!isMobileMenuOpen) return;
-    const unlockScroll =
-      window.innerWidth >= 640 ? lockPageScroll() : () => {};
+    const unlockScroll = window.innerWidth >= 640 ? lockPageScroll() : () => {};
     const handleKeyDown = (e) => {
       if (e.key === "Escape") setIsMobileMenuOpen(false);
     };
@@ -56,10 +123,20 @@ export default function MobileHeader() {
   };
 
   const navItems = [
-    { path: homePath, label: "Home", Icon: HomeIcon },
-    { path: purchasePath, label: "New Purchase", Icon: ShoppingBagIcon },
+    { key: "home", path: homePath, label: "Home", Icon: HomeIcon },
+    {
+      key: "newpurchase",
+      path: purchasePath,
+      label: "New Purchase",
+      Icon: ShoppingBagIcon,
+    },
     ...roleNavItems,
   ];
+
+  const isPathActive = (path) =>
+    pathname === path || (path !== homePath && pathname.startsWith(`${path}/`));
+
+  const [navRef, navFadeStyle] = useScrollFade();
 
   return (
     <>
@@ -130,27 +207,33 @@ export default function MobileHeader() {
         </div>
 
         {/* Navigation Links - the only scrolling region, so the header and
-            the user button stay visible however many role items there are */}
-        <nav className="short:mt-3 mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            the user button stay visible however many role items there are;
+            its edges fade while there's more to scroll */}
+        <nav
+          ref={navRef}
+          style={navFadeStyle}
+          className="short:mt-3 mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           <ul className="short:space-y-1 space-y-2">
-            {navItems.map(({ path, label, Icon }) => {
-              const isActive =
-                pathname === path ||
-                (path !== homePath && pathname.startsWith(`${path}/`));
-              return (
-                <li key={path}>
-                  <button
-                    type="button"
-                    onClick={() => handleNavClick(path)}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`${navItemClass} ${isActive ? navItemActive : navItemIdle}`}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span>{label}</span>
-                  </button>
-                </li>
-              );
-            })}
+            {navItems.map((item) => (
+              <li key={item.key}>
+                {item.children ? (
+                  <DrawerNavGroup
+                    group={item}
+                    isPathActive={isPathActive}
+                    onNavigate={handleNavClick}
+                  />
+                ) : (
+                  <DrawerNavItem
+                    path={item.path}
+                    label={item.label}
+                    Icon={item.Icon}
+                    isActive={isPathActive(item.path)}
+                    onNavigate={handleNavClick}
+                  />
+                )}
+              </li>
+            ))}
           </ul>
         </nav>
 

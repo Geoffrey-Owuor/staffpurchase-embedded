@@ -12,6 +12,8 @@ import HotpointLogo from "../HotpointLogo";
 import UserMenu from "../UserMenu";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useSidebarStore } from "@/store/useSidebarStore";
+import { navItemContains } from "@/utils/HandleActionClicks/useDashboardRoutes";
+import { useNavMenu } from "./useNavMenu";
 
 const tabClass = (active) =>
   `flex cursor-default items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
@@ -23,18 +25,41 @@ const tabClass = (active) =>
 // Gap between tabs (space-x-1)
 const TAB_GAP = 4;
 
-function NavTab({ item, active, ...rest }) {
-  const { Icon, label, onClick } = item;
+function TabContent({ Icon, label, dropdown, open }) {
+  return (
+    <>
+      {Icon && <Icon className="h-4 w-4 shrink-0" />}
+      <span>{label}</span>
+      {dropdown && (
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      )}
+    </>
+  );
+}
+
+function NavTab({ item, activeTab }) {
+  if (item.children) {
+    return (
+      <NavDropdown
+        label={item.label}
+        Icon={item.Icon}
+        items={item.children}
+        activeTab={activeTab}
+        align="left-0"
+      />
+    );
+  }
+  const active = activeTab === item.key;
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={item.onClick}
       aria-current={active ? "page" : undefined}
       className={tabClass(active)}
-      {...rest}
     >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span>{label}</span>
+      <TabContent Icon={item.Icon} label={item.label} />
     </button>
   );
 }
@@ -43,7 +68,8 @@ function NavTab({ item, active, ...rest }) {
 // (useDashboardRoutes().roleNavItems) fill the remaining width, and whatever
 // doesn't fit moves into a "More" menu. Widths come from an invisible copy
 // of every tab, re-fitted by a ResizeObserver whenever the nav's width
-// changes - no fixed item or character limit to maintain.
+// changes - no fixed item or character limit to maintain. A group (e.g.
+// Admin) is one tab with its own dropdown, so it fits or overflows whole.
 function TopNav({ items, activeTab, pinnedCount }) {
   const navRef = useRef(null);
   const measureRef = useRef(null);
@@ -97,12 +123,17 @@ function TopNav({ items, activeTab, pinnedCount }) {
       <ul className="flex items-center justify-center space-x-1">
         {visible.map((item) => (
           <li key={item.key}>
-            <NavTab item={item} active={activeTab === item.key} />
+            <NavTab item={item} activeTab={activeTab} />
           </li>
         ))}
         {overflow.length > 0 && (
           <li>
-            <MoreMenu items={overflow} activeTab={activeTab} />
+            <NavDropdown
+              label="More"
+              items={overflow}
+              activeTab={activeTab}
+              align="right-0"
+            />
           </li>
         )}
       </ul>
@@ -115,56 +146,61 @@ function TopNav({ items, activeTab, pinnedCount }) {
         className="pointer-events-none invisible fixed top-0 -left-[9999px] flex"
       >
         {items.map((item) => (
-          <NavTab key={item.key} item={item} active={false} tabIndex={-1} />
+          <button
+            key={item.key}
+            type="button"
+            tabIndex={-1}
+            className={tabClass(false)}
+          >
+            <TabContent
+              Icon={item.Icon}
+              label={item.label}
+              dropdown={!!item.children}
+            />
+          </button>
         ))}
         <button type="button" tabIndex={-1} className={tabClass(false)}>
-          <span>More</span>
-          <ChevronDown className="h-4 w-4" />
+          <TabContent label="More" dropdown />
         </button>
       </div>
     </nav>
   );
 }
 
-// The tabs that didn't fit. Highlighted when the current page is one of
-// them; Escape / outside click close it, arrow keys move between items.
-function MoreMenu({ items, activeTab }) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef(null);
-  const buttonRef = useRef(null);
-  const itemRefs = useRef([]);
-  const hasActive = items.some((item) => item.key === activeTab);
+// A tab that opens a menu: a group's pages, or "More" (the tabs that didn't
+// fit - a group that overflows is listed under its own heading). The tab is
+// highlighted when the current page is in its menu.
+function NavDropdown({ label, Icon, items, activeTab, align }) {
+  const { open, setOpen, buttonRef, menuRef, itemRefs, handleMenuKeyDown } =
+    useNavMenu();
+  const hasActive = items.some((item) => navItemContains(item, activeTab));
 
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (event) => {
-      if (!containerRef.current?.contains(event.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    itemRefs.current[0]?.focus();
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  const handleMenuKeyDown = (event) => {
-    const focusable = itemRefs.current.filter(Boolean);
-    const index = focusable.indexOf(document.activeElement);
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setOpen(false);
-      buttonRef.current?.focus();
-    } else if (event.key === "ArrowDown") {
-      event.preventDefault();
-      focusable[(index + 1) % focusable.length]?.focus();
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      focusable[(index - 1 + focusable.length) % focusable.length]?.focus();
-    } else if (event.key === "Tab") {
-      setOpen(false);
-    }
+  // Index into itemRefs across groups, in render order
+  let refIndex = 0;
+  const renderItem = ({ key, label, Icon, onClick }) => {
+    const index = refIndex++;
+    const active = activeTab === key;
+    return (
+      <li key={key} role="none">
+        <button
+          ref={(el) => (itemRefs.current[index] = el)}
+          type="button"
+          role="menuitem"
+          aria-current={active ? "page" : undefined}
+          onClick={() => {
+            setOpen(false);
+            onClick();
+          }}
+          className={`${tabClass(active)} w-full`}
+        >
+          <TabContent Icon={Icon} label={label} />
+        </button>
+      </li>
+    );
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       <button
         ref={buttonRef}
         type="button"
@@ -173,39 +209,33 @@ function MoreMenu({ items, activeTab }) {
         onClick={() => setOpen((prev) => !prev)}
         className={tabClass(hasActive)}
       >
-        <span>More</span>
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
-        />
+        <TabContent Icon={Icon} label={label} dropdown open={open} />
       </button>
       {open && (
         <ul
+          ref={menuRef}
           role="menu"
+          aria-label={label}
           onKeyDown={handleMenuKeyDown}
-          className="absolute right-0 z-60 mt-2 min-w-48 rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+          className={`absolute ${align} z-60 mt-2 min-w-48 rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900`}
         >
-          {items.map((item, index) => {
-            const { Icon, label, key, onClick } = item;
-            const active = activeTab === key;
-            return (
-              <li key={key} role="none">
-                <button
-                  ref={(el) => (itemRefs.current[index] = el)}
-                  type="button"
-                  role="menuitem"
-                  aria-current={active ? "page" : undefined}
-                  onClick={() => {
-                    setOpen(false);
-                    onClick();
-                  }}
-                  className={`${tabClass(active)} w-full`}
+          {items.map((item) =>
+            item.children ? (
+              <li key={item.key} role="none">
+                <p
+                  aria-hidden="true"
+                  className="px-3 pt-1.5 pb-1 text-xs font-semibold text-gray-500 dark:text-gray-400"
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span>{label}</span>
-                </button>
+                  {item.label}
+                </p>
+                <ul role="group" aria-label={item.label}>
+                  {item.children.map(renderItem)}
+                </ul>
               </li>
-            );
-          })}
+            ) : (
+              renderItem(item)
+            ),
+          )}
         </ul>
       )}
     </div>
@@ -245,6 +275,14 @@ const TopSidebar = ({
   }, []);
 
   // Home + New Purchase are pinned; role pages may overflow into "More"
+  const toTab = ({ key, path, label, Icon, children }) => ({
+    key,
+    label,
+    Icon,
+    ...(children
+      ? { children: children.map(toTab) }
+      : { onClick: () => handleNavClick(path) }),
+  });
   const navItems = [
     { key: "home", label: "Home", Icon: HomeIcon, onClick: handleHomeClick },
     {
@@ -253,12 +291,7 @@ const TopSidebar = ({
       Icon: ShoppingBagIcon,
       onClick: handlePurchaseClick,
     },
-    ...roleNavItems.map(({ key, path, label, Icon }) => ({
-      key,
-      label,
-      Icon,
-      onClick: () => handleNavClick(path),
-    })),
+    ...roleNavItems.map(toTab),
   ];
 
   return (
@@ -281,20 +314,24 @@ const TopSidebar = ({
         <div className="flex shrink-0 items-center gap-3">
           {/* Go back button */}
           <button
+            type="button"
             onClick={() => router.back()}
             className="rounded-full p-2 text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-500 dark:hover:bg-gray-800/50 dark:hover:text-white"
             title="Go back"
+            aria-label="Go back"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           {/* Sidebar View Toggle */}
-          <div
+          <button
+            type="button"
             onClick={toggleTopbarView}
             title="Switch to Side View"
+            aria-label="Switch to Side View"
             className="flex cursor-pointer items-center justify-center rounded-xl p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
           >
             <LayoutPanelLeft className="h-4 w-4 shrink-0" />
-          </div>
+          </button>
 
           <div className="hidden h-6 w-px bg-gray-200 sm:block dark:bg-gray-700"></div>
 

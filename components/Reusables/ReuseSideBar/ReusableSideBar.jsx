@@ -1,7 +1,10 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
+import {
+  flattenNavItems,
+  useDashboardRoutes,
+} from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
 import LeftSidebar from "./LeftSidebar";
 import TopSidebar from "./TopSidebar";
@@ -32,7 +35,7 @@ export default function ReusableSidebar() {
   } else {
     // Role pages own their whole subtree (e.g. /dashboard/admin/users/...)
     activeTab =
-      roleNavItems.find(
+      flattenNavItems(roleNavItems).find(
         (item) =>
           pathname === item.path || pathname.startsWith(`${item.path}/`),
       )?.key ?? "";

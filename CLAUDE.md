@@ -123,6 +123,15 @@ correctness check available.
 - Role-specific nav entries (cc's Fully Approved, admin's pages) come from
   `useDashboardRoutes().roleNavItems`; the sidebar, topbar and mobile
   drawer all render that list - add new role pages there, not per component.
+  An entry with `children` is a group (admin's pages are one "Admin" group):
+  a dropdown in the topbar, a collapsible section in the sidebar/drawer
+  (open while one of its pages is current, `useNavGroupOpen`) and a portaled
+  flyout in the collapsed sidebar. Use `flattenNavItems`/`navItemContains`
+  (same file) for active-page checks. Menu keyboard handling is shared via
+  `components/Reusables/ReuseSideBar/useNavMenu.js`. The sidebar and drawer
+  nav lists are their only scrolling regions (header/footer pinned, edge
+  fade from `hooks/useScrollFade.js`) and compact under the `short:`
+  variant (viewport height ≤ 640px).
   In the desktop topbar (`TopSidebar.jsx`) labels never wrap: Home/New
   Purchase are pinned and role items that don't fit (measured against an
   invisible copy, re-fitted by a ResizeObserver) move into a "More" menu.
