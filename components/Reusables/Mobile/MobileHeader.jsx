@@ -113,12 +113,12 @@ export default function MobileHeader() {
           of the tab order and the accessibility tree */}
       <div
         inert={!isMobileMenuOpen}
-        className={`custom:hidden fixed top-0 bottom-0 left-0 z-70 flex w-70 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
+        className={`custom:hidden short:py-3 fixed top-0 bottom-0 left-0 z-70 flex w-70 transform flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-950 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
+        <div className="short:pb-2 flex shrink-0 items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">Menu</h2>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
@@ -129,9 +129,10 @@ export default function MobileHeader() {
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="mt-6 grow">
-          <ul className="space-y-2">
+        {/* Navigation Links - the only scrolling region, so the header and
+            the user button stay visible however many role items there are */}
+        <nav className="short:mt-3 mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <ul className="short:space-y-1 space-y-2">
             {navItems.map(({ path, label, Icon }) => {
               const isActive =
                 pathname === path ||
@@ -153,24 +154,30 @@ export default function MobileHeader() {
           </ul>
         </nav>
 
-        {/* Bottom Section (Help & User & Hotpoint Website Link) */}
-        <div className="mt-6 space-y-4 pt-4">
-          <a
-            href="https://hotpoint.co.ke"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
-          >
-            <Link2 className="h-5 w-5 shrink-0" />
-            <span>Hotpoint Website</span>
-          </a>
-          <a
-            href="mailto:itsupport@hotpoint.co.ke"
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
-          >
-            <MessageCircleQuestion className="h-5 w-5 shrink-0" />
-            <span>Help & Support</span>
-          </a>
+        {/* Bottom Section (Help & User & Hotpoint Website Link) - pinned
+            outside the scroller so UserMenu's upward popup isn't clipped;
+            on short screens the two links share one row */}
+        <div className="short:mt-2 short:space-y-2 short:pt-2 mt-6 shrink-0 space-y-4 pt-4">
+          <div className="short:grid short:grid-cols-2 short:gap-1 short:space-y-0 space-y-4">
+            <a
+              href="https://hotpoint.co.ke"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="short:px-2 short:py-1.5 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-100"
+            >
+              <Link2 className="h-5 w-5 shrink-0" />
+              <span className="short:hidden">Hotpoint Website</span>
+              <span className="short:inline hidden">Website</span>
+            </a>
+            <a
+              href="mailto:itsupport@hotpoint.co.ke"
+              className="short:px-2 short:py-1.5 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
+            >
+              <MessageCircleQuestion className="h-5 w-5 shrink-0" />
+              <span className="short:hidden">Help & Support</span>
+              <span className="short:inline hidden">Help</span>
+            </a>
+          </div>
 
           <div className="ml-1">
             <UserMenu
