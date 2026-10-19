@@ -8,7 +8,11 @@ import { RotateCcw } from "lucide-react";
 import { useOrionPrices } from "@/hooks/useOrionPrices";
 import { selectLowestPrice } from "@/utils/Pricing/selectLowestPrice";
 import { resolveDiscountPolicy } from "@/utils/Pricing/resolveDiscountPolicy";
-import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
+import { isRequesterRole } from "@/utils/routes";
+import {
+  PRICE_CODE_LABELS,
+  STAFF_OFFER_CODE,
+} from "@/utils/Pricing/priceCodes";
 
 const ITEM_STATUS_OPTIONS = [
   { value: "New", label: "New" },
@@ -18,11 +22,24 @@ const ITEM_STATUS_OPTIONS = [
 const STATUS_TEXT = {
   idle: "Prices load automatically as you type.",
   debouncing: "Prices load automatically as you type.",
-  loading: "Checking Orion for Trade, Retail & Online prices…",
+  loading: "Checking Trade, Retail, Online & Staff Offer prices…",
   success: "Prices fetched.",
   notfound: null, // errorMessage is shown instead
   error: null,
 };
+
+// Hydrated (DB) values arrive as DECIMAL strings - selectLowestPrice only
+// accepts positive numbers, so normalize them first.
+const toStoredPrice = (value) => {
+  const parsed = parseFloat(value);
+  return parsed > 0 ? parsed : null;
+};
+
+// The fetched Orion prices plus the Staff Offer, when there is one.
+const withStaffOffer = (prices, staffOffer) => ({
+  ...prices,
+  [STAFF_OFFER_CODE]: staffOffer?.price ?? null,
+});
 
 const ProductPricing = ({
   formData,
@@ -34,11 +51,27 @@ const ProductPricing = ({
   productNumber,
   approversPurchasing,
   onFetchStatusChange,
+  recordedProduct,
+  adminEdit = false,
 }) => {
   const [hasUserEditedCode, setHasUserEditedCode] = useState(false);
 
-  const canFetch =
-    userRole === "staff" || userRole === "cc" || approversPurchasing;
+  // Prices are fetched only while a request is being created. On the edit
+  // page (approversPurchasing is false) CC works from what was recorded at
+  // submission - product code, fetched prices and discount policy are locked
+  // (a re-fetch could replace a Staff Offer that has since ended). The one
+  // price change CC can make there is a manual (MANUAL) price, e.g. one
+  // approved by a product manager. Mirrored server-side in
+  // api/generaleditpurchases.
+  const isRequester = isRequesterRole(userRole);
+  const canFetch = isRequester || approversPurchasing;
+  const isCcEdit = userRole === "cc" && !approversPurchasing;
+  // CC still sees the stored price comparison, just without a live fetch.
+  const showComparison = canFetch || isCcEdit;
+  // Admin request editor (components/Admin/AdminEditPurchase.jsx): rows keep
+  // the values recorded at submission until the admin retypes the product
+  // code (a fresh fetch then prices it as at creation) or enters a manual
+  // price/discount. Mirrored server-side in api/admin/purchases/[id].
 
   const orion = useOrionPrices({
     productCode: formData.productCode,
@@ -86,9 +119,11 @@ const ProductPricing = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orion.status, orion.itemName]);
 
-  // Policy resolution + lowest-price selection.
+  // Policy resolution + lowest-price selection. Skipped on the CC edit page:
+  // the policy and discount stay as recorded at submission.
   useEffect(() => {
-    if (!["staff", "cc"].includes(userRole) && !approversPurchasing) return;
+    if (!isRequester && userRole !== "cc" && !approversPurchasing) return;
+    if (isCcEdit) return;
 
     // A manually-entered price (CC override) sticks until a *fresh* fetch
     // completes - retyping the product code, or hitting Retry, always wins
@@ -101,6 +136,9 @@ const ProductPricing = ({
     const isFreshFetch =
       orion.status === "success" && orion.prices !== appliedFetchRef.current;
     if (formData.priceCode === "MANUAL" && !isFreshFetch) return;
+    // Admin edit: without a fresh fetch the recorded policy and discount
+    // stay as they are (policies may have changed since submission).
+    if (adminEdit && !isFreshFetch) return;
 
     const { itemName, itemStatus, priceCode } = formData;
     const policyResolution = resolveDiscountPolicy({
@@ -112,10 +150,12 @@ const ProductPricing = ({
     if (!policyResolution.resolved) return;
 
     const { policyRate, productPolicy } = policyResolution;
-    // RTLRRP/ONLINE never carry a discount (only TRADE does) — never let a
-    // resolved policy rate land on top of one of those bases.
+    // STAFFOFFER/RTLRRP/ONLINE never carry a discount (only TRADE does) —
+    // never let a resolved policy rate land on top of one of those bases.
     const isNonTradeFetchedBasis =
-      priceCode === "RTLRRP" || priceCode === "ONLINE";
+      priceCode === STAFF_OFFER_CODE ||
+      priceCode === "RTLRRP" ||
+      priceCode === "ONLINE";
 
     if (orion.status === "success") {
       // Mark this fetch result consumed regardless of outcome, so an
@@ -123,8 +163,16 @@ const ProductPricing = ({
       // keep treating it as fresh.
       appliedFetchRef.current = orion.prices;
 
+      // Recorded whenever an offer was live (even if another price wins),
+      // for audit; the server re-checks it against the DB on submit.
+      const { staffOffer } = orion;
+      const staffOfferFields = {
+        staffOfferPrice: staffOffer?.price ?? "",
+        staffOfferId: staffOffer?.id ?? "",
+      };
+
       const { winner } = selectLowestPrice({
-        prices: orion.prices,
+        prices: withStaffOffer(orion.prices, staffOffer),
         discountRate: policyRate,
       });
 
@@ -139,11 +187,12 @@ const ProductPricing = ({
           tradePrice: orion.prices.TRADE ?? 0,
           retailPrice: orion.prices.RTLRRP ?? 0,
           onlinePrice: orion.prices.ONLINE ?? 0,
+          ...staffOfferFields,
         }));
         return;
       }
 
-      // All three fetched prices unusable: keep the existing tdPrice (don't
+      // All fetched prices unusable: keep the existing tdPrice (don't
       // blank a previously-good value), but still persist the raw fetch
       // results (0.00 fallback) for audit. A prior MANUAL entry is left
       // fully intact here (price, basis and discount) rather than wiping it
@@ -155,13 +204,14 @@ const ProductPricing = ({
         tradePrice: orion.prices.TRADE ?? 0,
         retailPrice: orion.prices.RTLRRP ?? 0,
         onlinePrice: orion.prices.ONLINE ?? 0,
+        ...staffOfferFields,
       }));
       return;
     }
 
     // No fresh fetch result yet (e.g. hydrated edit-page values) — keep the
     // policy current, and the discount rate current *for a TRADE basis
-    // only*. For an RTLRRP/ONLINE basis this also self-heals a stale
+    // only*. For a STAFFOFFER/RTLRRP/ONLINE basis this also self-heals a stale
     // nonzero discountRate that may have been saved before price-basis
     // gating existed.
     setFormData((prev) => ({
@@ -179,13 +229,14 @@ const ProductPricing = ({
     approversPurchasing,
     orion.status,
     orion.prices,
+    orion.staffOffer,
   ]);
 
   // Discounted value = tdPrice less discountRate. `0` is a legitimate
-  // discount rate (every RTLRRP/ONLINE selection), so only "" / null /
+  // discount rate (every STAFFOFFER/RTLRRP/ONLINE selection), so only "" / null /
   // undefined block the calculation.
   useEffect(() => {
-    if (!["staff", "cc"].includes(userRole) && !approversPurchasing) return;
+    if (!isRequester && userRole !== "cc" && !approversPurchasing) return;
 
     const { tdPrice, discountRate } = formData;
     if (
@@ -211,18 +262,43 @@ const ProductPricing = ({
     setFormData((prev) => ({ ...prev, priceCode: "MANUAL" }));
   };
 
-  const editableRoles = ["staff", "cc"];
-  const staffReadOnly = userRole !== "staff" && !approversPurchasing;
-  const ccReadOnly = userRole !== "cc";
+  const editableRoles = ["cc"];
+  const staffReadOnly = !isRequester && !approversPurchasing;
+  const ccReadOnly = userRole !== "cc" && !adminEdit;
   const isReadonlyGeneral =
-    !editableRoles.includes(userRole) && !approversPurchasing;
+    !isRequester && !editableRoles.includes(userRole) && !approversPurchasing;
 
   // Discount policies only apply to a TRADE basis; MANUAL is a full CC
   // hand-entry so a custom discount on top of it is still meaningful.
-  // RTLRRP/ONLINE never take a discount, so the field is locked to 0 then.
+  // STAFFOFFER/RTLRRP/ONLINE never take a discount, so the field is locked
+  // to 0 then. On the CC edit page a TRADE discount is locked to the one
+  // recorded at submission too.
   const isDiscountableBasis =
-    formData.priceCode === "TRADE" || formData.priceCode === "MANUAL";
+    formData.priceCode === "MANUAL" ||
+    (formData.priceCode === "TRADE" && !isCcEdit);
   const discountRateReadOnly = ccReadOnly || !isDiscountableBasis;
+  // Product code + item name.
+  const productIdentityReadOnly = isReadonlyGeneral || isCcEdit;
+
+  // CC edit page: undo a mistyped manual price back to what was recorded at
+  // submission (price basis, price and discount).
+  const isPriceChanged =
+    (isCcEdit || adminEdit) &&
+    recordedProduct != null &&
+    (formData.priceCode !== recordedProduct.priceCode ||
+      parseFloat(formData.tdPrice) !== parseFloat(recordedProduct.tdPrice) ||
+      parseFloat(formData.discountRate) !==
+        parseFloat(recordedProduct.discountRate));
+
+  const handleRestorePrice = () => {
+    setFormData((prev) => ({
+      ...prev,
+      priceCode: recordedProduct.priceCode,
+      tdPrice: recordedProduct.tdPrice,
+      discountRate: recordedProduct.discountRate,
+      discountedValue: recordedProduct.discountedValue,
+    }));
+  };
 
   // What the comparison trigger/modal should show. Available as soon as a
   // fetch succeeds — even before Item Status/Payment Terms are chosen — so a
@@ -240,7 +316,7 @@ const ProductPricing = ({
   let pending = false;
 
   if (isLiveFetch && !isManual) {
-    comparisonPrices = orion.prices;
+    comparisonPrices = withStaffOffer(orion.prices, orion.staffOffer);
     const policyResolution = resolveDiscountPolicy({
       itemName: formData.itemName,
       itemStatus: formData.itemStatus,
@@ -255,9 +331,10 @@ const ProductPricing = ({
     }
   } else {
     comparisonPrices = {
-      TRADE: formData.tradePrice || null,
-      RTLRRP: formData.retailPrice || null,
-      ONLINE: formData.onlinePrice || null,
+      [STAFF_OFFER_CODE]: toStoredPrice(formData.staffOfferPrice),
+      TRADE: toStoredPrice(formData.tradePrice),
+      RTLRRP: toStoredPrice(formData.retailPrice),
+      ONLINE: toStoredPrice(formData.onlinePrice),
     };
     comparisonDiscountRate = formData.discountRate;
   }
@@ -300,9 +377,9 @@ const ProductPricing = ({
                 name="productCode"
                 value={formData.productCode}
                 onChange={handleProductCodeChange}
-                className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadonlyGeneral ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+                className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${productIdentityReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
                 required
-                readOnly={isReadonlyGeneral}
+                readOnly={productIdentityReadOnly}
               />
               {canFetch && (
                 <button
@@ -319,12 +396,25 @@ const ProductPricing = ({
                 </button>
               )}
             </div>
-            {canFetch && (
+            {canFetch &&
+              !(adminEdit && recordedProduct && !hasUserEditedCode) && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {statusText || orion.errorMessage || STATUS_TEXT.idle}
+                </p>
+              )}
+            {adminEdit && recordedProduct && !hasUserEditedCode && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {statusText || orion.errorMessage || STATUS_TEXT.idle}
+                As recorded at submission. Retype the code to re-fetch current
+                prices, or edit the Initial Price for a manual price.
               </p>
             )}
-            {canFetch && !isBusy && (
+            {isCcEdit && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Product and prices as recorded at submission. To use an approved
+                manual price, edit the Initial Price.
+              </p>
+            )}
+            {showComparison && !isBusy && (
               <PriceComparisonPanel
                 candidates={comparisonCandidates}
                 winnerCode={comparisonWinnerCode}
@@ -344,9 +434,9 @@ const ProductPricing = ({
               name="itemName"
               value={formData.itemName}
               onChange={handleChange}
-              className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${isReadonlyGeneral ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
+              className={`w-full rounded-xl border border-gray-200 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${productIdentityReadOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
               required
-              readOnly={isReadonlyGeneral}
+              readOnly={productIdentityReadOnly}
               title={formData.itemName}
             />
           </div>
@@ -403,6 +493,16 @@ const ProductPricing = ({
                 required
               />
             )}
+            {isPriceChanged && (
+              <button
+                type="button"
+                onClick={handleRestorePrice}
+                className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline dark:text-gray-400 dark:hover:text-gray-100"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Restore recorded price
+              </button>
+            )}
           </div>
 
           {/* Price Basis - system-derived, never directly editable. Used to
@@ -446,7 +546,9 @@ const ProductPricing = ({
                 readOnly={discountRateReadOnly}
                 title={
                   !ccReadOnly && !isDiscountableBasis
-                    ? "Only a Trade Price basis (or a manually entered price) can carry a discount"
+                    ? isCcEdit
+                      ? "The discount is locked as recorded at submission - edit the Initial Price to enter a manual price"
+                      : "Only a Trade Price basis (or a manually entered price) can carry a discount"
                     : undefined
                 }
                 required

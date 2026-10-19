@@ -1,6 +1,10 @@
 import { verifyPassword, createSession } from "@/app/lib/auth";
 import pool from "@/lib/db";
-import { MAX_LOGIN_ATTEMPTS } from "@/lib/loginPolicy";
+import {
+  MAX_LOGIN_ATTEMPTS,
+  LOCKED_OUT_MESSAGE,
+  isLockedOut,
+} from "@/lib/loginPolicy";
 import { parseEmail } from "@/lib/emailValidation";
 
 export async function POST(request) {
@@ -19,7 +23,7 @@ export async function POST(request) {
 
     // 1. Find user by email (added is_active and password_attempts to SELECT)
     const [users] = await pool.execute(
-      "SELECT id, password, name, payrollNo, department, role, is_active, password_attempts FROM users WHERE email = ? LIMIT 1",
+      "SELECT id, password, name, payrollNo, department, role, is_active, password_attempts, session_version FROM users WHERE email = ? LIMIT 1",
       [email],
     );
 
@@ -31,7 +35,7 @@ export async function POST(request) {
     }
     const user = users[0];
 
-    // 2. Check if the account is already deactivated
+    // 2. Check if an admin has deactivated the account
     if (!user.is_active) {
       return Response.json(
         {
@@ -39,6 +43,15 @@ export async function POST(request) {
           message: "Account is disabled, contact the administrator",
         },
         { status: 403 }, // 403 Forbidden is ideal for locked accounts
+      );
+    }
+
+    // A lockout is just the attempt counter (is_active is admin-only). A
+    // password reset or an admin unlock clears it.
+    if (isLockedOut(user.password_attempts)) {
+      return Response.json(
+        { success: false, message: LOCKED_OUT_MESSAGE },
+        { status: 403 },
       );
     }
 
@@ -50,17 +63,13 @@ export async function POST(request) {
       const remainingAttempts = MAX_LOGIN_ATTEMPTS - newAttempts;
 
       if (remainingAttempts <= 0) {
-        // Lock the account and update total attempts
+        // Lock the account by recording the final failed attempt
         await pool.execute(
-          "UPDATE users SET password_attempts = ?, is_active = false WHERE id = ?",
+          "UPDATE users SET password_attempts = ? WHERE id = ?",
           [newAttempts, user.id],
         );
         return Response.json(
-          {
-            success: false,
-            message:
-              "Too many failed attempts. Please contact the administrator.",
-          },
+          { success: false, message: LOCKED_OUT_MESSAGE },
           { status: 403 },
         );
       } else {
@@ -97,6 +106,7 @@ export async function POST(request) {
       email,
       user.payrollNo,
       user.department,
+      user.session_version,
     );
 
     return Response.json({ success: true, role: user.role, id: user.id });

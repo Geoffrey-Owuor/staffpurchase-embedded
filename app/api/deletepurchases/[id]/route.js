@@ -1,5 +1,6 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
+import { REQUESTER_ROLES } from "@/utils/routes";
 
 export const DELETE = requireAuth(
   async (_req, { params, user }) => {
@@ -65,5 +66,5 @@ export const DELETE = requireAuth(
       );
     }
   },
-  { roles: ["staff"] },
+  { roles: REQUESTER_ROLES },
 );

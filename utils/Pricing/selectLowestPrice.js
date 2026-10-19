@@ -1,13 +1,17 @@
-// Picks the cheapest effective price among the three fetched Orion prices.
+import { PRICE_CODES } from "./priceCodes";
+
+// Picks the cheapest effective price among the fetched prices (the three
+// Orion prices plus an active Staff Offer, when there is one).
 //
-// TRADE is the only basis discount policies apply to; RTLRRP and ONLINE are
-// always taken at 0% discount. A price of null/undefined/0/negative is
+// TRADE is the only basis discount policies apply to; STAFFOFFER (already
+// discounted), RTLRRP and ONLINE are always taken at 0% discount. A price of null/undefined/0/negative is
 // treated as "unavailable" (e.g. the Orion fetch failed for that code and
 // fell back to 0.00) and is excluded from the comparison so a failed fetch
 // can never accidentally "win" as the cheapest option.
 //
-// Tie-break order when effective prices are equal: TRADE > RTLRRP > ONLINE.
-const TIE_BREAK_ORDER = ["TRADE", "RTLRRP", "ONLINE"];
+// Tie-break order when effective prices are equal:
+// STAFFOFFER > TRADE > RTLRRP > ONLINE (PRICE_CODES order).
+const TIE_BREAK_ORDER = PRICE_CODES;
 
 const isUsablePrice = (value) =>
   typeof value === "number" && Number.isFinite(value) && value > 0;

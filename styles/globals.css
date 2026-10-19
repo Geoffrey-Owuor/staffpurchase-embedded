@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+/* Short viewports (e.g. landscape phones, or the embedding host's iframe,
+   which sits below a 64px header) - used to compact the mobile drawer and
+   the desktop sidebar */
+@custom-variant short (@media (max-height: 640px));
 
 @theme {
   --breakpoint-custom: 1200px;
@@ -180,6 +184,55 @@ html {
 
 html[data-theme="dark"] {
   scrollbar-color: #4b5563 transparent;
+}
+
+/* Fake rounded corners for the dashboard scroller (ReusableLayoutShell).
+   Each ear is transparent inside the arc, border-coloured on the arc and
+   page-coloured outside it, so a square scroller looks rounded without the
+   per-frame clip-mask cost of border-radius on a scroll container. */
+.shell-ear {
+  --ear-r: 1rem;
+  --ear-line: var(--color-gray-300);
+  --ear-out: var(--color-white);
+  position: absolute;
+  /* Above sticky content inside <main> (e.g. the stuck filter panel, z-20)
+     so its square corners never show over the rounded ones. Safe: ears are
+     16px, pointer-events: none, and only paint outside the curve. */
+  z-index: 30;
+  width: var(--ear-r);
+  height: var(--ear-r);
+  pointer-events: none;
+  background: radial-gradient(
+    circle var(--ear-r) at var(--ear-at),
+    transparent calc(var(--ear-r) - 1.25px),
+    var(--ear-line) calc(var(--ear-r) - 0.75px),
+    var(--ear-line) calc(var(--ear-r) - 0.25px),
+    var(--ear-out) calc(var(--ear-r) + 0.25px)
+  );
+}
+[data-theme="dark"] .shell-ear {
+  --ear-line: var(--color-gray-800);
+  --ear-out: var(--color-gray-950);
+}
+.shell-ear-tl {
+  top: 0;
+  left: 0;
+  --ear-at: 100% 100%;
+}
+.shell-ear-tr {
+  top: 0;
+  right: 0;
+  --ear-at: 0 100%;
+}
+.shell-ear-bl {
+  bottom: 0;
+  left: 0;
+  --ear-at: 100% 0;
+}
+.shell-ear-br {
+  right: 0;
+  bottom: 0;
+  --ear-at: 0 0;
 }
 
 .custom-blur {

@@ -1,5 +1,6 @@
 import pool from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/app/lib/auth";
+import { requireAuth } from "@/lib/apiAuth";
 
 export async function POST(request) {
   const { token, newPassword } = await request.json();
@@ -40,9 +41,11 @@ export async function POST(request) {
     //Hash New Password
     const hashedPassword = await hashPassword(newPassword);
 
-    //Update password and clear the token
+    //Update password and clear the token. Proving ownership of the mailbox
+    //also lifts a failed-attempts lockout (not an admin deactivation), and
+    //ends every existing session (lib/sessionCheck.js).
     await conn.execute(
-      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
+      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL, password_attempts = 0, session_version = session_version + 1 WHERE id = ?",
       [hashedPassword, userId],
     );
 
@@ -60,16 +63,19 @@ export async function POST(request) {
   }
 }
 
-export async function PUT(request) {
-  const { email, currentPassword, newPassword } = await request.json();
+// Change password from Settings. The account is always the signed-in one -
+// never an email from the request body, which let anyone guess passwords
+// here without tripping the login lockout.
+export const PUT = requireAuth(async (request, { user }) => {
+  const { currentPassword, newPassword } = await request.json();
   let conn;
 
   try {
     conn = await pool.getConnection();
     //verify user
     const [verifyUser] = await conn.execute(
-      "SELECT id, password from users WHERE email = ?",
-      [email],
+      "SELECT id, password from users WHERE id = ?",
+      [user.id],
     );
 
     if (verifyUser.length === 0) {
@@ -128,4 +134,4 @@ export async function PUT(request) {
   } finally {
     if (conn) conn.release();
   }
-}
+});

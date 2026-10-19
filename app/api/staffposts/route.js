@@ -1,6 +1,7 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { userEmailHandler } from "@/lib/Email/userEmailHandler";
+import { StaffOfferError, verifyStaffOffers } from "@/lib/staffOffers";
 import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
 
 const parseNumber = (value) => {
@@ -45,6 +46,10 @@ export const POST = requireAuth(async (request, { user }) => {
     }
 
     const purchaseId = await withTransaction(async (connection) => {
+      // Re-check Staff Offer prices against the DB before writing anything
+      // (throws a 409 StaffOfferError, rolling back, if one has ended).
+      const staffOffers = await verifyStaffOffers(connection, products);
+
       // Destructure directly in the parameter list to avoid extra lines
       const [result] = await connection.execute(
         `INSERT INTO purchasesinfo
@@ -93,11 +98,11 @@ export const POST = requireAuth(async (request, { user }) => {
 
       //Insert each product/item into the purchase_products table
 
-      const itemInsertPromises = products.map((product) => {
+      const itemInsertPromises = products.map((product, index) => {
         return connection.execute(
           `INSERT INTO purchase_products
-        (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (purchase_id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue, tradePrice, retailPrice, onlinePrice, staffOfferPrice, staffOfferId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             purchaseId,
             product.itemName,
@@ -111,6 +116,8 @@ export const POST = requireAuth(async (request, { user }) => {
             parseNumber(product.tradePrice) ?? 0,
             parseNumber(product.retailPrice) ?? 0,
             parseNumber(product.onlinePrice) ?? 0,
+            staffOffers[index].staffOfferPrice,
+            staffOffers[index].staffOfferId,
           ],
         );
       });
@@ -158,7 +165,7 @@ export const POST = requireAuth(async (request, { user }) => {
       { status: 201 }, // 201 Created for successful resource creation
     );
   } catch (error) {
-    if (error instanceof RouteError) {
+    if (error instanceof RouteError || error instanceof StaffOfferError) {
       return Response.json(
         { success: false, message: error.message },
         { status: error.status },

@@ -43,10 +43,19 @@ let cachedToken = null;
 let tokenExpiry = null;
 let tokenRefreshPromise = null;
 const API_TIMEOUT = 10000; // 10 seconds timeout for the auth API
+// After a failed refresh, return null immediately for a short window rather
+// than making every price lookup wait out another 10s timeout against an
+// endpoint that's currently unreachable (piles up requests during peaks).
+const FAILURE_COOLDOWN = 15000;
+let failedUntil = 0;
 
 export async function getAuthToken() {
   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
     return cachedToken;
+  }
+
+  if (Date.now() < failedUntil) {
+    return null;
   }
 
   // If a refresh is already in progress, wait for it.
@@ -102,6 +111,7 @@ export async function getAuthToken() {
       // On failure, ensure the cache is cleared and return null
       cachedToken = null;
       tokenExpiry = null;
+      failedUntil = Date.now() + FAILURE_COOLDOWN;
       return null;
     } finally {
       // IMPORTANT: Clear the promise when done, allowing future attempts

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
-import { AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react"; // Import icons
 import Alert from "../Alert";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
@@ -47,7 +46,6 @@ export default function SecuritySettingsPage() {
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     setUpdating(true);
-    setConfirmationDialogue(false);
 
     try {
       const response = await fetch(`${basePath}/api/reset-password`, {
@@ -60,7 +58,7 @@ export default function SecuritySettingsPage() {
       if (response.ok) {
         setShowAlert(true);
         setErrorType("success");
-        setMessage(data.message || "Password reset successfull");
+        setMessage(data.message || "Password updated successfully");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
@@ -77,18 +75,15 @@ export default function SecuritySettingsPage() {
       console.error("Failed to update password:", error);
     } finally {
       setUpdating(false);
+      setConfirmationDialogue(false);
     }
   };
   return (
     <>
-      <AnimatePresence>
-        {showChangeEmail && (
-          <ChangeEmail
-            key="change-email"
-            onClose={() => setShowChangeEmail(false)}
-          />
-        )}
-      </AnimatePresence>
+      <ChangeEmail
+        open={showChangeEmail}
+        onClose={() => setShowChangeEmail(false)}
+      />
 
       <ConfirmationDialog
         title="Confirm password update"
@@ -96,6 +91,8 @@ export default function SecuritySettingsPage() {
         onConfirm={handleUpdatePassword}
         showDialog={confirmationDialogue}
         onCancel={() => setConfirmationDialogue(false)}
+        busy={updating}
+        busyLabel="Updating..."
       />
 
       {showAlert && (

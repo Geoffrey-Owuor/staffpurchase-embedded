@@ -13,6 +13,7 @@ import ApprovalCardsSkeleton from "@/components/skeletons/ApprovalCardsSkeleton"
 import { StatCard } from "../StatCard";
 import CardHeadings from "../Headings/CardHeadings";
 import { useUser } from "@/context/UserContext";
+import { isRequesterRole } from "@/utils/routes";
 import { useQuery } from "@tanstack/react-query";
 import {
   defaultCounts,
@@ -22,6 +23,7 @@ import SkeletonBox from "@/components/skeletons/SkeletonBox";
 
 export default function ApprovalCards({ filters = {} }) {
   const { role: userRole } = useUser();
+  const isRequester = isRequesterRole(userRole);
 
   const {
     data: counts = defaultCounts,
@@ -41,7 +43,7 @@ export default function ApprovalCards({ filters = {} }) {
       {/* Render Heading Dynamically */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-5">
-          {userRole === "staff" ? (
+          {isRequester ? (
             <div className="mt-3 mb-2 px-1 pb-3">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Approval status
@@ -64,7 +66,7 @@ export default function ApprovalCards({ filters = {} }) {
 
         {loading ? (
           <>
-            {userRole !== "staff" && (
+            {!isRequester && (
               <div className="hidden items-center space-x-2 lg:flex">
                 {[...Array(4)].map((_, i) => (
                   <SkeletonBox key={i} className="mr-2 h-11 w-20 md:flex" />
@@ -74,7 +76,7 @@ export default function ApprovalCards({ filters = {} }) {
           </>
         ) : (
           <>
-            {userRole !== "staff" && (
+            {!isRequester && (
               <div className="hidden items-center space-x-2 lg:flex">
                 <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-none dark:bg-gray-800">
                   <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
@@ -117,7 +119,7 @@ export default function ApprovalCards({ filters = {} }) {
             title="Pending"
             count={counts.pending > 500 ? "500+" : counts.pending}
             description={
-              userRole === "staff"
+              isRequester
                 ? "Awaiting invoicing approval"
                 : "Awaiting your approval"
             }
@@ -128,7 +130,7 @@ export default function ApprovalCards({ filters = {} }) {
             title="Declined"
             count={counts.declined > 500 ? "500+" : counts.declined}
             description={
-              userRole === "staff"
+              isRequester
                 ? "Declined Requests"
                 : "Requests you've declined"
             }
@@ -140,7 +142,7 @@ export default function ApprovalCards({ filters = {} }) {
             title="Approved"
             count={counts.approved > 500 ? "500+" : counts.approved}
             description={
-              userRole === "staff"
+              isRequester
                 ? "Approved by invoicing"
                 : "Requests you've approved"
             }

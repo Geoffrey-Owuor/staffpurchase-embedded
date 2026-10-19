@@ -7,7 +7,8 @@ const DEBOUNCE_MS = 600;
 
 const EMPTY_PRICES = { TRADE: null, RTLRRP: null, ONLINE: null };
 
-// Fetches TRADE/RTLRRP/ONLINE Orion prices for a product code, debounced.
+// Fetches TRADE/RTLRRP/ONLINE Orion prices for a product code, debounced,
+// plus the active Staff Offer for it (`staffOffer`: {id, price} or null).
 // `enabled` gates the debounced auto-fetch only — pass false to hydrate a
 // field (e.g. an edit page loading stored values) without triggering a
 // fetch; `refetch()` always works regardless of `enabled`, for an explicit
@@ -15,6 +16,7 @@ const EMPTY_PRICES = { TRADE: null, RTLRRP: null, ONLINE: null };
 export function useOrionPrices({ productCode, enabled }) {
   const [status, setStatus] = useState("idle"); // idle|loading|success|notfound|error
   const [prices, setPrices] = useState(EMPTY_PRICES);
+  const [staffOffer, setStaffOffer] = useState(null);
   const [itemName, setItemName] = useState(null);
   const [warnings, setWarnings] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -51,6 +53,7 @@ export function useOrionPrices({ productCode, enabled }) {
         setStatus("notfound");
         setErrorMessage(data.message || "No product found for this code");
         setPrices(EMPTY_PRICES);
+        setStaffOffer(null);
         setItemName(null);
         setWarnings([]);
         return;
@@ -58,6 +61,7 @@ export function useOrionPrices({ productCode, enabled }) {
 
       setStatus("success");
       setPrices({ ...EMPTY_PRICES, ...data.prices });
+      setStaffOffer(data.staffOffer ?? null);
       setItemName(data.itemName || null);
       setWarnings(data.warnings || []);
       lastFetchedCodeRef.current = code;
@@ -75,6 +79,7 @@ export function useOrionPrices({ productCode, enabled }) {
     if (!debouncedCode || debouncedCode.length < MIN_CODE_LENGTH) {
       setStatus("idle");
       setPrices(EMPTY_PRICES);
+      setStaffOffer(null);
       setItemName(null);
       setWarnings([]);
       lastFetchedCodeRef.current = null;
@@ -97,6 +102,7 @@ export function useOrionPrices({ productCode, enabled }) {
   return {
     status: isDebouncing ? "debouncing" : status,
     prices,
+    staffOffer,
     itemName,
     warnings,
     errorMessage,

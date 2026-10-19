@@ -23,6 +23,7 @@ export const createSession = async (
   email,
   payrollNo,
   department,
+  sessionVersion = 0, // users.session_version - see lib/sessionCheck.js
 ) => {
   const expiresAt = Math.floor(Date.now() / 1000) + 72 * 60 * 60; //72hrs until expiration
   const token = await new SignJWT({
@@ -32,6 +33,7 @@ export const createSession = async (
     email,
     payrollNo,
     department,
+    sessionVersion,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -64,6 +66,9 @@ export const getCurrentUser = async () => {
       email: payload.email,
       payrollNo: payload.payrollNo,
       department: payload.department,
+      // Tokens issued before session_version existed have no claim: 0 is the
+      // column default, so they stay valid until a bump.
+      sessionVersion: payload.sessionVersion ?? 0,
       expiresAt: payload.exp * 1000, // Convert to ms for JS
     };
   } catch {

@@ -37,6 +37,7 @@ ecosystem.config.js*
 
 # Migration files
 /db
+/docs
 
 # vercel
 .vercel

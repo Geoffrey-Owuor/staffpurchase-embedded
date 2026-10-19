@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { HandCoins, PackagePlus, PlusCircle, Trash2 } from "lucide-react";
+import { HandCoins, PackagePlus } from "lucide-react";
 import Alert from "../Alert";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
@@ -14,13 +14,13 @@ import CreditControlSection from "../FormEditComponents/CreditControlSection";
 import BIApprovalSection from "../FormEditComponents/BIApprovalSection";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UnauthorizedEdit from "../Reusables/UnauthorizedEdit";
-import { LoadingBarWave } from "../Reusables/LoadingBar";
 import EditPurchaseHeading from "../EditPurchaseComponents/EditPurchaseHeading";
 import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useRouter } from "next/navigation";
 import { basePath } from "@/public/assets";
+import { parseCreditPeriod } from "@/utils/formatCreditPeriod";
 
 // The initial state for a single product
 const initialProductState = {
@@ -35,6 +35,8 @@ const initialProductState = {
   tradePrice: "",
   retailPrice: "",
   onlinePrice: "",
+  staffOfferPrice: "",
+  staffOfferId: "",
 };
 
 //Getting today's date in mm/dd/yy format (Server time zone)
@@ -81,14 +83,17 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     }, 0);
 
     // Get default data for credit_period field
+    // Wording is stored in the DB, so it intentionally stays "X Months Period"
+    // rather than using formatCreditPeriod's display text.
     const formulateCreditPeriod = () => {
       let formulatedPeriod;
+      const months = parseCreditPeriod(purchase.user_credit_period);
       if (
         (purchase.employee_payment_terms === "CREDIT" ||
           purchase.employee_payment_terms === "CASH AND CREDIT") &&
-        purchase.user_credit_period
+        months !== null
       ) {
-        formulatedPeriod = `${purchase.user_credit_period} ${purchase.user_credit_period === 1 ? "Month" : "Months"} Period`;
+        formulatedPeriod = `${months} ${months === 1 ? "Month" : "Months"} Period`;
       } else if (purchase.employee_payment_terms === "CASH") {
         formulatedPeriod = "Cash Payment";
       } else {
@@ -230,20 +235,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     );
   };
 
-  //Adding a product
-  const addProduct = () => {
-    setProducts([...products, { ...initialProductState }]);
-  };
-
-  //Removing a product
-  const removeProduct = (index) => {
-    if (products.length > 1) {
-      //Prevent removing the last item
-      const updatedProducts = products.filter((_, i) => i !== index);
-      setProducts(updatedProducts);
-    }
-  };
-
   //Calculating the total discountedValue from the products
   const purchaseTotal = useMemo(() => {
     //Using reduce to sum up discounted value of all products
@@ -272,7 +263,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
 
   const handleConfirmSubmit = async () => {
     setIsSubmitting(true);
-    setShowConfirmation(false);
 
     //Consolidate all form data into a single object
     const fullFormData = {
@@ -330,6 +320,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       setShowAlert(true);
     } finally {
       setIsSubmitting(false);
+      setShowConfirmation(false);
     }
   };
 
@@ -339,8 +330,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
         <EditPurchaseHeading />
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          {submitting && <LoadingBarWave isLoading={true} />}
-
           {/* Staff Info Component */}
           <StaffInformation
             formData={staffInfo}
@@ -373,9 +362,11 @@ function PurchaseForm({ purchase, userRole, name, id }) {
             </p>
           )}
 
-          {/* Map over the products array to render a component for each */}
+          {/* Map over the products array to render a component for each.
+          The product list is fixed at submission - no adding/removing here
+          (also enforced by api/generaleditpurchases). */}
           {products.map((product, index) => (
-            <div key={index} className="relative space-y-4">
+            <div key={index} className="space-y-4">
               <ProductPricing
                 formData={product}
                 handleChange={(e) => handleProductChange(index, e)}
@@ -388,18 +379,8 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                 onFetchStatusChange={(isFetching) =>
                   handleFetchStatusChange(index, isFetching)
                 }
+                recordedProduct={purchase.products?.[index]}
               />
-              {/* Removing a product - Only when role is cc */}
-              {products.length > 1 && userRole === "cc" && (
-                <button
-                  type="button"
-                  onClick={() => removeProduct(index)}
-                  className="absolute top-4 right-6 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
-                  title="Remove Product"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
-              )}
             </div>
           ))}
 
@@ -412,17 +393,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                   <span className="font-bold">{`Ksh ${purchaseTotal.toFixed(2)}`}</span>
                 </span>
               </span>
-            )}
-            {/* Adding a product - Only when role is cc */}
-            {userRole === "cc" && (
-              <button
-                type="button"
-                onClick={addProduct}
-                className="flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2.5 text-sm text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
-              >
-                <PlusCircle className="h-5 w-5" />
-                Add <span className="hidden sm:block">Product</span>
-              </button>
             )}
           </div>
 
@@ -471,6 +441,8 @@ function PurchaseForm({ purchase, userRole, name, id }) {
         showDialog={showConfirmation}
         onCancel={() => setShowConfirmation(false)}
         title="Confirm Changes"
+        busy={submitting}
+        busyLabel="Saving..."
       />
 
       {/* Alert Component */}

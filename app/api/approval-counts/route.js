@@ -1,6 +1,7 @@
 //NEW REUSABLE APPROVAL COUNTS QUERY FOR ALL ROLES (staff, hr, cc, bi)
 import { withConnection } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
+import { isRequesterRole } from "@/utils/routes";
 
 // Total requests query - always global/unfiltered, these are fixed reference totals.
 const totalQuery = `SELECT COUNT(*) as count FROM purchasesinfo`;
@@ -152,7 +153,8 @@ export const GET = requireAuth(async (request, { user }) => {
     const { searchParams } = new URL(request.url);
     const extraFilter = buildExtraFilterClause(searchParams);
 
-    const roleConfig = ROLE_QUERY_CONFIGS[role];
+    // Admin submits requests like staff, so its cards count its own requests
+    const roleConfig = ROLE_QUERY_CONFIGS[isRequesterRole(role) ? "staff" : role];
 
     if (!roleConfig) {
       return Response.json({ message: "Invalid user role" }, { status: 403 });
@@ -161,7 +163,7 @@ export const GET = requireAuth(async (request, { user }) => {
     let queryConfigs = {};
 
     //Determining query strategy based on role type
-    if (role === "staff") {
+    if (isRequesterRole(role)) {
       //staff role uses specific combined queries
       queryConfigs = {
         pending: roleConfig.getPendingQuery(userId),

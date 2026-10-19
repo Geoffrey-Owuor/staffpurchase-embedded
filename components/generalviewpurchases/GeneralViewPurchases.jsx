@@ -7,6 +7,7 @@ import {
   GitPullRequestClosed,
   RotateCcw,
   Blocks,
+  ClipboardPen,
 } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
@@ -17,20 +18,20 @@ import { useRouter } from "next/navigation";
 import PurchaseDetailSkeleton from "../skeletons/PurchaseDetailsSkeleton";
 import DetailField from "../Reusables/DetailField";
 import { generateClientPDF } from "@/utils/returnPurchasePDF";
-import { LoadingBar } from "../Reusables/LoadingBar";
 import { basePath, formatDateLong } from "@/public/assets";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
-import { formatCreditPeriod } from "@/public/assets";
+import { useInvoicingLocations } from "@/hooks/useReferenceData";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import Alert from "../Alert";
-import { LoadingBarWave } from "../Reusables/LoadingBar";
 
 export default function GeneralViewPurchases({ id }) {
   const queryClient = useQueryClient();
 
   const { role: userRole } = useUser();
+  const { labelFor: locationLabel } = useInvoicingLocations();
 
   const {
     data: purchase,
@@ -57,7 +58,6 @@ export default function GeneralViewPurchases({ id }) {
 
   const handleUpdateClose = async () => {
     setUpdating(true);
-    setShowConfirmationDialog(false);
 
     try {
       const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
@@ -83,6 +83,7 @@ export default function GeneralViewPurchases({ id }) {
       setShowAlert(true);
     } finally {
       setUpdating(false);
+      setShowConfirmationDialog(false);
     }
   };
 
@@ -105,7 +106,8 @@ export default function GeneralViewPurchases({ id }) {
     }
   };
 
-  const { handleEditClick } = useDashboardRoutes();
+  const { handleEditClick, navigate, getAdminEditPathName } =
+    useDashboardRoutes();
 
   // const handleCustomAlertShow = () => {
   //   setAlertType("success");
@@ -155,8 +157,6 @@ export default function GeneralViewPurchases({ id }) {
 
   return (
     <>
-      {isEditing && <LoadingBar isLoading={true} />}
-
       {/* Details Card */}
       <div className="mx-auto rounded-xl pb-6">
         {/* Header with back button */}
@@ -209,6 +209,17 @@ export default function GeneralViewPurchases({ id }) {
                   Edit
                 </button>
               )}
+
+            {/* Admin override editor (any stage) */}
+            {userRole === "admin" && (
+              <button
+                onClick={() => navigate(getAdminEditPathName(id))}
+                className="flex items-center justify-center gap-1 rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+              >
+                <ClipboardPen className="h-4 w-4" />
+                Admin edit
+              </button>
+            )}
 
             <button
               onClick={handleDownload}
@@ -273,7 +284,7 @@ export default function GeneralViewPurchases({ id }) {
             <div className="space-y-4">
               <DetailField
                 label="Invoicing Location"
-                value={purchase.invoicing_location}
+                value={locationLabel(purchase.invoicing_location)}
               />
               <DetailField
                 label="Other Details"
@@ -538,9 +549,9 @@ export default function GeneralViewPurchases({ id }) {
         showDialog={showConfirmationDialog}
         onCancel={() => setShowConfirmationDialog(false)}
         title="Close Purchase Request"
+        busy={updating}
+        busyLabel="Closing..."
       />
-
-      <LoadingBarWave isLoading={updating} />
     </>
   );
 }

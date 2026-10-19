@@ -27,30 +27,6 @@ export const LoadingBar = ({ isLoading }) => {
   return <ClientPortal>{content}</ClientPortal>;
 };
 
-export const LoadingBarWave = ({ isLoading }) => {
-  if (!isLoading) return null;
-
-  const content = (
-    <div
-      className={`fixed inset-0 z-9999 flex h-screen items-center justify-center bg-black/50 transition-all duration-200 dark:bg-black/60`}
-    >
-      {/* Container to align the spinner and text horizontally */}
-      <div className="flex flex-col items-center gap-4">
-        {/* The Lucide Loader spinner */}
-        <Loader2
-          className="h-12 w-12 animate-spin text-gray-900 dark:text-white"
-          aria-label="loading"
-        />
-
-        {/* The text, styled for dark and light modes */}
-        <span className="text-gray-900 dark:text-white">Saving...</span>
-      </div>
-    </div>
-  );
-
-  return <ClientPortal>{content}</ClientPortal>;
-};
-
 export const LoggingOutOverlay = ({ isLoggingOut }) => {
   if (!isLoggingOut) return null;
 
@@ -71,26 +47,5 @@ export const LoggingOutOverlay = ({ isLoggingOut }) => {
     </div>
   );
 
-  return <ClientPortal>{content}</ClientPortal>;
-};
-
-export const DeletingOverlay = () => {
-  const content = (
-    <div
-      className={`fixed inset-0 z-9999 flex h-screen items-center justify-center bg-black/50 transition-all duration-200 dark:bg-black/60`}
-    >
-      {/* Container to align the spinner and text horizontally */}
-      <div className="flex flex-col items-center gap-4">
-        {/* The Lucide Loader spinner */}
-        <Loader2
-          className="h-12 w-12 animate-spin text-gray-900 dark:text-white"
-          aria-label="loading"
-        />
-
-        {/* The text, styled for dark and light modes */}
-        <span className="text-gray-900 dark:text-white">Deleting...</span>
-      </div>
-    </div>
-  );
   return <ClientPortal>{content}</ClientPortal>;
 };

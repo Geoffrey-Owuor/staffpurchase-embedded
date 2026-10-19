@@ -1,6 +1,8 @@
 "use server";
 import pool from "@/lib/db";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS } from "@/utils/Cache/cacheTags";
+import { APP_SETTINGS } from "@/utils/Admin/adminConstants";
 
 // Caching Terms & Conditions
 export const CachedConditions = unstable_cache(
@@ -20,7 +22,8 @@ export const CachedConditions = unstable_cache(
     }
   },
   ["all_conditions"], // Unique key for this particular cache
-  { revalidate: 3600 }, // Revalidate every 1hr (3600 seconds)
+  // Revalidate every 1hr (3600 seconds), or on demand via /api/revalidate
+  { revalidate: 3600, tags: [CACHE_TAGS.termsConditions] },
 );
 
 // Caching discount policies
@@ -42,7 +45,7 @@ export const CachedPolicies = unstable_cache(
     }
   },
   ["all_policies"],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: [CACHE_TAGS.discountPolicies] },
 );
 
 // Caching credit periods
@@ -63,7 +66,7 @@ export const CachedPeriods = unstable_cache(
     }
   },
   ["all_periods"],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: [CACHE_TAGS.creditPeriods] },
 );
 
 // Caching Approver Emails
@@ -87,5 +90,55 @@ export const CachedEmails = unstable_cache(
     }
   },
   ["all_approver_emails"],
-  { revalidate: 3600 },
+  { revalidate: 3600, tags: [CACHE_TAGS.approverEmails] },
+);
+
+// Reference data managed from /dashboard/admin/reference-data
+// (db/migrations/2026-10-18_reference_data.sql). Errors are rethrown, not
+// swallowed into [] - unstable_cache would cache the empty fallback for an
+// hour and every dropdown would come up empty.
+
+// Every location, active or not - inactive ones still label older requests.
+export const CachedInvoicingLocations = unstable_cache(
+  async () => {
+    const [rows] = await pool.execute(
+      `SELECT code, label, is_active, sort_order
+       FROM invoicing_locations
+       ORDER BY sort_order ASC, label ASC`,
+    );
+    return rows.map((row) => ({ ...row, is_active: Boolean(row.is_active) }));
+  },
+  ["all_invoicing_locations"],
+  { revalidate: 3600, tags: [CACHE_TAGS.invoicingLocations] },
+);
+
+// Every department, active or not - inactive ones are kept for existing users.
+export const CachedDepartments = unstable_cache(
+  async () => {
+    const [rows] = await pool.execute(
+      `SELECT id, name, is_active, sort_order
+       FROM departments
+       ORDER BY sort_order ASC, name ASC`,
+    );
+    return rows.map((row) => ({ ...row, is_active: Boolean(row.is_active) }));
+  },
+  ["all_departments"],
+  { revalidate: 3600, tags: [CACHE_TAGS.departments] },
+);
+
+// Whitelisted app_settings as { key: value } (APP_SETTINGS in
+// utils/Admin/adminConstants.js) - anything else in the table is ignored.
+export const CachedAppSettings = unstable_cache(
+  async () => {
+    const keys = Object.keys(APP_SETTINGS);
+    const [rows] = await pool.query(
+      `SELECT setting_key, setting_value FROM app_settings WHERE setting_key IN (?)`,
+      [keys],
+    );
+    return Object.fromEntries(
+      rows.map((row) => [row.setting_key, row.setting_value]),
+    );
+  },
+  ["app_settings"],
+  { revalidate: 3600, tags: [CACHE_TAGS.appSettings] },
 );
