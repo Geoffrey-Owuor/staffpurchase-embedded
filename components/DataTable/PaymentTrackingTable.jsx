@@ -8,6 +8,7 @@ import TrackingApprovalCards from "../Reusables/ReusableApprovalCards/TrackingAp
 import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButtons";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { formatDateLong } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import {
   PaymentStatus,
   TableApprovalStatus,
@@ -15,7 +16,6 @@ import {
 import Alert from "../Alert";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { fetchPaymentTrackingPurchases } from "@/utils/FetchPurchases/fetchPaymentTrackingPurchases";
 
 const PAYMENT_TERMS_OPTIONS = [
@@ -47,7 +47,6 @@ export default function PaymentTrackingTable() {
   const [alertInfo, setAlertInfo] = useState({ show: false, type: "", message: "" });
   const [periods, setPeriods] = useState([]);
 
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
   const { handleViewClick, handleEditClick, getViewPathName } =
     useDashboardRoutes();
 
@@ -114,10 +113,7 @@ export default function PaymentTrackingTable() {
     setGoingTo(id);
     handleViewClick(id);
   };
-  const handleTableRowClick = (row) => {
-    startLoading();
-    handleViewClick(row.id);
-  };
+  const handleTableRowClick = (row) => handleViewClick(row.id);
 
   const handleCloseSuccess = useCallback(
     (message) => {
@@ -156,10 +152,7 @@ export default function PaymentTrackingTable() {
         <Link
           href={getViewPathName(p.id)}
           className="hover:text-blue-400 hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            startLoading();
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
           {p.reference_number}
         </Link>
@@ -191,7 +184,7 @@ export default function PaymentTrackingTable() {
       label: "Credit Period",
       title: "Credit Period",
       toggleable: true,
-      render: (p) => p.user_credit_period || "N/A",
+      render: (p) => formatCreditPeriod(p.user_credit_period),
     },
     {
       key: "invoiceAmount",
@@ -270,7 +263,6 @@ export default function PaymentTrackingTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
-        goingTo={goingTo}
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}

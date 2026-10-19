@@ -2,6 +2,16 @@ import ExcelJS from "exceljs";
 import { withConnection } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 
+// Textarea-entered columns that can contain typed line breaks
+const FREE_TEXT_COLUMNS = new Set([
+  "delivery_details",
+  "one_third_rule",
+  "hr_comments",
+  "credit_period",
+  "purchase_history_comments",
+  "payment_reference",
+]);
+
 export const GET = requireAuth(
   async (request) => {
     const { searchParams } = new URL(request.url);
@@ -19,7 +29,7 @@ export const GET = requireAuth(
     p.employee_payment_terms, p.user_credit_period, p.mpesa_code, p.invoicing_location,
     p.delivery_details, pp.itemName, pp.itemStatus, pp.productPolicy, pp.productCode,
     pp.priceCode AS priceBasis, pp.tdPrice AS initialPrice, pp.discountRate, pp.discountedValue,
-    pp.tradePrice, pp.retailPrice, pp.onlinePrice, p.Payroll_Approval, p.HR_Approval,
+    pp.tradePrice, pp.retailPrice, pp.onlinePrice, pp.staffOfferPrice, p.Payroll_Approval, p.HR_Approval,
     p.CC_Approval, p.BI_Approval, p.one_third_rule, p.payroll_approver_name,
     DATE_FORMAT(p.payroll_approval_date, '%Y-%m-%d %H:%i:%s') AS payroll_approval_date,
     p.is_employed, p.on_probation, p.hr_comments,
@@ -81,16 +91,31 @@ export const GET = requireAuth(
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase()), // Format header text (e.g., "purchaseId" -> "Purchase Id")
           key: key,
-          width: 20, // Set a default column width
+          // Free-text columns are wider and wrap so typed line breaks show
+          width: FREE_TEXT_COLUMNS.has(key) ? 40 : 20,
           numFmt:
             key.toLowerCase().includes("date") ||
             key.toLowerCase().includes("created")
               ? "yyyy-mm-dd hh:mm:ss"
               : undefined,
+          style: FREE_TEXT_COLUMNS.has(key)
+            ? { alignment: { wrapText: true, vertical: "top" } }
+            : { alignment: { vertical: "top" } },
         }));
 
-        // Add rows - row data
-        worksheet.addRows(rows);
+        // Add rows - row data (normalize line endings so Excel shows one
+        // break per typed newline)
+        worksheet.addRows(
+          rows.map((row) => {
+            const out = { ...row };
+            for (const key of FREE_TEXT_COLUMNS) {
+              if (typeof out[key] === "string") {
+                out[key] = out[key].replace(/\r\n?/g, "\n").trim();
+              }
+            }
+            return out;
+          }),
+        );
       }
 
       // 5. Generate the buffer

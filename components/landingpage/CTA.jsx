@@ -11,7 +11,7 @@ export default function CTA() {
         <div className="pointer-events-none absolute -top-10 -right-10 h-56 w-56 rounded-full bg-rose-500/20 blur-3xl" />
 
         <div className="relative">
-          <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+          <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
             <ShoppingBag className="h-6 w-6 text-white" />
           </div>
           <h2 className="mb-6 text-3xl font-bold text-white md:text-4xl">

@@ -88,7 +88,7 @@ export default function Hero() {
               {stats.map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white/60 px-3 py-2.5 text-sm text-gray-700 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300"
+                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white/60 px-3 py-2.5 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300"
                 >
                   <Icon className="h-4 w-4 shrink-0 text-red-600 dark:text-red-500" />
                   {label}
@@ -106,8 +106,8 @@ export default function Hero() {
           >
             <div className="relative w-full lg:max-w-md">
               {/* Blurred background accents */}
-              <div className="absolute -top-6 -left-6 h-64 w-64 rounded-full bg-red-100 opacity-70 mix-blend-multiply blur-xl filter dark:bg-red-900/40"></div>
-              <div className="absolute -right-8 -bottom-8 h-64 w-64 rounded-full bg-rose-100 opacity-70 mix-blend-multiply blur-xl filter dark:bg-rose-900/40"></div>
+              <div className="absolute -top-6 -left-6 h-64 w-64 rounded-full bg-red-100 opacity-70 blur-xl dark:hidden"></div>
+              <div className="absolute -right-8 -bottom-8 h-64 w-64 rounded-full bg-rose-100 opacity-70 blur-xl dark:hidden"></div>
 
               {/* Card */}
               <div className="relative rounded-3xl bg-white p-8 shadow-xl ring-1 ring-black/5 dark:border dark:border-gray-800 dark:bg-gray-900/50 dark:ring-white/5">

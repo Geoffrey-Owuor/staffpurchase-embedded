@@ -7,11 +7,11 @@ import SettingsPage from "../Settings/SettingsPage";
 import { useUser } from "@/context/UserContext";
 import ThemeToggle from "./ThemeProviders/ThemeToggle";
 import { LoggingOutOverlay } from "./LoadingBar";
-import { useSidebarStore } from "@/store/useSidebarStore";
+import { useShowTopbar, useSidebarStore } from "@/store/useSidebarStore";
 import { basePath } from "@/public/assets";
 
 export default function UserMenu({ hideMobileMenu, menuOpen }) {
-  const showTopbar = useSidebarStore((state) => state.showTopbar);
+  const showTopbar = useShowTopbar();
   const sidebarOpen = useSidebarStore((state) => state.sidebarOpen);
 
   const dynamicWidth = menuOpen
@@ -161,11 +161,10 @@ export default function UserMenu({ hideMobileMenu, menuOpen }) {
       </div>
       {/* Logging out overlay */}
       <LoggingOutOverlay isLoggingOut={loggingOut} />
-      <AnimatePresence>
-        {showUserSettings && (
-          <SettingsPage onClose={() => setShowUserSettings(false)} />
-        )}
-      </AnimatePresence>
+      <SettingsPage
+        open={showUserSettings}
+        onClose={() => setShowUserSettings(false)}
+      />
     </>
   );
 }

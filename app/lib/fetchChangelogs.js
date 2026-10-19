@@ -2,6 +2,7 @@
 import pool from "@/lib/db";
 import { revalidateTag } from "next/cache";
 import { unstable_cache } from "next/cache";
+import { CACHE_TAGS } from "@/utils/Cache/cacheTags";
 
 // Function to fetch changelogs from the database
 const fetchChangelogs = async () => {
@@ -24,11 +25,11 @@ const fetchChangelogs = async () => {
 export const cachedChangelogs = unstable_cache(
   fetchChangelogs,
   ["changelogs"],
-  { tags: ["changelogs"] },
+  { tags: [CACHE_TAGS.changelogs] },
 );
 
 // Server action to manually revalidate the changelogs path
 export async function revalidateChangelogs() {
   // invalidate cached database data
-  revalidateTag("changelogs");
+  revalidateTag(CACHE_TAGS.changelogs);
 }

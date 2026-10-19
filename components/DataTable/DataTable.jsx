@@ -1,7 +1,6 @@
 "use client";
 import { RotateCcw } from "lucide-react";
 import TableSkeleton from "../skeletons/TableSkeleton";
-import { LoadingBar } from "../Reusables/LoadingBar";
 import Pagination from "../pagination/Pagination";
 import ColumnToggle from "../Reusables/ColumnToggle";
 import FilterPanel from "./FilterPanel";
@@ -41,7 +40,7 @@ export default function DataTable({
   onRowClick,
   emptyMessage = "No purchase data found",
   filteredEmptyMessage = "No purchases match the active filters.",
-  goingTo,
+  errorMessage = "Failed to load purchases. Please try refreshing the page.",
 }) {
   const hasActiveFilters = filterFields?.some((field) => {
     if (field.type === "dateRange") return filters.fromDate || filters.toDate;
@@ -54,8 +53,6 @@ export default function DataTable({
 
   return (
     <>
-      {goingTo && <LoadingBar isLoading={true} />}
-
       <div className="rounded-xl px-2 pb-4">
         <div className="mb-4 flex flex-col space-y-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 md:mb-0">
           {heading}
@@ -97,7 +94,7 @@ export default function DataTable({
           <TableSkeleton />
         ) : isError ? (
           <div className="py-10 text-center text-sm text-red-500">
-            Failed to load purchases. Please try refreshing the page.
+            {errorMessage}
           </div>
         ) : (
           <>

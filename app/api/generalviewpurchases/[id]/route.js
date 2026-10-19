@@ -1,7 +1,7 @@
 import { withConnection } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 
-export const GET = requireAuth(async (_req, { params }) => {
+export const GET = requireAuth(async (_req, { params, user }) => {
   try {
     const { id } = await params;
 
@@ -26,7 +26,9 @@ export const GET = requireAuth(async (_req, { params }) => {
     discountedValue,
     tradePrice,
     retailPrice,
-    onlinePrice
+    onlinePrice,
+    staffOfferPrice,
+    staffOfferId
     FROM purchase_products
     WHERE purchase_id = ?
       `,
@@ -43,6 +45,13 @@ export const GET = requireAuth(async (_req, { params }) => {
         return null;
       }
       const purchaseDetails = purchaseRows[0];
+
+      // Staff only ever see their own requests (answered as "not found" so
+      // this doesn't confirm another request exists). Approvers and admin
+      // see every request, as their tables do.
+      if (user.role === "staff" && purchaseDetails.user_id !== user.id) {
+        return null;
+      }
 
       //Combine results into a single object
       return {

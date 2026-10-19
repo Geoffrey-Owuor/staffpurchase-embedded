@@ -9,7 +9,7 @@ import {
   pdf,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import { formatCreditPeriod } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
 
 // Register a standard font (actually Lato)
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   sectionHalf: {
     width: "48%", // each half occupies roughly half of the page width
   },
-  sectionRow: { flexDirection: "row", marginBottom: 3, alignItems: "center" },
+  sectionRow: { flexDirection: "row", marginBottom: 3, alignItems: "flex-start" },
   sectionLabel: { width: "50%", color: "#6B7280", textAlign: "left" },
   sectionValue: { width: "50%", fontWeight: 400, textAlign: "left" },
   sectionTitle: {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#374151",
   },
-  infoRow: { flexDirection: "row", marginBottom: 3, alignItems: "center" },
+  infoRow: { flexDirection: "row", marginBottom: 3, alignItems: "flex-start" },
   infoLabel: { width: "40%", color: "#6B7280", textAlign: "left" },
   infoValue: { width: "60%", fontWeight: 400, textAlign: "left" },
   table: {
@@ -166,6 +166,13 @@ const formatDate = (dateString) =>
     ? new Date(dateString).toLocaleDateString("en-GB")
     : new Date().toLocaleDateString("en-GB");
 
+// Free-text (textarea) values: react-pdf breaks lines on "\n" itself, so just
+// normalize Windows/old-Mac line endings (a stray "\r" can render as a glyph)
+// and drop leading/trailing blank space.
+const multiline = (value) =>
+  (typeof value === "string" ? value.replace(/\r\n?/g, "\n").trim() : value) ||
+  "N/A";
+
 const formatStatus = (status) =>
   status ? status.charAt(0).toUpperCase() + status.slice(1) : "Pending";
 
@@ -251,9 +258,9 @@ const PurchasePDFDocument = ({
                 </Text>
               </View>
               <View style={styles.sectionRow}>
-                <Text style={styles.sectionLabel}>Delivery/Pickup Details</Text>
+                <Text style={styles.sectionLabel}>Other Details</Text>
                 <Text style={styles.sectionValue}>
-                  {purchaseData.delivery_details || "N/A"}
+                  {multiline(purchaseData.delivery_details)}
                 </Text>
               </View>
               <View style={styles.sectionRow}>
@@ -337,7 +344,7 @@ const PurchasePDFDocument = ({
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>1/3 Rule</Text>
                 <Text style={styles.infoValue}>
-                  {purchaseData.one_third_rule || "N/A"}
+                  {multiline(purchaseData.one_third_rule)}
                 </Text>
               </View>
               <View style={styles.infoRow}>
@@ -372,7 +379,7 @@ const PurchasePDFDocument = ({
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>HR Comments</Text>
                 <Text style={styles.infoValue}>
-                  {purchaseData.hr_comments || "N/A"}
+                  {multiline(purchaseData.hr_comments)}
                 </Text>
               </View>
               <View style={styles.infoRow}>
@@ -405,7 +412,7 @@ const PurchasePDFDocument = ({
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Credit Period</Text>
                     <Text style={styles.infoValue}>
-                      {purchaseData.credit_period || "N/A"}
+                      {multiline(purchaseData.credit_period)}
                     </Text>
                   </View>
 
@@ -418,7 +425,7 @@ const PurchasePDFDocument = ({
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>History Comments</Text>
                     <Text style={styles.infoValue}>
-                      {purchaseData.purchase_history_comments || "N/A"}
+                      {multiline(purchaseData.purchase_history_comments)}
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
@@ -473,7 +480,7 @@ const PurchasePDFDocument = ({
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Payment Reference</Text>
                     <Text style={styles.infoValue}>
-                      {purchaseData.payment_reference || "N/A"}
+                      {multiline(purchaseData.payment_reference)}
                     </Text>
                   </View>
 

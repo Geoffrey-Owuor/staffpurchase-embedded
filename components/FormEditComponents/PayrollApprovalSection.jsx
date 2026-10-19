@@ -2,19 +2,10 @@ import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
 import { formatDateLong } from "@/public/assets";
-
-const APPROVAL_STATUS_OPTIONS = [
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "declined", label: "Declined" },
-];
-
-// Placeholder options - value is the label text itself, so the view page,
-// PDF, export and emails display it as-is.
-const ONE_THIRD_RULE_OPTIONS = [
-  { value: "1/3 Rule Met", label: "1/3 Rule Met" },
-  { value: "1/3 Rule Not Met", label: "1/3 Rule Not Met" },
-];
+import {
+  APPROVAL_STATUS_OPTIONS,
+  ONE_THIRD_RULE_OPTIONS,
+} from "@/utils/Approvals/stageFieldOptions";
 
 export default function PayrollApprovalSection({
   formData,

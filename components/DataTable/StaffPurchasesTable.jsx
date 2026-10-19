@@ -10,8 +10,8 @@ import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButt
 import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { formatDateLong } from "@/public/assets";
+import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import Alert from "../Alert";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { fetchStaffPurchases } from "@/utils/FetchPurchases/fetchStaffPurchases";
 
 const APPROVAL_STATUS_OPTIONS = [
@@ -79,7 +79,6 @@ export default function StaffPurchasesTable() {
     message: "",
   });
 
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
 
   const table = useTableQuery({
     queryKeyPrefix: ["staffPurchases"],
@@ -94,10 +93,7 @@ export default function StaffPurchasesTable() {
     handleViewClick(id);
   };
 
-  const handleTableRowClick = (row) => {
-    startLoading();
-    handleViewClick(row.id);
-  };
+  const handleTableRowClick = (row) => handleViewClick(row.id);
 
   const handleDeleteSuccess = useCallback(
     (deletedId, message) => {
@@ -136,10 +132,7 @@ export default function StaffPurchasesTable() {
         <Link
           href={getViewPathName(p.id)}
           className="hover:text-blue-400 hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            startLoading();
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
           {p.reference_number}
         </Link>
@@ -166,7 +159,7 @@ export default function StaffPurchasesTable() {
       label: "Credit Period",
       title: "Credit Period",
       toggleable: true,
-      render: (p) => p.user_credit_period || "N/A",
+      render: (p) => formatCreditPeriod(p.user_credit_period),
     },
     {
       key: "payrollApproval",
@@ -235,7 +228,6 @@ export default function StaffPurchasesTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
-        goingTo={goingTo}
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}

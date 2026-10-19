@@ -2,25 +2,8 @@
 import FormAsterisk from "./Reusables/FormAsterisk/FormAsterisk";
 import Select from "./Reusables/Select";
 import { formatDateLong } from "@/public/assets";
-
-const LOCATION_OPTIONS = [
-  { value: "SARIT", label: "Sarit" },
-  { value: "RUIRU", label: "Ruiru" },
-  { value: "GCS", label: "Garden City" },
-  { value: "IMAARA", label: "Imaara" },
-  { value: "KAREN", label: "Karen" },
-  { value: "RIARA", label: "Riara" },
-  { value: "KISUMU", label: "Kisumu" },
-  { value: "ELDORET", label: "Eldoret" },
-  { value: "NYALI", label: "Nyali" },
-  { value: "LIKONI", label: "Likoni" },
-  { value: "CBD", label: "CBD" },
-  { value: "YAYA", label: "Yaya" },
-  { value: "VILLAGE", label: "Village Market" },
-  { value: "GALLERIA", label: "Galleria" },
-  { value: "DIANI", label: "Diani" },
-  { value: "OTHER", label: "Other(Specify in other details section)" },
-];
+import { isRequesterRole } from "@/utils/routes";
+import { useInvoicingLocations } from "@/hooks/useReferenceData";
 
 const PAYMENT_TERMS_OPTIONS = [
   { value: "CREDIT", label: "Credit" },
@@ -35,12 +18,18 @@ const PaymentDetails = ({
   periods,
   approversPurchasing,
 }) => {
-  const editableRoles = ["bi", "staff"];
-  const editCodeRoles = ["cc", "staff"];
-  const staffReadonly = userRole !== "staff" && !approversPurchasing;
-  const isReadOnly = !editableRoles.includes(userRole) && !approversPurchasing;
+  const isRequester = isRequesterRole(userRole);
+  // DB-managed (admin Reference Data); keeps a since-retired stored code
+  const { options: locationOptions } = useInvoicingLocations(
+    formData.invoicing_location,
+  );
+  const editableRoles = ["bi"];
+  const editCodeRoles = ["cc"];
+  const staffReadonly = !isRequester && !approversPurchasing;
+  const isReadOnly =
+    !isRequester && !editableRoles.includes(userRole) && !approversPurchasing;
   const isCodeReadonly =
-    !editCodeRoles.includes(userRole) && !approversPurchasing;
+    !isRequester && !editCodeRoles.includes(userRole) && !approversPurchasing;
   return (
     <div className="relative rounded-xl">
       <div className="rounded-t-xl px-2 py-3 text-lg font-semibold text-gray-900 dark:text-white">
@@ -63,7 +52,7 @@ const PaymentDetails = ({
               onChange={(value) =>
                 handleChange({ target: { name: "invoicing_location", value } })
               }
-              options={LOCATION_OPTIONS}
+              options={locationOptions}
               placeholder="Select a location"
               className="w-full"
               required

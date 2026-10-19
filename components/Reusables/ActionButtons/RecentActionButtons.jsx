@@ -11,12 +11,13 @@ import { motion } from "framer-motion";
 import ClientPortal from "../ClientPortal/ClientPortal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import ConfirmationDialog from "../ConfirmationDialog";
-import { DeletingOverlay } from "../LoadingBar";
-import { LoadingBarWave } from "../LoadingBar";
 import { useUser } from "@/context/UserContext";
 import { basePath } from "@/public/assets";
 
 // Reusable style for the dropdown menu items
+// The table row's Delete action is switched off - see the comment on it.
+const TABLE_DELETE_ENABLED = false;
+
 const menuItemStyles =
   "flex items-center rounded-lg w-full p-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50 disabled:hover:bg-transparent";
 
@@ -60,10 +61,8 @@ export const RecentActionButtons = ({
     setIsOpen(false);
   };
 
-  const handleClose = async (e) => {
-    e.stopPropagation();
+  const handleClose = async () => {
     setIsClosing(true);
-    setShowCloseConfirmation(false);
 
     try {
       const response = await fetch(`${basePath}/api/closepurchase/${id}`, {
@@ -80,12 +79,11 @@ export const RecentActionButtons = ({
       onCloseError(error.message);
     } finally {
       setIsClosing(false);
+      setShowCloseConfirmation(false);
     }
   };
 
-  const handleDelete = async (e) => {
-    e.stopPropagation();
-    setShowConfirmation(false);
+  const handleDelete = async () => {
     setIsDeleting(true);
     try {
       const response = await fetch(`${basePath}/api/deletepurchases/${id}`, {
@@ -103,6 +101,7 @@ export const RecentActionButtons = ({
       onDeleteError(error.message);
     } finally {
       setIsDeleting(false);
+      setShowConfirmation(false);
     }
   };
 
@@ -242,10 +241,17 @@ export const RecentActionButtons = ({
                 handleConfirmDelete();
               }}
               disabled={
-                //Only staff can delete, and only their own not-yet-invoiced requests
+                // Deliberately switched off (TABLE_DELETE_ENABLED). This used
+                // to hinge on a non-existent "admin" role; admin is real now
+                // and deletes from the admin Requests page instead. To
+                // re-enable, match the server rule in
+                // app/api/deletepurchases/[id]/route.js (requester roles, own
+                // request, not yet BI-approved) - e.g.
+                // !isRequesterRole(userRole) || biApproval === "approved" -
+                // and drop the ccApproval check.
                 goingTo === id ||
                 disableDelete ||
-                userRole !== "admin" ||
+                !TABLE_DELETE_ENABLED ||
                 biApproval !== "pending" ||
                 ccApproval !== "pending"
               }
@@ -278,29 +284,23 @@ export const RecentActionButtons = ({
 
   return (
     <>
-      {showConfirmation && (
-        <DeleteConfirmation
-          onConfirm={(e) => handleDelete(e)}
-          onCancel={(e) => {
-            e.stopPropagation();
-            setShowConfirmation(false);
-          }}
-        />
-      )}
+      {/* Modal stops portaled clicks from bubbling up to the table row */}
+      <DeleteConfirmation
+        open={showConfirmation}
+        onConfirm={handleDelete}
+        onCancel={() => setShowConfirmation(false)}
+        busy={deleting}
+      />
 
       <ConfirmationDialog
         message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"
-        onConfirm={(e) => handleClose(e)}
-        onCancel={(e) => {
-          e.stopPropagation();
-          setShowCloseConfirmation(false);
-        }}
+        onConfirm={handleClose}
+        onCancel={() => setShowCloseConfirmation(false)}
         showDialog={showCloseConfirmation}
         title="Close Purchase Request"
+        busy={isClosing}
+        busyLabel="Closing..."
       />
-
-      {deleting && <DeletingOverlay />}
-      <LoadingBarWave isLoading={isClosing} />
 
       <div className="relative inline-block text-left" ref={menuRef}>
         <button

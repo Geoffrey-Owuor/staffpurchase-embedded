@@ -1,27 +1,27 @@
 "use client";
 import { useEffect } from "react";
-import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 import { usePathname, useRouter } from "next/navigation";
-import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
+import {
+  flattenNavItems,
+  useDashboardRoutes,
+} from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useUser } from "@/context/UserContext";
 import LeftSidebar from "./LeftSidebar";
 import TopSidebar from "./TopSidebar";
-import { useSidebarStore } from "@/store/useSidebarStore";
+import { useShowTopbar } from "@/store/useSidebarStore";
 
 export default function ReusableSidebar() {
-  const showTopbar = useSidebarStore((state) => state.showTopbar);
+  const showTopbar = useShowTopbar();
   const { role } = useUser();
   const router = useRouter();
-
-  const startLoading = useLoadingLineStore((state) => state.startLoading);
-  const stopLoading = useLoadingLineStore((state) => state.stopLoading);
 
   const {
     homePath,
     purchasePath,
-    paymentTrackingPath,
+    roleNavItems,
     handleHomeRoute,
     handlePurchaseRoute,
+    navigate,
   } = useDashboardRoutes();
 
   //Determining active tabs
@@ -32,32 +32,18 @@ export default function ReusableSidebar() {
     activeTab = "home";
   } else if (pathname === purchasePath) {
     activeTab = "newpurchase";
-  } else if (pathname === paymentTrackingPath) {
-    activeTab = "paymentTracking";
+  } else {
+    // Role pages own their whole subtree (e.g. /dashboard/admin/users/...)
+    activeTab =
+      flattenNavItems(roleNavItems).find(
+        (item) =>
+          pathname === item.path || pathname.startsWith(`${item.path}/`),
+      )?.key ?? "";
   }
 
-  const handleHomeClick = () => {
-    if (pathname === homePath) return; //Do not start loading
-    startLoading();
-    handleHomeRoute();
-  };
-
-  const handlePurchaseClick = () => {
-    if (pathname === purchasePath) return;
-    startLoading();
-    handlePurchaseRoute();
-  };
-
-  const handleNavClick = (path) => {
-    if (pathname === path) return;
-    startLoading();
-    router.push(path);
-  };
-
-  // Hook for stopping loading line when pathname changes
-  useEffect(() => {
-    stopLoading();
-  }, [pathname]);
+  const handleHomeClick = handleHomeRoute;
+  const handlePurchaseClick = handlePurchaseRoute;
+  const handleNavClick = navigate;
 
   // Hook for managing the new purchase shortcut (Applys for all roles)
   useEffect(() => {
@@ -84,23 +70,21 @@ export default function ReusableSidebar() {
     <>
       {showTopbar ? (
         <TopSidebar
-          role={role}
           router={router}
           handleHomeClick={handleHomeClick}
           handlePurchaseClick={handlePurchaseClick}
           handleNavClick={handleNavClick}
           activeTab={activeTab}
-          paymentTrackingPath={paymentTrackingPath}
+          roleNavItems={roleNavItems}
         />
       ) : (
         <LeftSidebar
           router={router}
           activeTab={activeTab}
-          role={role}
           handleHomeClick={handleHomeClick}
           handlePurchaseClick={handlePurchaseClick}
           handleNavClick={handleNavClick}
-          paymentTrackingPath={paymentTrackingPath}
+          roleNavItems={roleNavItems}
         />
       )}
     </>

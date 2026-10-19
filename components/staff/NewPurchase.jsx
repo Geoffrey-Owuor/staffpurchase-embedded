@@ -4,7 +4,6 @@ import StaffInformation from "../StaffInformation";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing/ProductPricing";
 import Alert from "../Alert";
-import { LoadingBarWave } from "../Reusables/LoadingBar";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
@@ -21,6 +20,7 @@ import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
 import { basePath } from "@/public/assets";
+import { isRequesterRole } from "@/utils/routes";
 
 // The initial state for a single product
 const initialProductState = {
@@ -35,6 +35,8 @@ const initialProductState = {
   tradePrice: "",
   retailPrice: "",
   onlinePrice: "",
+  staffOfferPrice: "",
+  staffOfferId: "",
 };
 
 export default function NewPurchase({ approversPurchasing }) {
@@ -186,7 +188,6 @@ export default function NewPurchase({ approversPurchasing }) {
   const handleSubmit = async (e) => {
     e?.preventDefault();
     setIsSubmitting(true);
-    setShowConfirmDialog(false);
 
     //Combine all state parts into 1 object for the API
     const finalFormData = {
@@ -204,11 +205,13 @@ export default function NewPurchase({ approversPurchasing }) {
         body: JSON.stringify(finalFormData),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit form");
-      }
+      const data = await response.json().catch(() => ({}));
 
-      const data = await response.json();
+      // Surface the server's reason (e.g. an ended Staff Offer asking the
+      // user to re-fetch prices) instead of a generic failure.
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit form");
+      }
 
       setAlertMessage(data.message || "Purchase request sent");
       setAlertType("success");
@@ -232,6 +235,7 @@ export default function NewPurchase({ approversPurchasing }) {
       setShowAlert(true);
     } finally {
       setIsSubmitting(false);
+      setShowConfirmDialog(false);
     }
   };
 
@@ -255,8 +259,6 @@ export default function NewPurchase({ approversPurchasing }) {
           onSubmit={handleConfirmSubmit}
           autoComplete="off"
         >
-          {isSubmitting && <LoadingBarWave isLoading={true} />}
-
           <StaffInformation
             formData={staffInfo}
             handleChange={handleStaffChange}
@@ -280,7 +282,7 @@ export default function NewPurchase({ approversPurchasing }) {
               Product & Pricing Details
             </span>
           </div>
-          {(user.role === "staff" || approversPurchasing) &&
+          {(isRequesterRole(user.role) || approversPurchasing) &&
             user.role !== "cc" && (
               <p className="mx-2 mb-4 rounded-lg bg-amber-100 p-2 text-xs dark:bg-amber-950">
                 <span className="font-semibold">Please note:</span> To maintain
@@ -367,6 +369,8 @@ export default function NewPurchase({ approversPurchasing }) {
         showDialog={showConfirmDialog}
         onCancel={() => setShowConfirmDialog(false)}
         title="Submit Purchase"
+        busy={isSubmitting}
+        busyLabel="Submitting..."
       />
     </>
   );

@@ -21,10 +21,12 @@ export default function PriceComparisonPanel({
   if (!hasAnyCandidate) return null;
 
   const winnerCandidate = candidates.find((c) => c.priceCode === winnerCode);
+  const availableCount = candidates.filter((c) => c.available).length;
+  const fetchedText = `${availableCount} price${availableCount === 1 ? "" : "s"} fetched.`;
 
   let noteText;
   if (pending) {
-    noteText = "3 prices fetched.";
+    noteText = fetchedText;
   } else if (winnerCandidate) {
     noteText =
       winnerCode === "TRADE" && winnerCandidate.appliedDiscountRate > 0
@@ -33,7 +35,7 @@ export default function PriceComparisonPanel({
   } else if (winnerCode === "MANUAL") {
     noteText = "Price manually set by Credit Control.";
   } else {
-    noteText = "3 prices fetched.";
+    noteText = fetchedText;
   }
 
   return (
