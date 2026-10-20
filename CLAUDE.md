@@ -369,6 +369,18 @@ before the code that depends on it deploys.
     active ones; the source is untouched.
   - Wall-clock start/end strings, as for banners (`lib/adminForm.js`); an
     end is inclusive to the minute (stored `HH:mm:59`).
+  - **Excel** (`lib/staffOfferSheet.js`, exceljs): `GET .../template`,
+    `GET .../[id]/export` (template columns first, so an export re-uploads
+    as-is) and `POST .../upload` (multipart; into `promoId`, or a new promo
+    from name/startsAt/endsAt). `mode=preview` saves nothing and returns
+    per-row errors/warnings (`analyzeOfferUpload`); `mode=commit`
+    re-parses the file, refuses the whole file if any row has an error,
+    needs `confirmOverlap` for overlaps, and inserts in batches in one
+    transaction with one `offer.upload` audit entry listing every row.
+    Limits: `OFFER_UPLOAD_MAX_ROWS` (5,000) and `OFFER_UPLOAD_MAX_BYTES`
+    (5 MB) - the Nginx proxy needs `client_max_body_size` of at least that
+    (its default is 1 MB). Upload rules shown to admins live in
+    `OFFER_UPLOAD_RULES` (`utils/Admin/adminConstants.js`).
 - `staffposts` re-checks STAFFOFFER rows against the DB with
   `verifyStaffOffers` and persists `staffOfferPrice`/`staffOfferId` from
   the DB, never the client.

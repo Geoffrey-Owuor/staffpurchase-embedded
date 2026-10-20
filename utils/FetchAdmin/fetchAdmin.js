@@ -158,3 +158,37 @@ export function fetchAdminPromoProducts(id, filters = {}) {
 export function saveAdminPromo(method, path, body) {
   return sendJson(`${basePath}/api/admin/staff-offers${path}`, method, body);
 }
+
+// formData: see api/admin/staff-offers/upload. Resolves to { preview } or,
+// on commit, { message, promo }; throws like sendJson (error.data carries
+// `preview`, and `code: "overlap"` when confirmation is needed).
+export async function uploadAdminOffers(formData) {
+  const response = await fetch(`${basePath}/api/admin/staff-offers/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || "Upload failed");
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+// Downloads an admin file (template/export) under the server's filename.
+export async function downloadAdminFile(path, fallbackName) {
+  const response = await fetch(`${basePath}${path}`);
+  if (!response.ok) throw new Error("Download failed");
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const name = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

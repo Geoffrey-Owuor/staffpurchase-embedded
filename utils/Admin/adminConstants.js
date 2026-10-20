@@ -52,6 +52,7 @@ export const ADMIN_AUDIT_ACTIONS = {
   "promo.deactivate": "Staff offer promo deactivated",
   "promo.reactivate": "Staff offer promo reactivated",
   "offer.add": "Staff offer product added",
+  "offer.upload": "Staff offer products uploaded",
   "offer.deactivate": "Staff offer product deactivated",
   "offer.reactivate": "Staff offer product reactivated",
 };
@@ -115,6 +116,21 @@ export const PROMO_EXTEND_GRACE_DAYS = 7;
 export const PROMO_NAME_MAX_LENGTH = 100;
 export const OFFER_PRODUCT_CODE_MAX_LENGTH = 64;
 export const OFFER_PRICE_MAX = 99999999.99;
+// Excel uploads (lib/staffOfferSheet.js)
+export const OFFER_UPLOAD_MAX_ROWS = 5000;
+export const OFFER_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
+export const OFFER_UPLOAD_CODE_HEADER = "Product code";
+export const OFFER_UPLOAD_PRICE_HEADER = "Offer price (KES)";
+// Shown in the upload dialog and on the template's Instructions sheet
+export const OFFER_UPLOAD_RULES = [
+  `One product per row: "${OFFER_UPLOAD_CODE_HEADER}" and "${OFFER_UPLOAD_PRICE_HEADER}" on the first sheet, headers in row 1.`,
+  "The offer price is the FINAL price staff pay - no discount is applied on top. Positive, at most 2 decimals.",
+  "Product codes are the Orion item codes, without spaces. Keep the column formatted as Text so leading zeros stay.",
+  "Each code may appear only once in the file, and not already be active in the promo you're adding to.",
+  "The promo sets the period - the file has no dates.",
+  `Up to ${OFFER_UPLOAD_MAX_ROWS.toLocaleString("en-KE")} products per file. Empty rows and extra columns are ignored.`,
+  "Nothing is saved until you confirm the preview, and then all rows are saved together or none are.",
+];
 
 export const PROMO_STATUS_OPTIONS = [
   { value: "live", label: "Live" },
