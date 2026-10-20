@@ -44,6 +44,9 @@ export const ADMIN_AUDIT_ACTIONS = {
   "reference.create": "Reference data added",
   "reference.update": "Reference data changed",
   "setting.update": "Setting changed",
+  "banner.create": "Banner created",
+  "banner.update": "Banner changed",
+  "banner.delete": "Banner deleted",
 };
 
 export const ADMIN_AUDIT_ACTION_OPTIONS = Object.entries(
@@ -54,6 +57,7 @@ export const ADMIN_AUDIT_TARGET_OPTIONS = [
   { value: "user", label: "Users" },
   { value: "purchase", label: "Purchase requests" },
   { value: "reference", label: "Reference data & settings" },
+  { value: "banner", label: "Banners" },
 ];
 
 // Single-value settings (app_settings table) the app reads and the admin
@@ -74,3 +78,22 @@ export const DEPARTMENT_NAME_MAX_LENGTH = 55;
 // Free-text limits the admin user routes enforce (and the forms mirror).
 export const REASON_MAX_LENGTH = 500;
 export const PROFILE_FIELD_MAX_LENGTH = 255;
+
+// Dashboard banners (system_banners, managed at /dashboard/admin/banners).
+// Status is derived from is_active + the start/end window against the DB's
+// NOW() - see BANNER_STATUS_SQL in app/api/admin/banners/route.js.
+export const BANNER_MESSAGE_MAX_LENGTH = 500;
+export const BANNER_PRIORITY_RANGE = { min: -100, max: 100 };
+
+export const BANNER_SEVERITY_OPTIONS = [
+  { value: "info", label: "Info" },
+  { value: "warning", label: "Warning" },
+  { value: "critical", label: "Critical (can't be dismissed)" },
+];
+
+export const BANNER_STATUS_OPTIONS = [
+  { value: "live", label: "Live" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "expired", label: "Expired" },
+  { value: "inactive", label: "Inactive" },
+];

@@ -316,8 +316,16 @@ before the code that depends on it deploys.
   after hand-edits in MySQL. It's secret-protected, not session-protected,
   since there's no admin role. It refuses all requests if the env var is unset.
 - Dashboard banners come from the `system_banners` table
-  (`db/migrations/2026-10-14_create_system_banners.sql`), managed by hand in
-  the DB. `utils/Cache/CachedBanners.js` is intentionally not `"use server"`
+  (`db/migrations/2026-10-14_create_system_banners.sql`), managed at
+  `/dashboard/admin/banners` (`components/Admin/Banners/`,
+  `/api/admin/banners[/id]`, rules in `lib/adminBanners.js`; audited,
+  revalidates the `banners` tag). Start/end travel as DB wall-clock
+  `YYYY-MM-DDTHH:mm` strings, never JS Dates. A banner can be deleted only
+  before it starts; after that it's deactivated. `updated_at` (the dismissal
+  key) only moves when the message/severity changes or "show again" is
+  ticked - the PATCH sets `updated_at = updated_at` otherwise. `BannerCard`
+  is shared by `SystemBanners` and the admin preview.
+  `utils/Cache/CachedBanners.js` is intentionally not `"use server"`
   (it would leak role-targeted rows as a callable action); only
   `app/api/banners/route.js` reads it and filters by the JWT role.
   `components/Banners/SystemBanners.jsx` applies `starts_at`/`ends_at`
