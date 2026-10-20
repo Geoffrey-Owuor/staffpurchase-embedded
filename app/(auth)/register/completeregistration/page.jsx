@@ -7,10 +7,12 @@ import { getVerifyEmailCookie } from "@/lib/verifyEmailCookie";
 
 // Returns the cookie's email if its code has been verified, or null.
 async function getVerifiedEmail() {
-  try {
-    const email = await getVerifyEmailCookie();
-    if (!email) return null;
+  // Read the cookie outside the try: during the build cookies() throws to mark
+  // the route dynamic, and catching that would prerender it as a redirect.
+  const email = await getVerifyEmailCookie();
+  if (!email) return null;
 
+  try {
     const [results] = await pool.execute(
       `SELECT * FROM verification_codes 
      WHERE email = ? AND verified = 1 AND expires_at > NOW()`,
