@@ -63,6 +63,8 @@ async function sendJson(url, method, body) {
   if (!response.ok) {
     const error = new Error(data.message || "Request failed");
     error.status = response.status;
+    // Extra fields the route sent, e.g. { code: "overlap", overlaps }
+    error.data = data;
     throw error;
   }
   return data;
@@ -124,4 +126,35 @@ export function saveAdminBanner(method, id, body) {
     ? `${basePath}/api/admin/banners/${id}`
     : `${basePath}/api/admin/banners`;
   return sendJson(url, method, body);
+}
+
+// filters: { page, pageSize, search, status, productCode } - see api/admin/staff-offers
+export function fetchAdminPromos(filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/staff-offers?${toQueryString(filters)}`,
+    "Failed to load promos",
+  );
+}
+
+export function fetchAdminPromo(id) {
+  return getJson(
+    `${basePath}/api/admin/staff-offers/${id}`,
+    "Failed to load the promo",
+  );
+}
+
+// filters: { page, pageSize, search, status }
+export function fetchAdminPromoProducts(id, filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/staff-offers/${id}/products?${toQueryString(filters)}`,
+    "Failed to load the promo's products",
+  );
+}
+
+// path: "" (POST = create a promo), "/<id>" (PATCH = promo action),
+// "/<id>/products" (POST = add), "/<id>/products/<offerId>" (PATCH).
+// Throws an Error with `status` and `data` (409 + data.code "overlap" =
+// confirm and resend with confirmOverlap: true).
+export function saveAdminPromo(method, path, body) {
+  return sendJson(`${basePath}/api/admin/staff-offers${path}`, method, body);
 }

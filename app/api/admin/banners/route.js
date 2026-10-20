@@ -14,14 +14,12 @@ import {
   BANNER_STATUS_SQL,
   bannerLabel,
   bannerSnapshot,
-  dbNow,
-  handleBannerError,
   loadBanner,
   readBannerFields,
-  readReason,
   toBanner,
   toColumns,
 } from "@/lib/adminBanners";
+import { dbNow, handleRouteError, readReason } from "@/lib/adminForm";
 
 const SEVERITIES = BANNER_SEVERITY_OPTIONS.map((option) => option.value);
 
@@ -83,7 +81,7 @@ export const GET = requireAuth(
         totalPages: Math.max(1, Math.ceil(total / pageSize)),
       });
     } catch (error) {
-      return handleBannerError(error, "Error loading banners");
+      return handleRouteError(error, "Error loading banners");
     }
   },
   { roles: ["admin"] },
@@ -134,7 +132,7 @@ export const POST = requireAuth(
         { status: 201 },
       );
     } catch (error) {
-      return handleBannerError(error, "Error creating the banner");
+      return handleRouteError(error, "Error creating the banner");
     }
   },
   { roles: ["admin"] },

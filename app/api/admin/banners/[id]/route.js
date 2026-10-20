@@ -6,16 +6,18 @@ import { requireAuth } from "@/lib/apiAuth";
 import { writeAdminAudit } from "@/lib/adminAudit";
 import { CACHE_TAGS } from "@/utils/Cache/cacheTags";
 import {
-  RouteError,
   bannerLabel,
   bannerSnapshot,
-  dbNow,
-  handleBannerError,
   loadBanner,
   readBannerFields,
-  readReason,
   toColumns,
 } from "@/lib/adminBanners";
+import {
+  RouteError,
+  dbNow,
+  handleRouteError,
+  readReason,
+} from "@/lib/adminForm";
 
 // Body: any of { message, severity, targetRoles, startsAt, endsAt, priority,
 // isActive }, plus { reshow?, reason? }.
@@ -88,7 +90,7 @@ export const PATCH = requireAuth(
         banner,
       });
     } catch (error) {
-      return handleBannerError(error, "Error saving the banner");
+      return handleRouteError(error, "Error saving the banner");
     }
   },
   { roles: ["admin"] },
@@ -128,7 +130,7 @@ export const DELETE = requireAuth(
       revalidateTag(CACHE_TAGS.banners);
       return Response.json({ message: "Banner deleted." });
     } catch (error) {
-      return handleBannerError(error, "Error deleting the banner");
+      return handleRouteError(error, "Error deleting the banner");
     }
   },
   { roles: ["admin"] },
