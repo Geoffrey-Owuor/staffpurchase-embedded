@@ -381,6 +381,11 @@ before the code that depends on it deploys.
   so inbox previews stay useful) and an "unmonitored mailbox - open Staff
   Purchase Portal" footer linking `NEXT_PUBLIC_BASE_URL`. Templates must not
   add their own do-not-reply text.
+- Email links (workflow templates, the password-reset link, that footer)
+  use `NEXT_PUBLIC_BASE_URL` as-is, so it must be the full public URL
+  *including* the base path (e.g. `https://host/staffproductpurchase`).
+  Nothing derives it from `NEXT_PUBLIC_BASE_PATH` - keep the two in sync per
+  environment.
 
 ## Query params & pagination
 
