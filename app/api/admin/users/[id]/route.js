@@ -8,6 +8,7 @@ import { isLockedOut } from "@/lib/loginPolicy";
 import { createPasswordResetLink } from "@/lib/passwordReset";
 import { sendResetEmail } from "@/lib/nodemailer";
 import { isValidRole } from "@/utils/routes";
+import { payrollKey } from "@/lib/staffDirectory";
 import {
   ROLE_LABELS,
   REASON_MAX_LENGTH,
@@ -168,11 +169,29 @@ export const PATCH = requireAuth(
                   );
                 }
               }
+              // One account per payroll number, as at registration. A new
+              // one is unverified until the user's next sign-in finds it on
+              // an active staff record (lib/staffDirectory.js).
+              const payrollChanged =
+                payrollKey(payrollNo) !== payrollKey(target.payrollNo);
+              if (payrollChanged) {
+                const [taken] = await connection.execute(
+                  `SELECT id FROM users WHERE UPPER(TRIM(payrollNo)) = ? AND id <> ? LIMIT 1`,
+                  [payrollKey(payrollNo), target.id],
+                );
+                if (taken.length > 0) {
+                  throw new RouteError(
+                    409,
+                    "Another account already has this payroll number",
+                  );
+                }
+              }
               // These are copied into the session JWT, so end the user's
               // sessions to pick the new values up. Existing purchase
               // requests keep the snapshot they were submitted with.
               await connection.execute(
                 `UPDATE users SET name = ?, payrollNo = ?, department = ?,
+                   staff_verified_at = ${payrollChanged ? "NULL" : "staff_verified_at"},
                    session_version = session_version + 1 WHERE id = ?`,
                 [name, payrollNo, department, target.id],
               );

@@ -61,6 +61,38 @@ correctness check available.
   MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
   or admin unlock clears it. `is_active` is changed only by an admin - login
   no longer sets it on lockout.
+- **Staff directory checks** (`db/migrations/2026-10-20_staff_verification.sql`):
+  the Hotpoint Apps Hub (`requisitions_automation`, Postgres) owns the
+  HR staff list (`company_staff_data`) and exposes it via its secret-gated
+  `POST /api/staff/lookup`; `lib/staffDirectory.js` calls it
+  (`STAFF_LOOKUP_API_URL` + `STAFF_LOOKUP_API_KEY`, 5s timeout).
+  Registration fails **closed** on it, sign-in fails **open**:
+  - A company email (`COMPANY_EMAIL_DOMAINS`, `hotpoint.co.ke`) registers
+    once its code is verified, but its owner must find an active staff
+    record by payroll number (`/api/register/staffdetails`, capped by
+    `verification_codes.staff_lookups`). A personal email is only sent a
+    code when it's the email of an active record; otherwise nothing is sent
+    and the reply/next page look the same (no enumeration), so the
+    verify-code page needs only the `verify_email` cookie, not a code row.
+  - The `verify_email` cookie (`lib/verifyEmailCookie.js`, path
+    `${basePath}/`) is required by the register pages *and* by
+    `staffdetails`/`completeregistration`, which only act on the email it
+    names - knowing a freshly verified email isn't enough to finish that
+    registration from another browser.
+  - `lib/registrationStaff.js` `resolveRegistrationStaff` is the one place
+    that decides: name and payroll number always come from the record
+    (never the client), the department too when it matches an active
+    `departments` row (else the user picks), and a payroll number that
+    already has an account is refused (`UPPER(TRIM(payrollNo))`, the same
+    rule for admin profile edits). New accounts get `staff_verified_at`.
+  - Login, SSO (both branches) and `/api/check-session` call
+    `isStaffAllowed`: a payroll number HR deactivated is refused (so an
+    open session ends on the next poll); no match or an unreachable Hub
+    signs in as before (pre-existing accounts are grandfathered), and an
+    active match sets `staff_verified_at`. It isn't in `isSessionCurrent`
+    because that runs on every request. The admin Users page shows
+    Verified/Unverified and Duplicate payroll pills (`staffCheck` filter);
+    the migration has the review queries.
 - **Roles**: `admin` is a *requester* role (`REQUESTER_ROLES`/
   `isRequesterRole` in `utils/routes.js`): it submits and sees its own
   requests exactly like `staff` and is never part of the approval chain. Use

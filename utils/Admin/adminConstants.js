@@ -25,6 +25,12 @@ export const USER_STATUS_OPTIONS = [
   { value: "deactivated", label: "Deactivated" },
 ];
 
+// Staff directory checks on the Users page (api/admin/users STAFF_CHECK_CLAUSES)
+export const STAFF_CHECK_OPTIONS = [
+  { value: "unverified", label: "Unverified staff record" },
+  { value: "duplicate", label: "Duplicate payroll no" },
+];
+
 // Every action admin_audit_log can hold, with the label the audit page shows.
 export const ADMIN_AUDIT_ACTIONS = {
   "user.update_profile": "Profile edited",

@@ -12,6 +12,17 @@ const STATUS_CLAUSES = {
   deactivated: `u.is_active = 0`,
 };
 
+// Staff directory checks (db/migrations/2026-10-20_staff_verification.sql):
+// unverified = payroll number not yet confirmed as an active staff record;
+// duplicate = another account has the same payroll number
+const DUPLICATE_PAYROLL_SQL = `EXISTS (SELECT 1 FROM users d WHERE d.id <> u.id
+  AND TRIM(COALESCE(u.payrollNo, '')) <> ''
+  AND UPPER(TRIM(d.payrollNo)) = UPPER(TRIM(u.payrollNo)))`;
+const STAFF_CHECK_CLAUSES = {
+  unverified: `u.staff_verified_at IS NULL`,
+  duplicate: DUPLICATE_PAYROLL_SQL,
+};
+
 export const GET = requireAuth(
   async (request) => {
     try {
@@ -28,6 +39,7 @@ export const GET = requireAuth(
       const role = searchParams.get("role") || "";
       const status = searchParams.get("status") || "";
       const department = searchParams.get("department") || "";
+      const staffCheck = searchParams.get("staffCheck") || "";
 
       const whereClauses = [];
       const params = [];
@@ -53,6 +65,10 @@ export const GET = requireAuth(
         params.push(department);
       }
 
+      if (STAFF_CHECK_CLAUSES[staffCheck]) {
+        whereClauses.push(STAFF_CHECK_CLAUSES[staffCheck]);
+      }
+
       const whereSql =
         whereClauses.length > 0 ? ` WHERE ${whereClauses.join(" AND ")}` : "";
 
@@ -60,6 +76,8 @@ export const GET = requireAuth(
       // why they're inlined rather than bound).
       const dataQuery = `SELECT u.id, u.name, u.email, u.role, u.payrollNo, u.department,
             u.is_active, u.password_attempts, u.created_at,
+            u.staff_verified_at IS NOT NULL AS staffVerified,
+            ${DUPLICATE_PAYROLL_SQL} AS duplicatePayroll,
             (SELECT COUNT(*) FROM purchasesinfo p WHERE p.user_id = u.id) AS requestCount
          FROM users u${whereSql}
          ORDER BY u.name ASC, u.id ASC
