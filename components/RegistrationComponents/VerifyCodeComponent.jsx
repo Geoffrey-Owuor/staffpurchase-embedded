@@ -6,7 +6,7 @@ import AlertPopup from "../Reusables/AlertPopup";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import { basePath } from "@/public/assets";
 
-export default function VerifyCodeComponent({ email }) {
+export default function VerifyCodeComponent({ email, isCompanyEmail }) {
   const router = useRouter();
 
   // creating a state for an array to hold the 6 digits
@@ -225,6 +225,14 @@ export default function VerifyCodeComponent({ email }) {
               {coolDown > 0 ? `Resend code in ${coolDown}s` : "Resend code"}
             </button>
           </div>
+
+          {!isCompanyEmail && (
+            <p className="rounded-lg bg-gray-100 p-3 text-center text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-400">
+              A personal email only receives a code if it&apos;s the email HR
+              has on your staff record. No code? Register with your Hotpoint
+              email, or ask HR to update your record.
+            </p>
+          )}
 
           {/* Security note (Matches the small print at the bottom of the login form) */}
           <p className="text-center text-xs text-gray-500 dark:text-gray-500">

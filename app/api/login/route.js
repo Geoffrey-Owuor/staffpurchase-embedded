@@ -6,6 +6,7 @@ import {
   isLockedOut,
 } from "@/lib/loginPolicy";
 import { parseEmail } from "@/lib/emailValidation";
+import { isStaffAllowed, STAFF_INACTIVE_MESSAGE } from "@/lib/staffDirectory";
 
 export async function POST(request) {
   try {
@@ -98,7 +99,17 @@ export async function POST(request) {
       );
     }
 
-    // 5. Create Session
+    // 5. HR may have deactivated their staff record (Hub staff directory).
+    // Checked only after the password, so it reveals nothing to a stranger;
+    // an unreachable Hub or an unmatched payroll number signs in as before.
+    if (!(await isStaffAllowed(user.id, user.payrollNo))) {
+      return Response.json(
+        { success: false, message: STAFF_INACTIVE_MESSAGE },
+        { status: 403 },
+      );
+    }
+
+    // 6. Create Session
     await createSession(
       user.id,
       user.role,

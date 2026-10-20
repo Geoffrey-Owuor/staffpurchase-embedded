@@ -94,8 +94,16 @@ export default function Step1Page() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="name@example.com"
+                aria-describedby="email-hint"
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
               />
+              <p
+                id="email-hint"
+                className="text-xs text-gray-500 dark:text-gray-400"
+              >
+                Use your Hotpoint email, or the personal email HR has on your
+                staff record.
+              </p>
             </div>
 
             {/* Field-Specific Error Message */}
