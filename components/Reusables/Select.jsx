@@ -258,7 +258,7 @@ export default function Select({
               y: openDirection === "down" ? -6 : 6,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-10 w-max max-w-[min(32rem,90vw)] min-w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
+            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-100 w-max max-w-[min(32rem,90vw)] min-w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
           >
             <div className="p-1">
               {showSearch && (
