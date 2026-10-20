@@ -337,7 +337,7 @@ before the code that depends on it deploys.
 - `getpurchasedetails` fetches TRADE/RTLRRP/ONLINE from Orion
   (`ORION_PRICE_CODES`) plus the active Staff Offer for the product code
   (one per code, regardless of item status or payment terms) from the
-  hand-managed `staff_offer_prices` table
+  `staff_offer_prices` table
   (`db/migrations/2026-10-15_staff_offer_prices.sql`, via
   `lib/staffOffers.js`). `selectLowestPrice` compares all four
   (`PRICE_CODES`, which is also the tie-break order: STAFFOFFER first). Only
@@ -345,6 +345,30 @@ before the code that depends on it deploys.
 - Staff Offers are intentionally **not** cached (unlike other reference
   data): the date window is checked against the DB's `NOW()` on every
   lookup. Overlapping active offers resolve to the most recently created.
+- **Promos** (`db/migrations/2026-10-20_staff_offer_promos.sql`): every
+  offer row belongs to a `staff_offer_promos` promo (`promo_id`, NOT NULL)
+  that owns the window and an active flag. An offer applies only when the
+  row *and* its promo are active and `NOW()` is inside the *promo's*
+  window; the row's `starts_at`/`ends_at`/`promo_name` just mirror the
+  promo (`syncPromoRows`) for hand queries. Managed at
+  `/dashboard/admin/staff-offers` (`components/Admin/StaffOffers/`,
+  `/api/admin/staff-offers/**`, rules in `lib/adminStaffOffers.js`, all
+  audited under target `staff_offer`):
+  - A row's price never changes in place (`staffOfferId` points at it):
+    deactivate the product and add it again. A promo can't hold two active
+    rows for one code.
+  - Period changes follow the promo's phase (ignores `is_active`):
+    upcoming - anything; running - start fixed, end not before now; over -
+    extend only, within `PROMO_EXTEND_GRACE_DAYS` (7) of its end, else
+    duplicate it. An ended promo can't be reactivated or take new products.
+  - Anything that turns offers on (add, reactivate, extend, duplicate) and
+    would overlap another active promo's offer for the same code returns
+    409 `{ code: "overlap", overlaps }` until resent with
+    `confirmOverlap: true` (`usePromoSave` shows the confirmation).
+  - Duplicate creates a new promo with new rows copied from the source's
+    active ones; the source is untouched.
+  - Wall-clock start/end strings, as for banners (`lib/adminForm.js`); an
+    end is inclusive to the minute (stored `HH:mm:59`).
 - `staffposts` re-checks STAFFOFFER rows against the DB with
   `verifyStaffOffers` and persists `staffOfferPrice`/`staffOfferId` from
   the DB, never the client.

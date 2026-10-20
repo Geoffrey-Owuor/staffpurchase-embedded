@@ -47,6 +47,13 @@ export const ADMIN_AUDIT_ACTIONS = {
   "banner.create": "Banner created",
   "banner.update": "Banner changed",
   "banner.delete": "Banner deleted",
+  "promo.create": "Staff offer promo created",
+  "promo.update": "Staff offer promo changed",
+  "promo.deactivate": "Staff offer promo deactivated",
+  "promo.reactivate": "Staff offer promo reactivated",
+  "offer.add": "Staff offer product added",
+  "offer.deactivate": "Staff offer product deactivated",
+  "offer.reactivate": "Staff offer product reactivated",
 };
 
 export const ADMIN_AUDIT_ACTION_OPTIONS = Object.entries(
@@ -58,6 +65,7 @@ export const ADMIN_AUDIT_TARGET_OPTIONS = [
   { value: "purchase", label: "Purchase requests" },
   { value: "reference", label: "Reference data & settings" },
   { value: "banner", label: "Banners" },
+  { value: "staff_offer", label: "Staff offers" },
 ];
 
 // Single-value settings (app_settings table) the app reads and the admin
@@ -95,5 +103,27 @@ export const BANNER_STATUS_OPTIONS = [
   { value: "live", label: "Live" },
   { value: "scheduled", label: "Scheduled" },
   { value: "expired", label: "Expired" },
+  { value: "inactive", label: "Inactive" },
+];
+
+// Staff Offer promos (staff_offer_promos, managed at
+// /dashboard/admin/staff-offers - rules in lib/adminStaffOffers.js).
+// A promo that ended at most this many days ago can still be extended;
+// older ones are duplicated into a new promo instead.
+export const PROMO_EXTEND_GRACE_DAYS = 7;
+// staff_offer_prices.promo_name mirrors the promo name and is VARCHAR(100)
+export const PROMO_NAME_MAX_LENGTH = 100;
+export const OFFER_PRODUCT_CODE_MAX_LENGTH = 64;
+export const OFFER_PRICE_MAX = 99999999.99;
+
+export const PROMO_STATUS_OPTIONS = [
+  { value: "live", label: "Live" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "ended", label: "Ended" },
+  { value: "inactive", label: "Inactive" },
+];
+
+export const OFFER_STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
 ];
