@@ -6,8 +6,10 @@ import {
   ArrowLeft,
   CalendarClock,
   Copy,
+  Download,
   Eye,
   EyeOff,
+  FileUp,
   Loader2,
   Pencil,
   Plus,
@@ -19,6 +21,7 @@ import Alert from "../../Alert";
 import PromoStatusBadge from "./PromoStatusBadge";
 import PromoActionModal from "./PromoActionModal";
 import PromoFormModal from "./PromoFormModal";
+import UploadOffersModal from "./UploadOffersModal";
 import { usePromoSave } from "./usePromoSave";
 import {
   formatPrice,
@@ -29,6 +32,7 @@ import {
   primaryButton,
 } from "./staffOfferUi";
 import {
+  downloadAdminFile,
   fetchAdminPromo,
   fetchAdminPromoProducts,
 } from "@/utils/FetchAdmin/fetchAdmin";
@@ -232,7 +236,24 @@ function PromoProducts({ promo, notify }) {
     usePromoSave();
   const [code, setCode] = useState("");
   const [price, setPrice] = useState("");
+  const [uploading, setUploading] = useState(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const ended = promo.phase === "over";
+
+  const exportProducts = async () => {
+    setExporting(true);
+    try {
+      await downloadAdminFile(
+        `/api/admin/staff-offers/${promo.id}/export`,
+        "staff_offers.xlsx",
+      );
+    } catch (err) {
+      notify("error", err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const table = useTableQuery({
     queryKeyPrefix: ["adminPromoProducts", promo.id],
@@ -360,6 +381,18 @@ function PromoProducts({ promo, notify }) {
               )}
               Add product
             </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setUploading({ promo, key: Date.now() });
+                setUploadOpen(true);
+              }}
+              className={`${neutralButton} md:h-[46px]`}
+            >
+              <FileUp className="h-4 w-4" />
+              Upload Excel
+            </button>
           </form>
         )}
         {error && (
@@ -382,6 +415,22 @@ function PromoProducts({ promo, notify }) {
           <h3 className="mt-1 px-1 font-semibold text-gray-900 dark:text-white">
             Products
           </h3>
+        }
+        toolbarExtra={
+          <button
+            type="button"
+            onClick={exportProducts}
+            disabled={exporting || promo.productCount === 0}
+            className={neutralButton}
+            title="Download this promo's products as Excel"
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Export
+          </button>
         }
         columns={columns}
         visibleColumns={{}}
@@ -431,6 +480,15 @@ function PromoProducts({ promo, notify }) {
             </button>
           ) : null
         }
+      />
+      <UploadOffersModal
+        open={uploadOpen}
+        editing={uploading}
+        onClose={() => setUploadOpen(false)}
+        onDone={(_promo, message) => {
+          setUploadOpen(false);
+          notify("success", message);
+        }}
       />
       {overlapDialog}
     </>

@@ -1,13 +1,15 @@
 "use client";
 import { useState } from "react";
-import { ChevronRight, Plus, Tags } from "lucide-react";
+import { ChevronRight, FileUp, Plus, Tags } from "lucide-react";
 import DataTable from "../../DataTable/DataTable";
 import { useTableQuery } from "../../DataTable/useTableQuery";
 import PromoStatusBadge from "./PromoStatusBadge";
 import PromoFormModal from "./PromoFormModal";
+import UploadOffersModal from "./UploadOffersModal";
 import {
   formatPromoDates,
   formatPromoWindow,
+  neutralButton,
   primaryButton,
 } from "./staffOfferUi";
 import { fetchAdminPromos } from "@/utils/FetchAdmin/fetchAdmin";
@@ -56,6 +58,8 @@ export default function AdminStaffOffersPage() {
   const { navigate, getAdminPromoPath } = useDashboardRoutes();
   const [creating, setCreating] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const table = useTableQuery({
     queryKeyPrefix: ["adminPromos"],
@@ -111,17 +115,31 @@ export default function AdminStaffOffersPage() {
       <DataTable
         heading={<StaffOffersHeading />}
         toolbarExtra={
-          <button
-            type="button"
-            onClick={() => {
-              setCreating({ source: null, key: Date.now() });
-              setModalOpen(true);
-            }}
-            className={primaryButton}
-          >
-            <Plus className="h-4 w-4" />
-            New promo
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setUploading({ promo: null, key: Date.now() });
+                setUploadOpen(true);
+              }}
+              className={neutralButton}
+              title="Create a promo from an Excel file"
+            >
+              <FileUp className="h-4 w-4" />
+              Upload
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCreating({ source: null, key: Date.now() });
+                setModalOpen(true);
+              }}
+              className={primaryButton}
+            >
+              <Plus className="h-4 w-4" />
+              New promo
+            </button>
+          </>
         }
         columns={columns}
         visibleColumns={{}}
@@ -153,6 +171,15 @@ export default function AdminStaffOffersPage() {
         renderActions={() => (
           <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden="true" />
         )}
+      />
+      <UploadOffersModal
+        open={uploadOpen}
+        editing={uploading}
+        onClose={() => setUploadOpen(false)}
+        onDone={(promo) => {
+          setUploadOpen(false);
+          navigate(getAdminPromoPath(promo.id));
+        }}
       />
       <PromoFormModal
         open={modalOpen}
