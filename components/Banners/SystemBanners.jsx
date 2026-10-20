@@ -1,31 +1,13 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Info, TriangleAlert, OctagonAlert, X } from "lucide-react";
 import { basePath } from "@/public/assets";
+import BannerCard from "./BannerCard";
 
 const DISMISSED_KEY = "dismissed_system_banners";
 
-const severityStyles = {
-  info: {
-    Icon: Info,
-    classes:
-      "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-100",
-  },
-  warning: {
-    Icon: TriangleAlert,
-    classes:
-      "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-100",
-  },
-  critical: {
-    Icon: OctagonAlert,
-    classes:
-      "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/60 dark:text-red-100",
-  },
-};
-
-// A dismissal is tied to the banner's updated_at, so editing a banner in the
-// DB makes it reappear for users who had dismissed the old wording.
+// A dismissal is tied to the banner's updated_at, so editing a banner (admin
+// Banners page or the DB) makes it reappear for users who had dismissed it.
 const dismissKey = (banner) => `${banner.id}:${banner.updatedAt}`;
 
 function readDismissed() {
@@ -101,32 +83,16 @@ export default function SystemBanners() {
 
   return (
     <div className="mb-2 flex flex-col gap-2">
-      {visible.map((banner) => {
-        const { Icon, classes } =
-          severityStyles[banner.severity] || severityStyles.info;
-
-        return (
-          <div
-            key={banner.id}
-            role={banner.severity === "critical" ? "alert" : "status"}
-            className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${classes}`}
-          >
-            <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <p className="flex-1 break-words whitespace-pre-line">
-              {banner.message}
-            </p>
-            {banner.dismissible && (
-              <button
-                onClick={() => handleDismiss(banner)}
-                className="shrink-0 rounded p-0.5 transition-opacity hover:opacity-70"
-                aria-label="Dismiss banner"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        );
-      })}
+      {visible.map((banner) => (
+        <BannerCard
+          key={banner.id}
+          severity={banner.severity}
+          message={banner.message}
+          onDismiss={
+            banner.dismissible ? () => handleDismiss(banner) : undefined
+          }
+        />
+      ))}
     </div>
   );
 }

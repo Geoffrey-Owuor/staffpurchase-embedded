@@ -108,3 +108,20 @@ export function fetchAdminAnalytics(filters = {}) {
     "Failed to load analytics",
   );
 }
+
+// filters: { page, pageSize, search, status, severity } - see api/admin/banners
+export function fetchAdminBanners(filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/banners?${toQueryString(filters)}`,
+    "Failed to load banners",
+  );
+}
+
+// POST (no id) creates a banner; PATCH/DELETE with an id edit/delete one.
+// Resolves to { message, banner? }.
+export function saveAdminBanner(method, id, body) {
+  const url = id
+    ? `${basePath}/api/admin/banners/${id}`
+    : `${basePath}/api/admin/banners`;
+  return sendJson(url, method, body);
+}

@@ -5,6 +5,7 @@ import {
   BookOpenCheck,
   ClipboardPen,
   Database,
+  Megaphone,
   ScrollText,
   ShieldUser,
   UsersRound,
@@ -41,6 +42,7 @@ export function useDashboardRoutes() {
   const adminRequestsPath = "/dashboard/admin/requests";
   const adminAnalyticsPath = "/dashboard/admin/analytics";
   const adminReferenceDataPath = "/dashboard/admin/reference-data";
+  const adminBannersPath = "/dashboard/admin/banners";
   const getAdminEditPathName = (id) => `${adminRequestsPath}/${id}`;
 
   const getViewPathName = (id) => (valid ? `/dashboard/${id}` : "/login");
@@ -92,6 +94,12 @@ export function useDashboardRoutes() {
                 path: adminReferenceDataPath,
                 label: "Reference Data",
                 Icon: Database,
+              },
+              {
+                key: "adminBanners",
+                path: adminBannersPath,
+                label: "Banners",
+                Icon: Megaphone,
               },
               {
                 key: "adminAuditLog",
