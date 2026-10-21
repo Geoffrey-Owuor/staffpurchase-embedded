@@ -15,3 +15,8 @@ export const formatCreditPeriod = (period, fallback = "N/A") => {
   if (months === null) return fallback;
   return `${months} ${months === 1 ? "month" : "months"}`;
 };
+
+// Payment terms that carry a credit period
+export const CREDIT_PAYMENT_TERMS = ["CREDIT", "CASH AND CREDIT"];
+export const usesCredit = (paymentTerms) =>
+  CREDIT_PAYMENT_TERMS.includes(paymentTerms);
