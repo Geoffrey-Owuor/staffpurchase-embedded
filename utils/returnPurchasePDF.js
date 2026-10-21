@@ -267,6 +267,13 @@ const PurchasePDFDocument = ({
                 <Text style={styles.sectionLabel}>Credit Period</Text>
                 <Text style={styles.sectionValue}>
                   {formatCreditPeriod(purchaseData.user_credit_period)}
+                  {purchaseData.credit_extension_id
+                    ? ` - extended credit${
+                        purchaseData.credit_extension_name
+                          ? ` (${purchaseData.credit_extension_name})`
+                          : ""
+                      }`
+                    : ""}
                 </Text>
               </View>
             </View>
