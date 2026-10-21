@@ -5,11 +5,13 @@ import DataTable from "../DataTable/DataTable";
 import { useTableQuery } from "../DataTable/useTableQuery";
 import Alert from "../Alert";
 import UserStatusBadge from "./UserStatusBadge";
+import StaffCheckBadges from "./StaffCheckBadges";
 import ManageUserModal from "./ManageUserModal";
 import { fetchAdminUsers } from "@/utils/FetchAdmin/fetchAdmin";
 import {
   ROLE_LABELS,
   ROLE_OPTIONS,
+  STAFF_CHECK_OPTIONS,
   USER_STATUS_OPTIONS,
 } from "@/utils/Admin/adminConstants";
 import { formatDateLong } from "@/public/assets";
@@ -35,6 +37,13 @@ const BASE_FILTER_FIELDS = [
     label: "Status",
     placeholder: "Status",
     options: USER_STATUS_OPTIONS,
+  },
+  {
+    key: "staffCheck",
+    type: "select",
+    label: "Staff record",
+    placeholder: "Staff record",
+    options: STAFF_CHECK_OPTIONS,
   },
 ];
 
@@ -107,6 +116,11 @@ export default function AdminUsersTable() {
       key: "status",
       label: "Status",
       render: (u) => <UserStatusBadge user={u} />,
+    },
+    {
+      key: "staffCheck",
+      label: "Staff record",
+      render: (u) => <StaffCheckBadges user={u} />,
     },
     {
       key: "requestCount",

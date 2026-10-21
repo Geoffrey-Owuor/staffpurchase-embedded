@@ -5,8 +5,10 @@ import {
   BookOpenCheck,
   ClipboardPen,
   Database,
+  Megaphone,
   ScrollText,
   ShieldUser,
+  Tags,
   UsersRound,
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
@@ -41,6 +43,9 @@ export function useDashboardRoutes() {
   const adminRequestsPath = "/dashboard/admin/requests";
   const adminAnalyticsPath = "/dashboard/admin/analytics";
   const adminReferenceDataPath = "/dashboard/admin/reference-data";
+  const adminBannersPath = "/dashboard/admin/banners";
+  const adminStaffOffersPath = "/dashboard/admin/staff-offers";
+  const getAdminPromoPath = (id) => `${adminStaffOffersPath}/${id}`;
   const getAdminEditPathName = (id) => `${adminRequestsPath}/${id}`;
 
   const getViewPathName = (id) => (valid ? `/dashboard/${id}` : "/login");
@@ -94,6 +99,18 @@ export function useDashboardRoutes() {
                 Icon: Database,
               },
               {
+                key: "adminStaffOffers",
+                path: adminStaffOffersPath,
+                label: "Staff Offers",
+                Icon: Tags,
+              },
+              {
+                key: "adminBanners",
+                path: adminBannersPath,
+                label: "Banners",
+                Icon: Megaphone,
+              },
+              {
                 key: "adminAuditLog",
                 path: adminAuditLogPath,
                 label: "Audit Log",
@@ -122,6 +139,8 @@ export function useDashboardRoutes() {
     adminAuditLogPath,
     adminRequestsPath,
     getAdminEditPathName,
+    adminStaffOffersPath,
+    getAdminPromoPath,
     roleNavItems,
     getViewPathName,
     getEditPathName,
