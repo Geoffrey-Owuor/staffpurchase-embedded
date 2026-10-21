@@ -159,7 +159,7 @@ function PromoSummary({ promo, onAction, onDuplicate }) {
     <section className="mx-2 mt-3 mb-6 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold break-words text-gray-900 dark:text-white">
+          <h2 className="text-lg font-semibold wrap-break-word text-gray-900 dark:text-white">
             {promo.name}
           </h2>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -186,7 +186,11 @@ function PromoSummary({ promo, onAction, onDuplicate }) {
           )}
         </div>
         <div className="flex flex-wrap gap-2 md:justify-end">
-          <button type="button" onClick={() => onAction("rename")} className={neutralButton}>
+          <button
+            type="button"
+            onClick={() => onAction("rename")}
+            className={neutralButton}
+          >
             <Pencil className="h-4 w-4" />
             Rename
           </button>
@@ -318,7 +322,7 @@ function PromoProducts({ promo, notify }) {
             title={`Also on offer in ${o.overlapPromo} at the same time - the newest offer wins`}
           >
             <TriangleAlert className="h-4 w-4" />
-            <span className="max-w-[160px] truncate">{o.overlapPromo}</span>
+            <span className="max-w-40 truncate">{o.overlapPromo}</span>
           </span>
         ) : (
           "-"
@@ -412,7 +416,7 @@ function PromoProducts({ promo, notify }) {
 
       <DataTable
         heading={
-          <h3 className="mt-1 px-1 font-semibold text-gray-900 dark:text-white">
+          <h3 className="mt-1 px-1 font-semibold text-gray-900 md:mt-0 md:py-5 dark:text-white">
             Products
           </h3>
         }
