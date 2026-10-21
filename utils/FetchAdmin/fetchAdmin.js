@@ -63,6 +63,8 @@ async function sendJson(url, method, body) {
   if (!response.ok) {
     const error = new Error(data.message || "Request failed");
     error.status = response.status;
+    // Extra fields the route sent, e.g. { code: "overlap", overlaps }
+    error.data = data;
     throw error;
   }
   return data;
@@ -107,4 +109,86 @@ export function fetchAdminAnalytics(filters = {}) {
     `${basePath}/api/admin/analytics?${toQueryString(filters)}`,
     "Failed to load analytics",
   );
+}
+
+// filters: { page, pageSize, search, status, severity } - see api/admin/banners
+export function fetchAdminBanners(filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/banners?${toQueryString(filters)}`,
+    "Failed to load banners",
+  );
+}
+
+// POST (no id) creates a banner; PATCH/DELETE with an id edit/delete one.
+// Resolves to { message, banner? }.
+export function saveAdminBanner(method, id, body) {
+  const url = id
+    ? `${basePath}/api/admin/banners/${id}`
+    : `${basePath}/api/admin/banners`;
+  return sendJson(url, method, body);
+}
+
+// filters: { page, pageSize, search, status, productCode } - see api/admin/staff-offers
+export function fetchAdminPromos(filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/staff-offers?${toQueryString(filters)}`,
+    "Failed to load promos",
+  );
+}
+
+export function fetchAdminPromo(id) {
+  return getJson(
+    `${basePath}/api/admin/staff-offers/${id}`,
+    "Failed to load the promo",
+  );
+}
+
+// filters: { page, pageSize, search, status }
+export function fetchAdminPromoProducts(id, filters = {}) {
+  return getJson(
+    `${basePath}/api/admin/staff-offers/${id}/products?${toQueryString(filters)}`,
+    "Failed to load the promo's products",
+  );
+}
+
+// path: "" (POST = create a promo), "/<id>" (PATCH = promo action),
+// "/<id>/products" (POST = add), "/<id>/products/<offerId>" (PATCH).
+// Throws an Error with `status` and `data` (409 + data.code "overlap" =
+// confirm and resend with confirmOverlap: true).
+export function saveAdminPromo(method, path, body) {
+  return sendJson(`${basePath}/api/admin/staff-offers${path}`, method, body);
+}
+
+// formData: see api/admin/staff-offers/upload. Resolves to { preview } or,
+// on commit, { message, promo }; throws like sendJson (error.data carries
+// `preview`, and `code: "overlap"` when confirmation is needed).
+export async function uploadAdminOffers(formData) {
+  const response = await fetch(`${basePath}/api/admin/staff-offers/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.message || "Upload failed");
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+// Downloads an admin file (template/export) under the server's filename.
+export async function downloadAdminFile(path, fallbackName) {
+  const response = await fetch(`${basePath}${path}`);
+  if (!response.ok) throw new Error("Download failed");
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const name = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

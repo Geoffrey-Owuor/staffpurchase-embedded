@@ -1,41 +1,17 @@
 import { redirect } from "next/navigation";
-import pool from "@/lib/db";
 import VerifyCodeComponent from "@/components/RegistrationComponents/VerifyCodeComponent";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-
-// Returns the email awaiting verification, or null if there isn't a valid,
-// unexpired pending code for it.
-async function getPendingEmail(cookie) {
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(cookie, secret);
-    const email = payload.email;
-
-    if (!email) return null;
-
-    const [results] = await pool.execute(
-      `SELECT * FROM verification_codes
-         WHERE email = ? and verified = 0 and expires_at > NOW()`,
-      [email],
-    );
-
-    return results.length > 0 ? email : null;
-  } catch (error) {
-    console.error("Verify code page error:", error);
-    return null;
-  }
-}
+import { isCompanyEmail } from "@/lib/staffDirectory";
+import { getVerifyEmailCookie } from "@/lib/verifyEmailCookie";
 
 export default async function Step2Page() {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get("verify_email")?.value;
-  if (!cookie) redirect("/register");
-
-  // redirect() works by throwing, so it must stay outside the try/catch above -
-  // otherwise the catch logs every redirect as an "Error: NEXT_REDIRECT"
-  const email = await getPendingEmail(cookie);
+  // The (5-minute) cookie is enough: a personal email that isn't on the
+  // staff directory gets the cookie but no code, and this page must look the
+  // same for it, so whether a code row exists isn't checked here (the
+  // verifycode API checks the code itself).
+  const email = await getVerifyEmailCookie();
   if (!email) redirect("/register");
 
-  return <VerifyCodeComponent email={email} />;
+  return (
+    <VerifyCodeComponent email={email} isCompanyEmail={isCompanyEmail(email)} />
+  );
 }

@@ -2,8 +2,16 @@
 import { hashPassword, createSession } from "@/app/lib/auth";
 import pool from "@/lib/db";
 import { parseEmail, INVALID_EMAIL_MESSAGE } from "@/lib/emailValidation";
-import { cookies } from "next/headers";
+import {
+  clearVerifyEmailCookie,
+  getVerifyEmailCookie,
+} from "@/lib/verifyEmailCookie";
 import { CachedDepartments } from "@/utils/Cache/CachedConditions";
+import {
+  DUPLICATE_PAYROLL_MESSAGE,
+  payrollNoTaken,
+  resolveRegistrationStaff,
+} from "@/lib/registrationStaff";
 
 // Every new account starts as staff; admins assign other roles from the
 // Users page (there used to be a hardcoded email -> role map here).
@@ -13,11 +21,10 @@ export async function POST(request) {
   let conn;
   try {
     const {
-      name,
       email: rawEmail,
       password,
-      payrollNo,
-      department,
+      payrollNo: typedPayrollNo,
+      department: chosenDepartment,
     } = await request.json();
     const email = parseEmail(rawEmail);
 
@@ -28,15 +35,10 @@ export async function POST(request) {
       );
     }
 
-    // Must be one of the active departments offered on the form
-    // (departments table, managed on the admin Reference Data page)
-    const departments = await CachedDepartments();
-    const isOfferedDepartment = departments.some(
-      (d) => d.is_active && d.name === department,
-    );
-    if (!isOfferedDepartment) {
+    // Only the browser that asked for the code may finish (lib/verifyEmailCookie.js)
+    if ((await getVerifyEmailCookie()) !== email) {
       return Response.json(
-        { success: false, message: "Choose a department from the list" },
+        { success: false, message: "Code expired, please register again" },
         { status: 400 },
       );
     }
@@ -59,15 +61,56 @@ export async function POST(request) {
       );
     }
 
+    // Name and payroll number come from the staff record, never the client
+    // (lib/registrationStaff.js); a company email's owner only types the
+    // payroll number to find it
+    const resolved = await resolveRegistrationStaff(conn, email, typedPayrollNo);
+    if (resolved.status) {
+      return Response.json(
+        { success: false, message: resolved.message },
+        { status: resolved.status },
+      );
+    }
+    const { name, staffNumber: payrollNo } = resolved.staff;
+
+    // The record's department when it matches an active one of ours,
+    // otherwise one of the active departments offered on the form
+    // (departments table, managed on the admin Reference Data page)
+    let department = resolved.staff.department;
+    if (!department) {
+      const departments = await CachedDepartments();
+      const isOfferedDepartment = departments.some(
+        (d) => d.is_active && d.name === chosenDepartment,
+      );
+      if (!isOfferedDepartment) {
+        return Response.json(
+          { success: false, message: "Choose a department from the list" },
+          { status: 400 },
+        );
+      }
+      department = chosenDepartment;
+    }
+
     // --- START TRANSACTION: Ensure atomicity for DB writes ---
     await conn.beginTransaction();
+
+    // One account per payroll number - checked again under a lock, in case
+    // another registration for it finished since the check above
+    if (await payrollNoTaken(conn, payrollNo, { lock: true })) {
+      await conn.rollback();
+      return Response.json(
+        { success: false, message: DUPLICATE_PAYROLL_MESSAGE },
+        { status: 409 },
+      );
+    }
 
     const role = NEW_USER_ROLE;
     const hashedPassword = await hashPassword(password);
 
-    // Create user
+    // Create user - verified against the staff directory just now
     const [userResult] = await conn.execute(
-      `INSERT INTO users (name, email, password, payrollNo, department, role) VALUES(?,?,?,?,?,?)`,
+      `INSERT INTO users (name, email, password, payrollNo, department, role, staff_verified_at)
+       VALUES(?,?,?,?,?,?,NOW())`,
       [name, email, hashedPassword, payrollNo, department, role],
     );
 
@@ -85,13 +128,7 @@ export async function POST(request) {
     await createSession(userId, role, name, email, payrollNo, department, 0);
 
     // Delete the verify_email cookie now that it's no longer needed
-    const cookieStore = await cookies();
-    cookieStore.set({
-      name: "verify_email",
-      value: "",
-      path: "/",
-      maxAge: 0, // Immediately expires
-    });
+    await clearVerifyEmailCookie();
 
     return Response.json(
       {

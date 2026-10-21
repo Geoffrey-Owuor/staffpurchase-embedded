@@ -9,6 +9,7 @@ import pool from "@/lib/db";
 import { getRequestBaseUrl } from "@/lib/requestBaseUrl";
 import { isSessionCurrent } from "@/lib/sessionCheck";
 import { isLockedOut } from "@/lib/loginPolicy";
+import { isStaffAllowed } from "@/lib/staffDirectory";
 
 export async function GET(request) {
   // The base URL the user is currently using (Nginx-forwarded or direct)
@@ -99,7 +100,10 @@ export async function GET(request) {
     }
 
     if (isSameUser) {
-      if (!(await isSessionCurrent(existingSession))) {
+      if (
+        !(await isSessionCurrent(existingSession)) ||
+        !(await isStaffAllowed(existingSession.id, existingSession.payrollNo))
+      ) {
         const response = NextResponse.redirect(
           new URL(`${basePath}/login`, baseUrl),
         );
@@ -131,6 +135,11 @@ export async function GET(request) {
     // User account is disabled, or locked out after failed password
     // attempts (a lockout blocks SSO too, as it did when it set is_active)
     if (!userObject.is_active || isLockedOut(userObject.password_attempts)) {
+      return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
+    }
+
+    // Or HR has deactivated their staff record (fails open, like login)
+    if (!(await isStaffAllowed(userObject.id, userObject.payrollNo))) {
       return NextResponse.redirect(new URL(`${basePath}/login`, baseUrl));
     }
 

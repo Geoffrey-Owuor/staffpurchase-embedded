@@ -61,6 +61,38 @@ correctness check available.
   MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
   or admin unlock clears it. `is_active` is changed only by an admin - login
   no longer sets it on lockout.
+- **Staff directory checks** (`db/migrations/2026-10-20_staff_verification.sql`):
+  the Hotpoint Apps Hub (`requisitions_automation`, Postgres) owns the
+  HR staff list (`company_staff_data`) and exposes it via its secret-gated
+  `POST /api/staff/lookup`; `lib/staffDirectory.js` calls it
+  (`STAFF_LOOKUP_API_URL` + `STAFF_LOOKUP_API_KEY`, 5s timeout).
+  Registration fails **closed** on it, sign-in fails **open**:
+  - A company email (`COMPANY_EMAIL_DOMAINS`, `hotpoint.co.ke`) registers
+    once its code is verified, but its owner must find an active staff
+    record by payroll number (`/api/register/staffdetails`, capped by
+    `verification_codes.staff_lookups`). A personal email is only sent a
+    code when it's the email of an active record; otherwise nothing is sent
+    and the reply/next page look the same (no enumeration), so the
+    verify-code page needs only the `verify_email` cookie, not a code row.
+  - The `verify_email` cookie (`lib/verifyEmailCookie.js`, path
+    `${basePath}/`) is required by the register pages *and* by
+    `staffdetails`/`completeregistration`, which only act on the email it
+    names - knowing a freshly verified email isn't enough to finish that
+    registration from another browser.
+  - `lib/registrationStaff.js` `resolveRegistrationStaff` is the one place
+    that decides: name and payroll number always come from the record
+    (never the client), the department too when it matches an active
+    `departments` row (else the user picks), and a payroll number that
+    already has an account is refused (`UPPER(TRIM(payrollNo))`, the same
+    rule for admin profile edits). New accounts get `staff_verified_at`.
+  - Login, SSO (both branches) and `/api/check-session` call
+    `isStaffAllowed`: a payroll number HR deactivated is refused (so an
+    open session ends on the next poll); no match or an unreachable Hub
+    signs in as before (pre-existing accounts are grandfathered), and an
+    active match sets `staff_verified_at`. It isn't in `isSessionCurrent`
+    because that runs on every request. The admin Users page shows
+    Verified/Unverified and Duplicate payroll pills (`staffCheck` filter);
+    the migration has the review queries.
 - **Roles**: `admin` is a *requester* role (`REQUESTER_ROLES`/
   `isRequesterRole` in `utils/routes.js`): it submits and sees its own
   requests exactly like `staff` and is never part of the approval chain. Use
@@ -284,8 +316,16 @@ before the code that depends on it deploys.
   after hand-edits in MySQL. It's secret-protected, not session-protected,
   since there's no admin role. It refuses all requests if the env var is unset.
 - Dashboard banners come from the `system_banners` table
-  (`db/migrations/2026-10-14_create_system_banners.sql`), managed by hand in
-  the DB. `utils/Cache/CachedBanners.js` is intentionally not `"use server"`
+  (`db/migrations/2026-10-14_create_system_banners.sql`), managed at
+  `/dashboard/admin/banners` (`components/Admin/Banners/`,
+  `/api/admin/banners[/id]`, rules in `lib/adminBanners.js`; audited,
+  revalidates the `banners` tag). Start/end travel as DB wall-clock
+  `YYYY-MM-DDTHH:mm` strings, never JS Dates. A banner can be deleted only
+  before it starts; after that it's deactivated. `updated_at` (the dismissal
+  key) only moves when the message/severity changes or "show again" is
+  ticked - the PATCH sets `updated_at = updated_at` otherwise. `BannerCard`
+  is shared by `SystemBanners` and the admin preview.
+  `utils/Cache/CachedBanners.js` is intentionally not `"use server"`
   (it would leak role-targeted rows as a callable action); only
   `app/api/banners/route.js` reads it and filters by the JWT role.
   `components/Banners/SystemBanners.jsx` applies `starts_at`/`ends_at`
@@ -297,7 +337,7 @@ before the code that depends on it deploys.
 - `getpurchasedetails` fetches TRADE/RTLRRP/ONLINE from Orion
   (`ORION_PRICE_CODES`) plus the active Staff Offer for the product code
   (one per code, regardless of item status or payment terms) from the
-  hand-managed `staff_offer_prices` table
+  `staff_offer_prices` table
   (`db/migrations/2026-10-15_staff_offer_prices.sql`, via
   `lib/staffOffers.js`). `selectLowestPrice` compares all four
   (`PRICE_CODES`, which is also the tie-break order: STAFFOFFER first). Only
@@ -305,6 +345,42 @@ before the code that depends on it deploys.
 - Staff Offers are intentionally **not** cached (unlike other reference
   data): the date window is checked against the DB's `NOW()` on every
   lookup. Overlapping active offers resolve to the most recently created.
+- **Promos** (`db/migrations/2026-10-20_staff_offer_promos.sql`): every
+  offer row belongs to a `staff_offer_promos` promo (`promo_id`, NOT NULL)
+  that owns the window and an active flag. An offer applies only when the
+  row *and* its promo are active and `NOW()` is inside the *promo's*
+  window; the row's `starts_at`/`ends_at`/`promo_name` just mirror the
+  promo (`syncPromoRows`) for hand queries. Managed at
+  `/dashboard/admin/staff-offers` (`components/Admin/StaffOffers/`,
+  `/api/admin/staff-offers/**`, rules in `lib/adminStaffOffers.js`, all
+  audited under target `staff_offer`):
+  - A row's price never changes in place (`staffOfferId` points at it):
+    deactivate the product and add it again. A promo can't hold two active
+    rows for one code.
+  - Period changes follow the promo's phase (ignores `is_active`):
+    upcoming - anything; running - start fixed, end not before now; over -
+    extend only, within `PROMO_EXTEND_GRACE_DAYS` (7) of its end, else
+    duplicate it. An ended promo can't be reactivated or take new products.
+  - Anything that turns offers on (add, reactivate, extend, duplicate) and
+    would overlap another active promo's offer for the same code returns
+    409 `{ code: "overlap", overlaps }` until resent with
+    `confirmOverlap: true` (`usePromoSave` shows the confirmation).
+  - Duplicate creates a new promo with new rows copied from the source's
+    active ones; the source is untouched.
+  - Wall-clock start/end strings, as for banners (`lib/adminForm.js`); an
+    end is inclusive to the minute (stored `HH:mm:59`).
+  - **Excel** (`lib/staffOfferSheet.js`, exceljs): `GET .../template`,
+    `GET .../[id]/export` (template columns first, so an export re-uploads
+    as-is) and `POST .../upload` (multipart; into `promoId`, or a new promo
+    from name/startsAt/endsAt). `mode=preview` saves nothing and returns
+    per-row errors/warnings (`analyzeOfferUpload`); `mode=commit`
+    re-parses the file, refuses the whole file if any row has an error,
+    needs `confirmOverlap` for overlaps, and inserts in batches in one
+    transaction with one `offer.upload` audit entry listing every row.
+    Limits: `OFFER_UPLOAD_MAX_ROWS` (5,000) and `OFFER_UPLOAD_MAX_BYTES`
+    (5 MB) - the Nginx proxy needs `client_max_body_size` of at least that
+    (its default is 1 MB). Upload rules shown to admins live in
+    `OFFER_UPLOAD_RULES` (`utils/Admin/adminConstants.js`).
 - `staffposts` re-checks STAFFOFFER rows against the DB with
   `verifyStaffOffers` and persists `staffOfferPrice`/`staffOfferId` from
   the DB, never the client.
@@ -349,6 +425,11 @@ before the code that depends on it deploys.
   so inbox previews stay useful) and an "unmonitored mailbox - open Staff
   Purchase Portal" footer linking `NEXT_PUBLIC_BASE_URL`. Templates must not
   add their own do-not-reply text.
+- Email links (workflow templates, the password-reset link, that footer)
+  use `NEXT_PUBLIC_BASE_URL` as-is, so it must be the full public URL
+  *including* the base path (e.g. `https://host/staffproductpurchase`).
+  Nothing derives it from `NEXT_PUBLIC_BASE_PATH` - keep the two in sync per
+  environment.
 
 ## Query params & pagination
 
