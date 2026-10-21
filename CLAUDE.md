@@ -311,6 +311,24 @@ before the code that depends on it deploys.
   `useAppSettings`; react-query keys under `"referenceData"`). Registration
   and the admin profile edit only accept an active department. New accounts
   are always `staff` - there's no email->role mapping any more.
+- **Credit periods** (`db/migrations/2026-10-21_credit_periods.sql`), also
+  on the Reference Data page (`components/Admin/CreditPeriods/`,
+  `/api/admin/credit-periods`, rules in `lib/adminCreditPeriods.js`,
+  audited). Each `credit_periods` row (whole months) is always offered or
+  `requires_extension`: offered only while an active
+  `credit_extension_windows` row covers `NOW()` with `max_months` >= it.
+  Windows are uncached and DB-clocked like Staff Offers
+  (`lib/creditPeriods.js`); a linked `promo_id` only prefilled the dates -
+  the window never follows the promo. Once started a window keeps its
+  start; an end can't be set in the past (deactivate to stop early); at
+  least one active always-on period must remain. `staffposts` validates
+  the period server-side (`resolveRequestCreditPeriod`; cash stores none)
+  and records the allowing window as `purchasesinfo.credit_extension_id`,
+  shown to approvers as `ExtendedCreditBadge`. The New Purchase form reads
+  `FetchAvailableCreditPeriods`; everything else (labels, filters, editors)
+  uses the cached full list (`CachedPeriods`). The admin editor may set any
+  known period and re-derives `credit_extension_id` from the window that
+  covered the request's submission.
 - `POST /api/revalidate` (header `x-revalidate-secret: $REVALIDATE_SECRET`,
   body `{"tags": [...]}` or `{"tags": "all"}`) busts those tags on demand
   after hand-edits in MySQL. It's secret-protected, not session-protected,
