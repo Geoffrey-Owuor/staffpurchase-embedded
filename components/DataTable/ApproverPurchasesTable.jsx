@@ -11,6 +11,7 @@ import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { formatDateLong } from "@/public/assets";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
+import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
 import Alert from "../Alert";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
 import { fetchApproverPurchases } from "@/utils/FetchPurchases/fetchApproverPurchases";
@@ -163,7 +164,15 @@ export default function ApproverPurchasesTable() {
       label: "Credit Period",
       title: "Credit Period",
       toggleable: true,
-      render: (p) => formatCreditPeriod(p.user_credit_period),
+      render: (p) =>
+        p.credit_extension_id ? (
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            {formatCreditPeriod(p.user_credit_period)}
+            <ExtendedCreditBadge />
+          </span>
+        ) : (
+          formatCreditPeriod(p.user_credit_period)
+        ),
     },
     {
       key: "payrollApproval",

@@ -6,9 +6,13 @@ export const GET = requireAuth(async (_req, { params, user }) => {
     const { id } = await params;
 
     const responseData = await withConnection(async (connection) => {
-      //Create main purchasesinfo promise
+      //Create main purchasesinfo promise (+ the extended credit window's
+      // name, for the badge)
       const purchasePromise = connection.execute(
-        `SELECT * FROM purchasesinfo WHERE id= ?`,
+        `SELECT p.*, w.name AS credit_extension_name
+         FROM purchasesinfo p
+         LEFT JOIN credit_extension_windows w ON w.id = p.credit_extension_id
+         WHERE p.id = ?`,
         [id],
       );
 

@@ -43,7 +43,7 @@ export const GET = requireAuth(
       const monthPeriod = searchParams.get("monthPeriod") || null;
       const requestClosure = searchParams.get("requestClosure") || null;
 
-      const baseSelect = `SELECT id, createdAt, reference_number, staffName, payrollNo, employee_payment_terms, mpesa_code, user_credit_period, Payroll_Approval, HR_Approval, CC_Approval, BI_Approval,
+      const baseSelect = `SELECT id, createdAt, reference_number, staffName, payrollNo, employee_payment_terms, mpesa_code, user_credit_period, credit_extension_id, Payroll_Approval, HR_Approval, CC_Approval, BI_Approval,
          invoice_amount, request_closure
          FROM purchasesinfo`;
 

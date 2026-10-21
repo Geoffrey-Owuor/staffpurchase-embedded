@@ -89,7 +89,21 @@ export default function AdminEditPurchase({ id }) {
   const [discountPolicies, setDiscountPolicies] = useState([]);
   useEffect(() => {
     FetchPeriodsPolicies().then(({ periods, policies }) => {
-      setPeriods(periods);
+      // An override may pick any period, so say which aren't normally offered
+      setPeriods(
+        periods.map((period) => {
+          const notes = [
+            !period.is_active && "inactive",
+            period.requires_extension && "extension only",
+          ].filter(Boolean);
+          return notes.length
+            ? {
+                ...period,
+                period_description: `${period.period_description} (${notes.join(", ")})`,
+              }
+            : period;
+        }),
+      );
       setDiscountPolicies(policies);
     });
   }, []);
@@ -337,6 +351,9 @@ function EditForm({
             handleChange={handlePaymentChange}
             userRole={user.role}
             periods={periods}
+            extendedCredit={
+              data.purchase.credit_extension_id ? { windowName: null } : null
+            }
             approversPurchasing={true}
           />
 
