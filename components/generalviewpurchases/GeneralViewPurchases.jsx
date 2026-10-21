@@ -24,6 +24,7 @@ import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
 import { useInvoicingLocations } from "@/hooks/useReferenceData";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
+import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import Alert from "../Alert";
 
@@ -315,7 +316,18 @@ export default function GeneralViewPurchases({ id }) {
                 purchase.employee_payment_terms === "CASH AND CREDIT") && (
                 <DetailField
                   label="Credit Period"
-                  value={formatCreditPeriod(purchase.user_credit_period)}
+                  value={
+                    purchase.credit_extension_id ? (
+                      <>
+                        {formatCreditPeriod(purchase.user_credit_period)}{" "}
+                        <ExtendedCreditBadge
+                          windowName={purchase.credit_extension_name}
+                        />
+                      </>
+                    ) : (
+                      formatCreditPeriod(purchase.user_credit_period)
+                    )
+                  }
                 />
               )}
               {(purchase.employee_payment_terms === "CASH" ||
