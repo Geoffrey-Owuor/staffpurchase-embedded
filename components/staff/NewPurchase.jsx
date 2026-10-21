@@ -17,6 +17,7 @@ import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import PaymentDetails from "../PaymentDetails";
 import TopBarButtons from "../Reusables/TopBarButtons/TopBarButtons";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
+import { FetchAvailableCreditPeriods } from "@/app/lib/FetchAvailableCreditPeriods";
 import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
 import { basePath } from "@/public/assets";
@@ -52,8 +53,10 @@ export default function NewPurchase({ approversPurchasing }) {
     department: user.department,
   }));
 
-  //Initially setting periods to an empty array
+  // Credit periods offered right now, and the live extended credit window
+  // (or null) that adds the longer ones
   const [periods, setPeriods] = useState([]);
+  const [creditExtension, setCreditExtension] = useState(null);
 
   const [products, setProducts] = useState(() => [{ ...initialProductState }]);
 
@@ -97,14 +100,30 @@ export default function NewPurchase({ approversPurchasing }) {
   const [alertType, setAlertType] = useState("success");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // Reloads the periods on offer; a chosen period that's no longer offered
+  // (e.g. its extended credit window just ended) is cleared.
+  const loadCreditPeriods = async () => {
+    const { periods, extension } = await FetchAvailableCreditPeriods();
+    setPeriods(periods);
+    setCreditExtension(extension);
+    setPaymentInfo((prev) =>
+      prev.user_credit_period !== "" &&
+      !periods.some(
+        (period) =>
+          String(period.period_value) === String(prev.user_credit_period),
+      )
+        ? { ...prev, user_credit_period: "" }
+        : prev,
+    );
+  };
+
   //useEffect for fetching credit periods and discount policies
   useEffect(() => {
     const fetchData = async () => {
-      // Fetching credit periods and discount policies
-      const { periods, policies } = await FetchPeriodsPolicies();
-
-      //Setting the credit periods and discount policies
-      setPeriods(periods);
+      const [{ policies }] = await Promise.all([
+        FetchPeriodsPolicies(),
+        loadCreditPeriods(),
+      ]);
       setDiscountPolicies(policies);
     };
     fetchData();
@@ -233,6 +252,8 @@ export default function NewPurchase({ approversPurchasing }) {
       );
       setAlertType("error");
       setShowAlert(true);
+      // The refusal may be an ended extended credit window
+      loadCreditPeriods();
     } finally {
       setIsSubmitting(false);
       setShowConfirmDialog(false);
@@ -272,6 +293,7 @@ export default function NewPurchase({ approversPurchasing }) {
             handleChange={handlePaymentChange}
             userRole={user.role}
             periods={periods}
+            creditExtension={creditExtension}
             approversPurchasing={approversPurchasing}
           />
 
