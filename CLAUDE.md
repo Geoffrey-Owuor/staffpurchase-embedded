@@ -110,7 +110,8 @@ correctness check available.
   approval role is allowed but returns a `warning`. Admins never see or set
   passwords - `send_reset` unlocks and emails a reset link
   (`lib/passwordReset.js`, shared with forgot-password).
-- **Audit log**: every admin action writes `admin_audit_log`
+- **Audit log**: every admin action (plus CC product removals, see Pricing)
+  writes `admin_audit_log`
   (`db/migrations/2026-10-17_admin_audit_log.sql`) via
   `lib/adminAudit.js` `writeAdminAudit(connection, ...)`, in the *same
   transaction* as the change. Snapshots never include password/token
@@ -405,7 +406,7 @@ before the code that depends on it deploys.
 - Prices are fetched only when a request is created (`NewPurchase`). On the
   edit page CC works from what was recorded at submission: no re-fetch, no
   discount-policy recalculation, product codes and item names locked, no
-  adding/removing products (`isCcEdit` in `ProductPricing.jsx`). The one
+  adding products (`isCcEdit` in `ProductPricing.jsx`). The one
   price change CC can make is a manual (`MANUAL`) price + discount, e.g.
   one approved by a product manager; "Restore recorded price" undoes it
   back to the submitted row (`recordedProduct`). `generaleditpurchases` enforces this
@@ -413,6 +414,15 @@ before the code that depends on it deploys.
   row, so a saved Staff Offer sticks after the promo ends. Other price
   corrections at that stage are made by hand in the DB. One-off data
   scripts like the Staff Offer backfill live in `db/queries/`.
+- CC can also **remove** products on its edit page (at least one stays;
+  Undo until saved, `RemovedProductsPanel`). Rows are matched to the
+  stored ones by `purchase_products.id` (returned by `generalviewpurchases`),
+  never by index or product code. A removal needs a reason, is refused
+  while CC is declining, writes a `purchase.remove_products` entry to
+  `admin_audit_log` (CC user as actor; before/after product lists, totals
+  and `removed_products`) in the same transaction, and emails the
+  requester (`ccProductsRemovedEmailHandler`). Refunds for already-paid
+  cash requests are handled outside the system.
 
 ## Email
 
