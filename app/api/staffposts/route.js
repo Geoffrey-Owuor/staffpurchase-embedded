@@ -2,6 +2,10 @@ import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { userEmailHandler } from "@/lib/Email/userEmailHandler";
 import { StaffOfferError, verifyStaffOffers } from "@/lib/staffOffers";
+import {
+  CreditPeriodError,
+  resolveRequestCreditPeriod,
+} from "@/lib/creditPeriods";
 import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
 
 const parseNumber = (value) => {
@@ -49,13 +53,20 @@ export const POST = requireAuth(async (request, { user }) => {
       // Re-check Staff Offer prices against the DB before writing anything
       // (throws a 409 StaffOfferError, rolling back, if one has ended).
       const staffOffers = await verifyStaffOffers(connection, products);
+      // The credit period must be offered right now (extension-only ones
+      // need a live window, recorded as credit_extension_id).
+      const credit = await resolveRequestCreditPeriod(
+        connection,
+        paymentInfo.employee_payment_terms,
+        paymentInfo.user_credit_period,
+      );
 
       // Destructure directly in the parameter list to avoid extra lines
       const [result] = await connection.execute(
         `INSERT INTO purchasesinfo
-       (staffName, user_id, user_email, payrollNo, department, employee_payment_terms, mpesa_code, user_credit_period, invoicing_location, delivery_details, signature, Payroll_Approval, HR_Approval,
+       (staffName, user_id, user_email, payrollNo, department, employee_payment_terms, mpesa_code, user_credit_period, credit_extension_id, invoicing_location, delivery_details, signature, Payroll_Approval, HR_Approval,
         CC_Approval, BI_Approval, request_closure)
-       VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', 'pending', 'pending', 'open')`,
+       VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', 'pending', 'pending', 'open')`,
         [
           staffInfo.staffName,
           user.id,
@@ -64,7 +75,8 @@ export const POST = requireAuth(async (request, { user }) => {
           staffInfo.department,
           paymentInfo.employee_payment_terms,
           paymentInfo.mpesa_code,
-          parseNumber(paymentInfo.user_credit_period),
+          credit.months,
+          credit.extensionId,
           paymentInfo.invoicing_location,
           paymentInfo.delivery_details,
           user.name,
@@ -165,7 +177,11 @@ export const POST = requireAuth(async (request, { user }) => {
       { status: 201 }, // 201 Created for successful resource creation
     );
   } catch (error) {
-    if (error instanceof RouteError || error instanceof StaffOfferError) {
+    if (
+      error instanceof RouteError ||
+      error instanceof StaffOfferError ||
+      error instanceof CreditPeriodError
+    ) {
       return Response.json(
         { success: false, message: error.message },
         { status: error.status },

@@ -13,6 +13,10 @@ import {
   toDateOnly,
 } from "@/lib/adminPurchases";
 import { StaffOfferError, verifyStaffOffers } from "@/lib/staffOffers";
+import {
+  CreditPeriodError,
+  resolveAdminCreditExtension,
+} from "@/lib/creditPeriods";
 import { adminChangeEmailHandler } from "@/lib/Email/adminChangeEmailHandler";
 import { PRICE_CODES, STAFF_OFFER_CODE } from "@/utils/Pricing/priceCodes";
 import { approverColumns, stagesFrom } from "@/utils/Approvals/approvalStages";
@@ -292,12 +296,35 @@ export const PUT = requireAuth(
         const setClauses = [];
         const queryParams = [];
         const submitted = body.purchase ?? {};
+        const changed = {};
         for (const key of Object.keys(EDITABLE_FIELDS)) {
           if (!(key in submitted)) continue;
           const value = readField(key, submitted[key]);
           if (value !== storedField(key, before.purchase[key])) {
+            changed[key] = value;
             setClauses.push(`${key} = ?`);
             queryParams.push(value);
+          }
+        }
+
+        // The extended credit attribution follows the credit period
+        if (
+          "user_credit_period" in changed ||
+          "employee_payment_terms" in changed
+        ) {
+          const current = (key) =>
+            key in changed
+              ? changed[key]
+              : storedField(key, before.purchase[key]);
+          const extensionId = await resolveAdminCreditExtension(
+            connection,
+            id,
+            current("employee_payment_terms"),
+            current("user_credit_period"),
+          );
+          if (extensionId !== (before.purchase.credit_extension_id ?? null)) {
+            setClauses.push(`credit_extension_id = ?`);
+            queryParams.push(extensionId);
           }
         }
 
@@ -408,7 +435,11 @@ export const PUT = requireAuth(
         ...responseShape(result.after),
       });
     } catch (error) {
-      if (error instanceof RouteError || error instanceof StaffOfferError) {
+      if (
+        error instanceof RouteError ||
+        error instanceof StaffOfferError ||
+        error instanceof CreditPeriodError
+      ) {
         return Response.json(
           { message: error.message },
           { status: error.status },

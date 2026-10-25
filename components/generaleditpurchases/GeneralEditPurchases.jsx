@@ -344,6 +344,11 @@ function PurchaseForm({ purchase, userRole, name, id }) {
             handleChange={handlePaymentChange}
             userRole={userRole}
             periods={periods}
+            extendedCredit={
+              purchase.credit_extension_id
+                ? { windowName: purchase.credit_extension_name }
+                : null
+            }
             approversPurchasing={false}
           />
 

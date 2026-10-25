@@ -44,6 +44,8 @@ export const ADMIN_AUDIT_ACTIONS = {
   "reference.create": "Reference data added",
   "reference.update": "Reference data changed",
   "setting.update": "Setting changed",
+  "credit_window.create": "Extended credit window created",
+  "credit_window.update": "Extended credit window changed",
   "banner.create": "Banner created",
   "banner.update": "Banner changed",
   "banner.delete": "Banner deleted",
@@ -83,6 +85,13 @@ export const APP_SETTINGS = {
 export const LOCATION_CODE_PATTERN = /^[A-Z0-9_]{2,32}$/;
 export const LOCATION_LABEL_MAX_LENGTH = 100;
 export const DEPARTMENT_NAME_MAX_LENGTH = 55;
+
+// Credit periods (credit_periods) and extended credit windows
+// (credit_extension_windows) - rules in lib/creditPeriods.js and
+// lib/adminCreditPeriods.js. Periods are whole months.
+export const CREDIT_PERIOD_MAX_MONTHS = 12;
+export const CREDIT_PERIOD_LABEL_MAX_LENGTH = 255;
+export const CREDIT_WINDOW_NAME_MAX_LENGTH = 150;
 
 // Free-text limits the admin user routes enforce (and the forms mirror).
 export const REASON_MAX_LENGTH = 500;

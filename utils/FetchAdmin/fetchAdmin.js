@@ -103,6 +103,21 @@ export function saveReferenceData(method, body) {
   return sendJson(`${basePath}/api/admin/reference-data`, method, body);
 }
 
+// { periods, windows, promos, now } for the Reference Data page's credit
+// periods section
+export function fetchAdminCreditPeriods() {
+  return getJson(
+    `${basePath}/api/admin/credit-periods`,
+    "Failed to load credit periods",
+  );
+}
+
+// POST = add a period/window, PATCH = change one (see
+// api/admin/credit-periods). Resolves to { message, ...the fresh data }.
+export function saveAdminCreditPeriods(method, body) {
+  return sendJson(`${basePath}/api/admin/credit-periods`, method, body);
+}
+
 // filters: { fromDate, toDate } - see api/admin/analytics
 export function fetchAdminAnalytics(filters = {}) {
   return getJson(
