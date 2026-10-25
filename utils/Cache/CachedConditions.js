@@ -48,17 +48,23 @@ export const CachedPolicies = unstable_cache(
   { revalidate: 3600, tags: [CACHE_TAGS.discountPolicies] },
 );
 
-// Caching credit periods
+// Caching credit periods - every one, active or not, for labels and filters
+// over existing requests. What a NEW request may choose depends on the
+// extended credit windows, which aren't cached (lib/creditPeriods.js).
 export const CachedPeriods = unstable_cache(
   async () => {
     try {
       // Using pool.execute()
       const [periods] = await pool.execute(`
-      SELECT period_value, period_description
+      SELECT period_value, period_description, is_active, requires_extension
       FROM credit_periods
       ORDER BY period_value ASC`);
 
-      return periods;
+      return periods.map((period) => ({
+        ...period,
+        is_active: Boolean(period.is_active),
+        requires_extension: Boolean(period.requires_extension),
+      }));
     } catch (error) {
       console.error("Error fetching credit periods:", error);
       // Fallback empty array

@@ -4,6 +4,8 @@ import Select from "./Reusables/Select";
 import { formatDateLong } from "@/public/assets";
 import { isRequesterRole } from "@/utils/routes";
 import { useInvoicingLocations } from "@/hooks/useReferenceData";
+import { formatWallClock } from "@/utils/Admin/wallClock";
+import ExtendedCreditBadge from "./Reusables/ExtendedCreditBadge";
 
 const PAYMENT_TERMS_OPTIONS = [
   { value: "CREDIT", label: "Credit" },
@@ -17,6 +19,10 @@ const PaymentDetails = ({
   userRole,
   periods,
   approversPurchasing,
+  // New request: the live extended credit window ({ name, maxMonths, endsAt })
+  creditExtension = null,
+  // Existing request: { windowName } when its period came from a window
+  extendedCredit = null,
 }) => {
   const isRequester = isRequesterRole(userRole);
   // DB-managed (admin Reference Data); keeps a since-retired stored code
@@ -119,6 +125,13 @@ const PaymentDetails = ({
                 className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-400"
               >
                 Credit Period <FormAsterisk />
+                {extendedCredit && (
+                  <span className="ml-2">
+                    <ExtendedCreditBadge
+                      windowName={extendedCredit.windowName}
+                    />
+                  </span>
+                )}
               </label>
               <Select
                 id="user_credit_period"
@@ -138,6 +151,13 @@ const PaymentDetails = ({
                 required
                 disabled={staffReadonly}
               />
+              {creditExtension && !staffReadonly && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Up to {creditExtension.maxMonths} months available until{" "}
+                  {formatWallClock(creditExtension.endsAt)} (
+                  {creditExtension.name}).
+                </p>
+              )}
             </div>
           )}
 

@@ -26,7 +26,9 @@ export const GET = requireAuth(
     p.id,
     DATE_FORMAT(p.createdAt, '%Y-%m-%d %H:%i:%s') AS createdAt,
     p.reference_number, p.staffName, p.payrollNo, p.department,
-    p.employee_payment_terms, p.user_credit_period, p.mpesa_code, p.invoicing_location,
+    p.employee_payment_terms, p.user_credit_period,
+    w.name AS extendedCreditWindow, -- blank unless chosen during an extended credit window
+    p.mpesa_code, p.invoicing_location,
     p.delivery_details, pp.itemName, pp.itemStatus, pp.productPolicy, pp.productCode,
     pp.priceCode AS priceBasis, pp.tdPrice AS initialPrice, pp.discountRate, pp.discountedValue,
     pp.tradePrice, pp.retailPrice, pp.onlinePrice, pp.staffOfferPrice, p.Payroll_Approval, p.HR_Approval,
@@ -44,6 +46,7 @@ export const GET = requireAuth(
     p.request_closure
   FROM purchasesinfo AS p
   INNER JOIN purchase_products AS pp ON p.id = pp.purchase_id
+  LEFT JOIN credit_extension_windows AS w ON w.id = p.credit_extension_id
   `;
 
     let query = baseSelect;

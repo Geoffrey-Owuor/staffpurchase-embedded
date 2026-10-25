@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Alert from "../Alert";
 import ReferenceDataSkeleton from "../skeletons/ReferenceDataSkeleton";
+import CreditPeriodsSection from "./CreditPeriods/CreditPeriodsSection";
 import {
   fetchReferenceData,
   saveReferenceData,
@@ -98,6 +99,11 @@ export default function ReferenceDataPage() {
               settings={data.settings}
               busyKey={busyKey}
               save={save}
+            />
+            <CreditPeriodsSection
+              onResult={({ type, message }) =>
+                setAlertInfo({ show: true, type, message })
+              }
             />
             <ListSection
               type="location"
