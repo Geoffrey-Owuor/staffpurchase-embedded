@@ -15,8 +15,8 @@ const FILTER_FIELDS = [
   {
     key: "search",
     type: "text",
-    label: "Target / Admin",
-    placeholder: "User email, PRQ reference or admin...",
+    label: "Target / By",
+    placeholder: "User email, PRQ reference or who acted...",
   },
   {
     key: "action",
@@ -75,7 +75,7 @@ function AuditHeading() {
         Audit log
       </h2>
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Every admin action, newest first
+        Every admin action, plus Credit Control product removals, newest first
       </p>
     </div>
   );
@@ -103,7 +103,7 @@ export default function AdminAuditLogTable() {
     },
     {
       key: "admin",
-      label: "Admin",
+      label: "By",
       render: (e) => e.admin_name || e.admin_email,
     },
     {
@@ -219,7 +219,7 @@ function AuditEntryModal({ open, entry, onClose }) {
               {formatDateTime(entry.created_at)}
             </dd>
             <dt className="font-semibold text-gray-700 dark:text-gray-400">
-              Admin
+              By
             </dt>
             <dd className="break-all text-gray-900 dark:text-white">
               {entry.admin_name} ({entry.admin_email})

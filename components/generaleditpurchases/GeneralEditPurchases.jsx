@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { HandCoins, PackagePlus } from "lucide-react";
+import { HandCoins, PackagePlus, Trash2 } from "lucide-react";
 import Alert from "../Alert";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
@@ -16,6 +16,7 @@ import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UnauthorizedEdit from "../Reusables/UnauthorizedEdit";
 import EditPurchaseHeading from "../EditPurchaseComponents/EditPurchaseHeading";
 import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
+import RemovedProductsPanel from "./RemovedProductsPanel";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useRouter } from "next/navigation";
@@ -164,6 +165,35 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       : [{ ...initialProductState }],
   );
 
+  // CC may remove products (never add): rows keep their purchase_products id
+  // so each is matched to its recorded row here and in the API.
+  const canRemoveProducts = userRole === "cc";
+  const [productRemovalReason, setProductRemovalReason] = useState("");
+  const recordedById = useMemo(
+    () => new Map((purchase.products ?? []).map((p) => [p.id, p])),
+    [purchase.products],
+  );
+  const removedProducts = (purchase.products ?? []).filter(
+    (recorded) => !products.some((p) => p.id === recorded.id),
+  );
+  const isDecliningWithRemovals =
+    removedProducts.length > 0 && formData.CC_Approval === "declined";
+
+  const handleRemoveProduct = (id) => {
+    setProducts((prev) =>
+      prev.length > 1 ? prev.filter((p) => p.id !== id) : prev,
+    );
+  };
+
+  // Restored rows come back as recorded, in their original position.
+  const handleRestoreProduct = (id) => {
+    setProducts((prev) =>
+      purchase.products
+        .filter((p) => p.id === id || prev.some((row) => row.id === p.id))
+        .map((p) => prev.find((row) => row.id === p.id) ?? p),
+    );
+  };
+
   // Tracks which product rows currently have an in-progress Orion price
   // fetch, so submission can be blocked until every fetch settles.
   const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
@@ -270,6 +300,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       ...staffInfo,
       ...paymentInfo,
       products: products,
+      ...(removedProducts.length > 0 && { productRemovalReason }),
     };
     try {
       const response = await fetch(
@@ -368,10 +399,21 @@ function PurchaseForm({ purchase, userRole, name, id }) {
           )}
 
           {/* Map over the products array to render a component for each.
-          The product list is fixed at submission - no adding/removing here
-          (also enforced by api/generaleditpurchases). */}
+          Products can't be added here; CC can remove them, keeping at least
+          one (also enforced by api/generaleditpurchases). */}
           {products.map((product, index) => (
-            <div key={index} className="space-y-4">
+            <div key={product.id ?? index} className="relative space-y-4">
+              {canRemoveProducts && products.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveProduct(product.id)}
+                  className="absolute top-4 right-6 z-10 rounded-full p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-[#4c2e2f]"
+                  title="Remove Product"
+                  aria-label={`Remove product ${index + 1}`}
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              )}
               <ProductPricing
                 formData={product}
                 handleChange={(e) => handleProductChange(index, e)}
@@ -384,10 +426,18 @@ function PurchaseForm({ purchase, userRole, name, id }) {
                 onFetchStatusChange={(isFetching) =>
                   handleFetchStatusChange(index, isFetching)
                 }
-                recordedProduct={purchase.products?.[index]}
+                recordedProduct={recordedById.get(product.id)}
               />
             </div>
           ))}
+
+          <RemovedProductsPanel
+            removedProducts={removedProducts}
+            onRestore={handleRestoreProduct}
+            reason={productRemovalReason}
+            onReasonChange={setProductRemovalReason}
+            isDeclining={isDecliningWithRemovals}
+          />
 
           <div className="my-8 flex items-center justify-between px-2">
             {purchaseTotal > 0 && (
@@ -433,7 +483,9 @@ function PurchaseForm({ purchase, userRole, name, id }) {
             payrollApproval={purchase.Payroll_Approval}
             hrApproval={purchase.HR_Approval}
             ccApproval={purchase.CC_Approval}
-            disabled={submitting || isFetchingAnyPrice}
+            disabled={
+              submitting || isFetchingAnyPrice || isDecliningWithRemovals
+            }
           />
         </form>
       </div>
@@ -441,7 +493,11 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       {/* Confirmation Dialogue */}
 
       <ConfirmationDialog
-        message="Are you sure you want to submit these request changes? (You can't edit once approved/declined)"
+        message={
+          removedProducts.length > 0
+            ? `Are you sure you want to submit these request changes? ${removedProducts.length} ${removedProducts.length === 1 ? "product" : "products"} will be removed and the requester emailed. (You can't edit once approved/declined)`
+            : "Are you sure you want to submit these request changes? (You can't edit once approved/declined)"
+        }
         onConfirm={handleConfirmSubmit}
         showDialog={showConfirmation}
         onCancel={() => setShowConfirmation(false)}
