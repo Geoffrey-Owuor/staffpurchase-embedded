@@ -32,6 +32,9 @@ export const STAFF_CHECK_OPTIONS = [
 ];
 
 // Every action admin_audit_log can hold, with the label the audit page shows.
+// All are admin actions except purchase.remove_products, which Credit Control
+// writes when removing products at its approval stage (the admin_* columns
+// then hold the CC user).
 export const ADMIN_AUDIT_ACTIONS = {
   "user.update_profile": "Profile edited",
   "user.change_role": "Role changed",
@@ -41,6 +44,7 @@ export const ADMIN_AUDIT_ACTIONS = {
   "user.send_reset": "Reset link sent",
   "purchase.edit": "Request edited",
   "purchase.delete": "Request deleted",
+  "purchase.remove_products": "Products removed (Credit Control)",
   "reference.create": "Reference data added",
   "reference.update": "Reference data changed",
   "setting.update": "Setting changed",

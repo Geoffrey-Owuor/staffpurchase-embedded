@@ -1,6 +1,9 @@
 import { withTransaction } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { ApproversEmailHandler } from "@/lib/Email/ApproversEmailHandler";
+import { ccProductsRemovedEmailHandler } from "@/lib/Email/ccProductsRemovedEmailHandler";
+import { writeAdminAudit } from "@/lib/adminAudit";
+import { REASON_MAX_LENGTH } from "@/utils/Admin/adminConstants";
 const parseNumber = (value) => {
   return value === "" || value == null ? null : parseFloat(value);
 };
@@ -22,31 +25,34 @@ const sameAsStored = (submitted, stored) => {
   return Math.abs(a - b) < 0.005;
 };
 
-// CC edits products against what was recorded at submission: the product
-// list and codes, fetched prices, discount policy and Staff Offer fields are
-// all locked and re-written from the DB, as is the item name. CC may only set
-// a manual (MANUAL) price + discount, e.g. one approved by a product manager.
-// Mirrored client-side by ProductPricing's `isCcEdit`.
+// CC edits products against what was recorded at submission: product codes,
+// fetched prices, discount policy and Staff Offer fields are all locked and
+// re-written from the DB, as is the item name. CC may set a manual (MANUAL)
+// price + discount, e.g. one approved by a product manager, and remove
+// products (at least one must stay; nothing can be added). Rows are matched
+// to the stored ones by purchase_products.id. Returns the rows to keep and
+// the stored rows that were removed. Mirrored client-side by
+// ProductPricing's `isCcEdit` and GeneralEditPurchases.
 function buildCcProductRows(storedProducts, products) {
-  if (products.length !== storedProducts.length) {
+  if (products.length === 0) {
     throw new RouteError(
       400,
-      "Products can't be added or removed at Credit Control approval",
+      "A request needs at least one product - decline it instead",
     );
   }
 
   const unmatched = [...storedProducts];
 
-  return products.map((product) => {
-    const code = product.productCode?.trim() ?? "";
-    const index = unmatched.findIndex((p) => p.productCode === code);
+  const rows = products.map((product) => {
+    const index = unmatched.findIndex((p) => p.id === Number(product.id));
     if (index === -1) {
       throw new RouteError(
-        400,
-        "Product codes can't be changed at Credit Control approval",
+        409,
+        "Products can't be added or changed at Credit Control approval. Reload the page and try again.",
       );
     }
     const [stored] = unmatched.splice(index, 1);
+    const code = stored.productCode;
 
     if (product.priceCode !== "MANUAL") {
       const unchanged =
@@ -64,10 +70,7 @@ function buildCcProductRows(storedProducts, products) {
 
     const tdPrice = parseNumber(product.tdPrice);
     const discountRate = parseNumber(product.discountRate);
-    if (
-      !(tdPrice > 0) ||
-      !(discountRate >= 0 && discountRate <= 100)
-    ) {
+    if (!(tdPrice > 0) || !(discountRate >= 0 && discountRate <= 100)) {
       throw new RouteError(
         400,
         `Enter a valid manual price and discount rate for ${stored.itemName || code}`,
@@ -82,13 +85,23 @@ function buildCcProductRows(storedProducts, products) {
       discountedValue: (tdPrice * (1 - discountRate / 100)).toFixed(2),
     };
   });
+
+  return { rows, removed: unmatched };
 }
+
+const sumValues = (rows) =>
+  rows
+    .reduce((total, row) => total + (parseFloat(row.discountedValue) || 0), 0)
+    .toFixed(2);
+
+// Audit/email copy of a stored row (row ids change on every save).
+const withoutId = ({ id, ...row }) => row;
 
 export const PUT = requireAuth(async (request, { params, user }) => {
   const { id } = await params;
 
   try {
-    const { oldData, newData } = await withTransaction(async (connection) => {
+    const result = await withTransaction(async (connection) => {
       //1. Get current state of the purchase before any updates
       const [currentPurchaseRows] = await connection.execute(
         `SELECT * FROM purchasesinfo WHERE id = ? FOR UPDATE`, //Locking the row for update
@@ -218,18 +231,63 @@ export const PUT = requireAuth(async (request, { params, user }) => {
       }
 
       //UPDATE THE PRODUCTS TABLE (ONLY WHEN USER IS CC)
-      if (
-        user.role === "cc" &&
-        Array.isArray(products) &&
-        products.length > 0
-      ) {
+      let removedProducts = [];
+      let savedProducts = products;
+      if (user.role === "cc" && Array.isArray(products)) {
         const [storedProducts] = await connection.execute(
-          `SELECT itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue,
+          `SELECT id, itemName, itemStatus, productPolicy, productCode, priceCode, tdPrice, discountRate, discountedValue,
                   tradePrice, retailPrice, onlinePrice, staffOfferPrice, staffOfferId
-           FROM purchase_products WHERE purchase_id = ?`,
+           FROM purchase_products WHERE purchase_id = ? ORDER BY id FOR UPDATE`,
           [id],
         );
-        const rows = buildCcProductRows(storedProducts, products);
+        const { rows, removed } = buildCcProductRows(storedProducts, products);
+        savedProducts = rows.map(withoutId);
+
+        // Removing products changes what the requester asked for, so it
+        // needs a reason, is audited and emails the requester (below).
+        if (removed.length > 0) {
+          if (purchaseData.CC_Approval === "declined") {
+            throw new RouteError(
+              400,
+              "Products can't be removed from a request you're declining",
+            );
+          }
+          const reason =
+            typeof purchaseData.productRemovalReason === "string"
+              ? purchaseData.productRemovalReason.trim()
+              : "";
+          if (!reason) {
+            throw new RouteError(
+              400,
+              "Give a reason for removing the products",
+            );
+          }
+          if (reason.length > REASON_MAX_LENGTH) {
+            throw new RouteError(
+              400,
+              `The reason must be ${REASON_MAX_LENGTH} characters or fewer`,
+            );
+          }
+
+          removedProducts = removed.map(withoutId);
+          await writeAdminAudit(connection, {
+            admin: user,
+            action: "purchase.remove_products",
+            targetType: "purchase",
+            targetId: id,
+            targetLabel: oldData.reference_number,
+            reason,
+            before: {
+              products: storedProducts.map(withoutId),
+              total_value: sumValues(storedProducts),
+            },
+            after: {
+              products: savedProducts,
+              total_value: sumValues(rows),
+              removed_products: removedProducts,
+            },
+          });
+        }
 
         //Delete the existing products for this purchase
         await connection.execute(
@@ -265,8 +323,14 @@ export const PUT = requireAuth(async (request, { params, user }) => {
         await Promise.all(itemInsertPromises);
       }
 
-      return { oldData, newData };
+      // Workflow emails list the products as saved, not as the client sent them
+      return {
+        oldData,
+        newData: { ...newData, products: savedProducts },
+        removedProducts,
+      };
     });
+    const { oldData, newData, removedProducts } = result;
 
     // --- FIRE-AND-FORGET ---
     // Call the handler but DO NOT await it.
@@ -276,6 +340,15 @@ export const PUT = requireAuth(async (request, { params, user }) => {
       oldData,
       newData,
     });
+
+    if (removedProducts.length > 0) {
+      ccProductsRemovedEmailHandler({
+        purchase: oldData,
+        removedProducts,
+        reason: newData.productRemovalReason.trim(),
+        newTotal: sumValues(newData.products),
+      });
+    }
 
     return Response.json(
       {

@@ -20,6 +20,7 @@ export const GET = requireAuth(async (_req, { params, user }) => {
       const productsPromise = connection.execute(
         `
     SELECT
+    id,
     itemName,
     itemStatus,
     productPolicy,
@@ -35,6 +36,7 @@ export const GET = requireAuth(async (_req, { params, user }) => {
     staffOfferId
     FROM purchase_products
     WHERE purchase_id = ?
+    ORDER BY id
       `,
         [id],
       );
