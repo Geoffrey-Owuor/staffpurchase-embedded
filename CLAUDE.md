@@ -273,7 +273,37 @@ former ~700-800-line near-duplicate components:
   `md` it's either `mobile="sheet"` (default; bottom sheet - short
   dialogs) or `mobile="fullscreen"` (content-heavy: Settings, Change Email,
   Price Comparison, Changelog). `className` must give the panel an `md:`
-  width; don't set width/height/rounding without `md:`.
+  width; don't set width/height/rounding without `md:`. On desktop a
+  `clip-path` rounds the panel's corners, so the flush scrollbar is cut along
+  the same curve; the radius only shapes the border. It also cuts the panel's
+  outer shadow, and anything overflowing the panel.
+- **Toasts**: call `triggerAlert("success" | "error", message)` from
+  `store/useAlertStore.js` (works outside React too). Don't keep alert state
+  in a component: `components/Reusables/Alerts/AlertLayer.jsx` in the root
+  layout renders them all, so a toast outlives the page that fired it. They
+  stack (4 at most, in the bottom-right corner) and repeats count up. On phones
+  the layer moves to the top while a Modal is open (`useModalStackStore`), and
+  Modal's focus trap includes it (`data-alert-layer`).
+- **Dates**: use `components/Reusables/DatePicker.jsx`, never a native date
+  input. `onChange` gets the value string, not an event. Values are the same
+  wall-clock strings as the native inputs (`YYYY-MM-DD`, or
+  `YYYY-MM-DDTHH:mm` with `withTime`). `required` and `min` are enforced by a
+  hidden native input, so the browser still blocks the submit. On end fields
+  pass `defaultTime="23:59"`.
+- **Sticky title bars**: `components/Reusables/StickyPageHeader.jsx` pins a
+  page's title row (from `md` up, not on short viewports) and shares
+  `hooks/useStickyBleed.js` with `FilterPanel`. Don't use it on a page with a
+  `FilterPanel`, which already pins, and keep long descriptions below it. The
+  edit pages also have Save there, via the button's `form` attribute.
+- **Scrollbars**: `.app-scrollbars` (the dashboard `<main>`, Modal panels, mobile
+  drawer) styles itself and every scroller inside; `.small-scrollbar` is the thin
+  variant for tables and menus (`styles/globals.css`). Don't use
+  `scrollbar-width`/`scrollbar-color` on them: Chromium then ignores the custom
+  styling.
+- **Images**: the landing logo is inline SVG (`HotpointWordmark.jsx`, traced
+  from the old raster), so it follows the text colour. Render above-the-fold
+  content on the server and animate it with CSS: framer-motion's `initial` keeps
+  it hidden until hydration.
 - **Confirming async actions**: `ConfirmationDialog`/`DeleteConfirmation`
   take `busy` (+ `busyLabel`). Keep the dialog open with `busy` while the
   request runs and close it in `finally` - don't close it first and mount
@@ -511,6 +541,12 @@ Proposed bug fixes and UI/UX changes are written up in `.claude/skills/CHANGES.m
 - **Critique and recommend.** Say so if a proposal has trade-offs, edge cases (mobile, dark mode, accessibility) or a better alternative, and point out related bugs you notice along the way.
 - **Phase the work.** Split larger changes into phases. Verify each phase before you commit it, and use one focused commit per change.
 - **Verify in the running app.** A signed-in dev server is usually running at `localhost:1557/staffproductpurchase` in Chrome, so check there first. If none is running, start one (`npm run dev`). If you're blocked (e.g. a sign-in is needed, or the browser can't reach the server), ask the user to step in rather than skipping verification.
+
+## Module locations
+
+Nothing importable lives in `public/`, since everything there is downloadable:
+`basePath` is in `utils/basePath.js`, `formatDateLong` in
+`utils/formatDateLong.js` and the text logos in `components/Reusables/AppLogos.jsx`.
 
 ## Verification
 
