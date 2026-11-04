@@ -1,12 +1,57 @@
 "use client";
 
-import { useState, useRef, useEffect, useId, useMemo } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useId,
+  useMemo,
+} from "react";
 import { ChevronDown, Check, Search } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 // Options lists longer than this get a sticky search box at the top of the
 // listbox so users don't have to scroll through everything.
 const SEARCH_THRESHOLD = 6;
+
+// The horizontal space the panel can use: the nearest ancestor that clips or
+// scrolls sideways (a Modal panel, <main>, a table wrapper), else the viewport.
+function getHorizontalBounds(element) {
+  for (
+    let node = element.parentElement;
+    node && node !== document.body;
+    node = node.parentElement
+  ) {
+    if (getComputedStyle(node).overflowX !== "visible") {
+      const left = node.getBoundingClientRect().left + node.clientLeft;
+      return { left, right: left + node.clientWidth };
+    }
+  }
+  return { left: 0, right: document.documentElement.clientWidth };
+}
+
+// The panel is as wide as its longest option and starts at the trigger's left
+// edge, so near a right edge it can overflow and give the scroller a sideways
+// scrollbar. Move it back inside: line up with the trigger's right edge if that
+// fits, else pin it to the left bound, narrowed (labels wrap) if it must be.
+function fitPanelHorizontally(panel, container) {
+  panel.style.left = "";
+  panel.style.right = "";
+  panel.style.maxWidth = "";
+
+  const bounds = getHorizontalBounds(container);
+  const anchor = container.getBoundingClientRect();
+  if (anchor.left + panel.offsetWidth <= bounds.right) return;
+
+  if (anchor.right - panel.offsetWidth >= bounds.left) {
+    panel.style.left = "auto";
+    panel.style.right = "0";
+    return;
+  }
+  panel.style.left = `${bounds.left - anchor.left}px`;
+  panel.style.maxWidth = `${bounds.right - bounds.left}px`;
+}
 
 // Accessible single-select listbox, built to replace native <select> elements
 // while keeping the same keyboard behavior a native select gives for free:
@@ -64,6 +109,15 @@ export default function Select({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Written straight to the DOM in a layout effect, so it's in place before the
+  // first paint and before the scrollIntoView below measures the panel (which
+  // would otherwise scroll the page sideways to reveal the overflow).
+  useLayoutEffect(() => {
+    if (isOpen && panelRef.current && containerRef.current) {
+      fitPanelHorizontally(panelRef.current, containerRef.current);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
