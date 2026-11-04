@@ -51,7 +51,7 @@ export default function ThemeToggleCompact() {
   ];
 
   return (
-    <div className="relative hidden sm:block" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef}>
       {/* Rendered on the server too, so it holds its place in the header. Only
           the icon depends on the theme, which the server can't know. */}
       <button
