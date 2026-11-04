@@ -3,6 +3,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ClientPortal from "../ClientPortal/ClientPortal";
 import { lockPageScroll } from "@/utils/scrollLock";
+import { useModalStackStore } from "@/store/useModalStackStore";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -94,6 +95,7 @@ export default function Modal({
     const previouslyFocused = document.activeElement;
 
     openPanels.push(panel);
+    useModalStackStore.getState().modalOpened();
     const unlockScroll = lockPageScroll();
     (
       panel?.querySelector("[data-autofocus]") ||
@@ -108,11 +110,19 @@ export default function Modal({
         e.preventDefault();
         onCloseRef.current?.();
       } else if (e.key === "Tab") {
-        const focusable = [...panel.querySelectorAll(FOCUSABLE)];
+        // The toasts sit outside the panel but must stay reachable by keyboard
+        const focusable = [
+          ...panel.querySelectorAll(FOCUSABLE),
+          ...document.querySelectorAll("[data-alert-layer] button"),
+        ];
         if (focusable.length === 0) return e.preventDefault();
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
+        // Focus fell out of the cycle, e.g. the toast it was on just closed
+        if (!focusable.includes(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -126,6 +136,7 @@ export default function Modal({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       openPanels.splice(openPanels.indexOf(panel), 1);
+      useModalStackStore.getState().modalClosed();
       unlockScroll();
       previouslyFocused?.focus?.({ preventScroll: true });
     };

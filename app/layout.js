@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import LoadingLine from "@/components/Reusables/LoadingLine";
+import AlertLayer from "@/components/Reusables/Alerts/AlertLayer";
 import { ThemeProvider } from "next-themes";
 import QueryProvider from "@/components/QueryProvider";
 
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
           disableTransitionOnChange={true}
         >
           <LoadingLine />
+          <AlertLayer />
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>

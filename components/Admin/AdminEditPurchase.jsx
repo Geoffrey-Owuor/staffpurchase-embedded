@@ -20,7 +20,7 @@ import ProductPricing from "../ProductPricing/ProductPricing";
 import Select from "../Reusables/Select";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import EditFormSkeleton from "../skeletons/EditFormSkeleton";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import AdminStageFields from "./AdminStageFields";
 import AdminDeleteRequestDialog from "./AdminDeleteRequestDialog";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
@@ -193,11 +193,6 @@ function EditForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
   const handleFetchStatusChange = (index, isFetching) =>
@@ -263,7 +258,7 @@ function EditForm({
         purchase: { ...staffInfo, ...paymentFields, ...stageData },
         products,
       });
-      setAlertInfo({ show: true, type: "success", message: result.message });
+      triggerAlert("success", result.message);
       // The fresh copy re-keys this form (new version)
       queryClient.setQueryData(["adminPurchase", id], {
         purchase: result.purchase,
@@ -291,14 +286,6 @@ function EditForm({
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
-
       <div className="mx-auto leading-relaxed dark:text-white">
         <div className="flex flex-wrap items-center justify-between gap-3 px-2 pt-2 pb-4">
           <div className="flex items-center gap-2 text-gray-900 dark:text-gray-200">
@@ -542,7 +529,7 @@ function EditForm({
         onClose={() => setDeleteOpen(false)}
         onDeleted={(message) => {
           invalidatePurchaseQueries(queryClient);
-          setAlertInfo({ show: true, type: "success", message });
+          triggerAlert("success", message);
           setTimeout(() => navigate(adminRequestsPath), 700);
         }}
       />

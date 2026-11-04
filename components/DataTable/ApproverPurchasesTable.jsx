@@ -12,7 +12,7 @@ import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoute
 import { formatDateLong } from "@/public/assets";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
 import { fetchApproverPurchases } from "@/utils/FetchPurchases/fetchApproverPurchases";
 
@@ -29,7 +29,12 @@ const PAYMENT_TERMS_OPTIONS = [
 ];
 
 const FILTER_FIELDS = [
-  { key: "search", type: "text", label: "Staff Name", placeholder: "Search staff..." },
+  {
+    key: "search",
+    type: "text",
+    label: "Staff Name",
+    placeholder: "Search staff...",
+  },
   {
     key: "referenceNumber",
     type: "text",
@@ -77,7 +82,6 @@ export default function ApproverPurchasesTable() {
   const queryClient = useQueryClient();
   const [goingTo, setGoingTo] = useState(null);
   const [visibleColumns, setVisibleColumns] = useState(DEFAULT_VISIBLE_COLUMNS);
-  const [alertInfo, setAlertInfo] = useState({ show: false, type: "", message: "" });
 
   const { handleViewClick, handleEditClick, getViewPathName } =
     useDashboardRoutes();
@@ -102,11 +106,10 @@ export default function ApproverPurchasesTable() {
 
   const handleDeleteSuccess = useCallback(
     (deletedId, message) => {
-      setAlertInfo({
-        show: true,
-        type: "success",
-        message: message || "Purchase Request Successfully Deleted",
-      });
+      triggerAlert(
+        "success",
+        message || "Purchase Request Successfully Deleted",
+      );
       queryClient.invalidateQueries({ queryKey: ["purchases"] });
       queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
     },
@@ -114,11 +117,7 @@ export default function ApproverPurchasesTable() {
   );
 
   const handleDeleteError = useCallback((message) => {
-    setAlertInfo({
-      show: true,
-      type: "error",
-      message: message || "Error Deleting Purchase Request",
-    });
+    triggerAlert("error", message || "Error Deleting Purchase Request");
   }, []);
 
   const columns = [
@@ -206,13 +205,6 @@ export default function ApproverPurchasesTable() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <ApprovalCards filters={table.filters} />
       <DataTable
         heading={<PurchasesHistoryHeading />}

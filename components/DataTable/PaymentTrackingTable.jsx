@@ -13,7 +13,7 @@ import {
   PaymentStatus,
   TableApprovalStatus,
 } from "../Reusables/TableApprovalStatus";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import ImportExcelData from "../Reusables/Import/ImportExcelData";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { fetchPaymentTrackingPurchases } from "@/utils/FetchPurchases/fetchPaymentTrackingPurchases";
@@ -44,7 +44,6 @@ export default function PaymentTrackingTable() {
   const queryClient = useQueryClient();
   const [goingTo, setGoingTo] = useState(null);
   const [visibleColumns, setVisibleColumns] = useState(DEFAULT_VISIBLE_COLUMNS);
-  const [alertInfo, setAlertInfo] = useState({ show: false, type: "", message: "" });
   const [periods, setPeriods] = useState([]);
 
   const { handleViewClick, handleEditClick, getViewPathName } =
@@ -65,7 +64,12 @@ export default function PaymentTrackingTable() {
   });
 
   const FILTER_FIELDS = [
-    { key: "search", type: "text", label: "Staff Name", placeholder: "Search staff..." },
+    {
+      key: "search",
+      type: "text",
+      label: "Staff Name",
+      placeholder: "Search staff...",
+    },
     {
       key: "referenceNumber",
       type: "text",
@@ -117,23 +121,17 @@ export default function PaymentTrackingTable() {
 
   const handleCloseSuccess = useCallback(
     (message) => {
-      setAlertInfo({
-        show: true,
-        type: "success",
-        message: message || "Request successfully closed",
-      });
+      triggerAlert("success", message || "Request successfully closed");
       queryClient.invalidateQueries({ queryKey: ["paymentTracking"] });
-      queryClient.invalidateQueries({ queryKey: ["TrackingApprovalCardCounts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["TrackingApprovalCardCounts"],
+      });
     },
     [queryClient],
   );
 
   const handleCloseError = useCallback((message) => {
-    setAlertInfo({
-      show: true,
-      type: "error",
-      message: message || "Error closing the request",
-    });
+    triggerAlert("error", message || "Error closing the request");
   }, []);
 
   const columns = [
@@ -213,13 +211,6 @@ export default function PaymentTrackingTable() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <TrackingApprovalCards filters={table.filters} />
       <DataTable
         heading={
