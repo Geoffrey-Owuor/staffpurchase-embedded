@@ -35,7 +35,7 @@ function SettingsContent({ titleId, onClose }) {
         >
           Settings
         </h3>
-        <nav className="flex flex-row items-center justify-center space-x-2 overflow-x-auto pb-2 md:flex-col md:space-y-2 md:space-x-0 md:overflow-x-visible md:pb-0">
+        <nav className="small-scrollbar flex flex-row items-center justify-center space-x-2 overflow-x-auto pb-2 md:flex-col md:space-y-2 md:space-x-0 md:overflow-x-visible md:pb-0">
           <button
             onClick={() => setActiveTab("general")}
             className={`flex shrink-0 items-center space-x-2 rounded-xl p-2 text-left text-sm font-semibold whitespace-nowrap transition-colors md:w-full ${

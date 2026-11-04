@@ -60,7 +60,7 @@ function ShellFrame({ user, children }) {
         <div
           className={`fixed right-0 ${mainMarginClass} custom:right-2 custom:bottom-2 top-16 bottom-0 left-0 transition-all duration-200`}
         >
-          <main className="bg-base-classes absolute inset-0 overflow-auto border border-gray-300 px-2 dark:border-gray-800">
+          <main className="app-scrollbars bg-base-classes absolute inset-0 overflow-auto border border-gray-300 px-2 dark:border-gray-800">
             <div className="mx-auto mt-2 flex h-full max-w-7xl flex-col">
               {/* DB-driven announcements (system_banners table) */}
               <SystemBanners />

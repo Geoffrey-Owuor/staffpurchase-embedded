@@ -394,7 +394,7 @@ function UploadPreview({ preview }) {
       )}
 
       {issues.length > 0 && (
-        <div className="max-h-72 overflow-auto rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="small-scrollbar max-h-72 overflow-auto rounded-xl border border-gray-200 dark:border-gray-800">
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 bg-gray-800 text-left text-white">
               <tr>

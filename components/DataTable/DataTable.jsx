@@ -98,7 +98,7 @@ export default function DataTable({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto rounded-xl">
+            <div className="small-scrollbar overflow-x-auto rounded-xl">
               <table className="mb-6 min-w-full">
                 <thead className="bg-gray-800 text-white">
                   <tr>
