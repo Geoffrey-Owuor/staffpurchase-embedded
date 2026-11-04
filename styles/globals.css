@@ -202,6 +202,14 @@
       max-width: 100rem /* 1536px */;
     }
   }
+
+  /* Keeps a field the browser jumps to (e.g. the first invalid one on submit)
+     clear of the pinned title bar. It's on the fields and not scroll padding on
+     <main>, which also covers the pinned bars: anything focused or typed into
+     in one then counts as hidden, and the page scrolls behind the bar. */
+  main form :is(input, select, textarea, button, [role="combobox"]) {
+    scroll-margin-top: 5rem;
+  }
 }
 
 /* Scrollbars

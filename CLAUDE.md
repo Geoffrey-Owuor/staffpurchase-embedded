@@ -294,7 +294,10 @@ former ~700-800-line near-duplicate components:
   page's title row (from `md` up, at least 500px tall) and shares
   `hooks/useStickyBleed.js` with `FilterPanel`. Don't use it on a page with a
   `FilterPanel`, which already pins, and keep long descriptions below it. The
-  edit pages also have Save there, via the button's `form` attribute.
+  edit pages also have Save there, via the button's `form` attribute. Keep
+  pinned bars outside `<form>`s and don't put scroll padding on `<main>`: form
+  fields get their clearance from `scroll-margin-top` (`styles/globals.css`),
+  and anything focused inside a pinned bar would otherwise scroll the page.
 - **Theme**: the "D" key shortcut is `ThemeShortcut.jsx`, mounted once in the root
   layout; `ThemeToggle` is only the buttons, so it can be mounted or not freely.
 - **Scrollbars**: `.app-scrollbars` (the dashboard `<main>`, Modal panels, mobile
