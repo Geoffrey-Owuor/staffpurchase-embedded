@@ -92,11 +92,6 @@ export default function Footer() {
               © {new Date().getFullYear()} Hotpoint Appliances Ltd
             </span>
           </div>
-
-          {/* ThemeToggle pinned right */}
-          <div className="absolute top-10.5 right-0 hidden -translate-y-1/2 sm:block">
-            <ThemeToggle />
-          </div>
         </div>
       </div>
     </footer>
