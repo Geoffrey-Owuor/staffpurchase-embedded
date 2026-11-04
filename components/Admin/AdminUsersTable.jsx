@@ -3,7 +3,7 @@ import { useState } from "react";
 import { UserCog } from "lucide-react";
 import DataTable from "../DataTable/DataTable";
 import { useTableQuery } from "../DataTable/useTableQuery";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import UserStatusBadge from "./UserStatusBadge";
 import StaffCheckBadges from "./StaffCheckBadges";
 import ManageUserModal from "./ManageUserModal";
@@ -65,11 +65,6 @@ function UsersHeading() {
 export default function AdminUsersTable() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   // Every department, retired ones included, since they're existing data
   const { allOptions: departmentOptions } = useDepartments();
@@ -136,13 +131,6 @@ export default function AdminUsersTable() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <DataTable
         heading={<UsersHeading />}
         columns={columns}
@@ -190,9 +178,7 @@ export default function AdminUsersTable() {
         open={modalOpen}
         user={selectedUser}
         onClose={() => setModalOpen(false)}
-        onResult={(type, message) =>
-          setAlertInfo({ show: true, type, message })
-        }
+        onResult={(type, message) => triggerAlert(type, message)}
       />
     </>
   );

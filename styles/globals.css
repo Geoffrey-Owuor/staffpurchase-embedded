@@ -79,6 +79,31 @@
     }
   }
 
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  .animate-toast-in {
+    animation: toast-in 0.2s ease-out both;
+    @media (prefers-reduced-motion: reduce) {
+      animation-name: none;
+    }
+  }
+
+  .animate-toast-out {
+    animation: toast-out 0.2s ease-in both;
+  }
+
   .animate-slideDown {
     animation: slideDown 0.2s ease-out forwards;
   }

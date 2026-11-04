@@ -6,7 +6,6 @@ import {
   View,
   GitPullRequestClosed,
   RotateCcw,
-  Blocks,
   ClipboardPen,
 } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -26,7 +25,7 @@ import { useInvoicingLocations } from "@/hooks/useReferenceData";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 
 export default function GeneralViewPurchases({ id }) {
   const queryClient = useQueryClient();
@@ -48,9 +47,6 @@ export default function GeneralViewPurchases({ id }) {
   const [isClosing, setIsClosing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
   const [updating, setUpdating] = useState(false);
 
   const handleConfirmClose = () => {
@@ -69,9 +65,10 @@ export default function GeneralViewPurchases({ id }) {
       if (!response.ok) {
         throw new Error(result.message || "Error closing Purchase Request");
       }
-      setAlertType("success");
-      setAlertMessage(result.message || "Purchase request closed successfully");
-      setShowAlert(true);
+      triggerAlert(
+        "success",
+        result.message || "Purchase request closed successfully",
+      );
 
       queryClient.invalidateQueries({
         queryKey: ["TrackingApprovalCardCounts"],
@@ -79,9 +76,10 @@ export default function GeneralViewPurchases({ id }) {
       queryClient.invalidateQueries({ queryKey: ["paymentTracking"] });
     } catch (error) {
       console.error("Error Closing Purchase Request:", error);
-      setAlertType("error");
-      setAlertMessage(error.message || "Error closing the purchase request");
-      setShowAlert(true);
+      triggerAlert(
+        "error",
+        error.message || "Error closing the purchase request",
+      );
     } finally {
       setUpdating(false);
       setShowConfirmationDialog(false);
@@ -109,12 +107,6 @@ export default function GeneralViewPurchases({ id }) {
 
   const { handleEditClick, navigate, getAdminEditPathName } =
     useDashboardRoutes();
-
-  // const handleCustomAlertShow = () => {
-  //   setAlertType("success");
-  //   setAlertMessage("Custom Alert Message Showing");
-  //   setShowAlert(true);
-  // };
 
   const gotoPurchaseEdit = (id) => {
     setIsEditing(true);
@@ -173,12 +165,6 @@ export default function GeneralViewPurchases({ id }) {
             >
               <RotateCcw className="h-4 w-4" />
             </button>
-            {/* <button
-              onClick={handleCustomAlertShow}
-              className="rounded-full bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800"
-            >
-              <Blocks className="h-4 w-4" />
-            </button> */}
           </div>
           <div className="flex items-center justify-end gap-4">
             {/* Middle Edit Button */}
@@ -546,14 +532,6 @@ export default function GeneralViewPurchases({ id }) {
           )}
         </div>
       </div>
-
-      {showAlert && (
-        <Alert
-          message={alertMessage}
-          type={alertType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
 
       <ConfirmationDialog
         message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"

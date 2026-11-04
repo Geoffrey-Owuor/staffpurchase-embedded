@@ -1,8 +1,7 @@
 import { useRouter } from "next/navigation";
 import { X, Save } from "lucide-react";
 import { useUser } from "@/context/UserContext";
-import Alert from "../Alert";
-import { useState } from "react";
+import { triggerAlert } from "@/store/useAlertStore";
 
 export default function SaveCloseComponent({
   payrollApproval,
@@ -10,9 +9,6 @@ export default function SaveCloseComponent({
   ccApproval,
   disabled = false,
 }) {
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertType, setAlertType] = useState("error");
-  const [alertMessage, setAlertMessage] = useState("");
   const router = useRouter();
   const { role: userRole } = useUser();
 
@@ -21,11 +17,10 @@ export default function SaveCloseComponent({
     //Condition for 'hr' role
     if (userRole === "hr" && payrollApproval !== "approved") {
       event.preventDefault(); // Stop the form from submitting
-      setAlertMessage(
+      triggerAlert(
+        "error",
         "Purchase request is either not approved in previous steps or has been declined by Payroll",
       );
-      setAlertType("error");
-      setShowAlert(true);
       return; // End the function
     }
 
@@ -35,11 +30,10 @@ export default function SaveCloseComponent({
       (payrollApproval !== "approved" || hrApproval !== "approved")
     ) {
       event.preventDefault(); // Stop the form from submitting
-      setAlertMessage(
+      triggerAlert(
+        "error",
         "Purchase request is either not approved in previous steps or has been declined by HR/Payroll",
       );
-      setAlertType("error");
-      setShowAlert(true);
       return; // End the function
     }
 
@@ -51,24 +45,16 @@ export default function SaveCloseComponent({
         ccApproval !== "approved")
     ) {
       event.preventDefault(); // Stop the form from submitting
-      setAlertMessage(
+      triggerAlert(
+        "error",
         "Purchase request is either not approved in previous steps or has been declined by HR/Credit/Payroll",
       );
-      setAlertType("error");
-      setShowAlert(true);
       return; // End the function
     }
   };
 
   return (
     <>
-      {showAlert && (
-        <Alert
-          message={alertMessage}
-          type={alertType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
       <div className="flex justify-center space-x-4 py-6">
         <button
           type="button"

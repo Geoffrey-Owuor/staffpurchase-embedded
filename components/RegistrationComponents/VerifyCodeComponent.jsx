@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import AlertPopup from "../Reusables/AlertPopup";
+import { triggerAlert } from "@/store/useAlertStore";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import { basePath } from "@/public/assets";
 
@@ -13,7 +13,6 @@ export default function VerifyCodeComponent({ email, isCompanyEmail }) {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
   const [coolDown, setCoolDown] = useState(0);
 
   // New refs to control focus
@@ -119,8 +118,7 @@ export default function VerifyCodeComponent({ email, isCompanyEmail }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      setShowAlert(true);
-      setTimeout(() => setShowAlert(false), 4000);
+      triggerAlert("success", "Verification code has been resent!");
     } catch (error) {
       console.error("Resend failed", error);
     }
@@ -137,10 +135,6 @@ export default function VerifyCodeComponent({ email, isCompanyEmail }) {
 
   return (
     <AuthBackground>
-      <AlertPopup
-        message="Verification code has been resent!"
-        show={showAlert}
-      />
       {/* Card */}
       <div className="flex items-center justify-center rounded-2xl border border-gray-200/80 bg-gray-50 p-7 shadow-xl ring-1 ring-black/5 dark:border-gray-800 dark:bg-gray-950 dark:ring-white/5">
         <div className="w-full max-w-sm space-y-6">
@@ -189,7 +183,7 @@ export default function VerifyCodeComponent({ email, isCompanyEmail }) {
                   required
                   disabled={loading}
                   // Styling updated to match input fields and use focus rings
-                  className="h-12 w-10 rounded-lg border border-gray-300 bg-white text-center text-lg font-semibold text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-red-400 focus:ring-1 focus:ring-red-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:w-12 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-red-500 dark:focus:ring-red-500"
+                  className="h-12 w-10 rounded-lg border border-gray-300 bg-white text-center text-lg font-semibold text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-red-400 focus:ring-1 focus:ring-red-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:w-12 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-red-500 dark:focus:ring-red-500"
                 />
               ))}
             </div>
@@ -199,7 +193,7 @@ export default function VerifyCodeComponent({ email, isCompanyEmail }) {
               type="submit"
               disabled={!isCodeFull || loading}
               // Updated button classes to match login button style
-              className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-gray-600"
+              className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-gray-600"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
