@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { Loader2, Save, X } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
 import Select from "../../Reusables/Select";
+import DatePicker from "../../Reusables/DatePicker";
 import {
   hintClass,
   inputClass,
@@ -211,13 +212,13 @@ function WindowForm({
             <label htmlFor="credit-window-starts" className={labelClass}>
               Starts
             </label>
-            <input
+            <DatePicker
               id="credit-window-starts"
-              type="datetime-local"
+              withTime
               required
               value={form.startsAt}
               disabled={busy || started}
-              onChange={set("startsAt")}
+              onChange={(value) => set("startsAt")({ target: { value } })}
               className={inputClass}
             />
             {started && (
@@ -228,14 +229,15 @@ function WindowForm({
             <label htmlFor="credit-window-ends" className={labelClass}>
               Ends
             </label>
-            <input
+            <DatePicker
               id="credit-window-ends"
-              type="datetime-local"
+              withTime
               required
+              defaultTime="23:59"
               min={form.startsAt || undefined}
               value={form.endsAt}
               disabled={busy}
-              onChange={set("endsAt")}
+              onChange={(value) => set("endsAt")({ target: { value } })}
               className={inputClass}
             />
             <p className={hintClass}>

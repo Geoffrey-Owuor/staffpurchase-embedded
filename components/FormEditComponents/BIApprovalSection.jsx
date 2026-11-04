@@ -1,3 +1,4 @@
+import DatePicker from "../Reusables/DatePicker";
 import { formatDateLong } from "@/public/assets";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import Select from "../Reusables/Select";
@@ -26,13 +27,14 @@ export default function BIApprovalSection({
           >
             Date of Invoice <FormAsterisk />
           </label>
-          <input
-            type="date"
+          <DatePicker
             id="invoice_date"
             name="invoice_date"
             value={formData.invoice_date}
-            onChange={handleChange}
-            readOnly={isReadOnly}
+            onChange={(value) =>
+              handleChange({ target: { name: "invoice_date", value } })
+            }
+            disabled={isReadOnly}
             className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${
               isReadOnly
                 ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800"

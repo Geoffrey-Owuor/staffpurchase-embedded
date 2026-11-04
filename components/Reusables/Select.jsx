@@ -28,6 +28,8 @@ export default function Select({
   disabled = false,
   name,
   required = false,
+  searchable = true,
+  ariaLabel,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -37,7 +39,7 @@ export default function Select({
   const searchInputRef = useRef(null);
   const listboxId = useId();
 
-  const showSearch = options.length > SEARCH_THRESHOLD;
+  const showSearch = searchable && options.length > SEARCH_THRESHOLD;
 
   const filteredOptions = useMemo(() => {
     if (!showSearch || !searchQuery.trim()) return options;
@@ -82,6 +84,14 @@ export default function Select({
         : Math.min(Math.max(current, 0), filteredCount - 1),
     );
   }, [filteredCount]);
+
+  // Long lists open and move past the visible rows, so keep the highlight in view
+  useEffect(() => {
+    if (!isOpen || highlightedIndex < 0) return;
+    document
+      .getElementById(`${listboxId}-${highlightedIndex}`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [isOpen, highlightedIndex, listboxId]);
 
   const openList = (initialIndex) => {
     setIsOpen(true);
@@ -152,6 +162,8 @@ export default function Select({
         break;
       case "Escape":
         event.preventDefault();
+        // Only the list closes, not a Modal or calendar it sits in
+        event.stopPropagation();
         closeList();
         break;
       case "Tab":
@@ -180,6 +192,8 @@ export default function Select({
         break;
       case "Escape":
         event.preventDefault();
+        // Only the list closes, not a Modal or calendar it sits in
+        event.stopPropagation();
         closeList();
         break;
       case "Tab":
@@ -228,6 +242,7 @@ export default function Select({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
+        aria-label={ariaLabel}
         disabled={disabled}
         onClick={() => (isOpen ? closeList() : openList())}
         onKeyDown={handleTriggerKeyDown}

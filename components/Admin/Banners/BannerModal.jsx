@@ -1,6 +1,7 @@
 "use client";
 import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import DatePicker from "../../Reusables/DatePicker";
 import {
   Copy,
   Eye,
@@ -101,7 +102,8 @@ function BannerContent({
   const [error, setError] = useState("");
 
   const busy = busyAction !== null;
-  const set = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key) => (value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
   const everyone = form.targetRoles.length === 0;
 
   const toggleRole = (role) =>
@@ -162,9 +164,14 @@ function BannerContent({
     if (isEdit) {
       run("save", "PATCH", { ...formBody(), reshow });
     } else {
-      run("create", "POST", { ...formBody(), isActive: form.isActive }, {
-        close: true,
-      });
+      run(
+        "create",
+        "POST",
+        { ...formBody(), isActive: form.isActive },
+        {
+          close: true,
+        },
+      );
     }
   };
 
@@ -287,12 +294,12 @@ function BannerContent({
             <label htmlFor="banner-starts" className={labelClass}>
               Starts
             </label>
-            <input
+            <DatePicker
               id="banner-starts"
-              type="datetime-local"
+              withTime
               value={form.startsAt}
               disabled={busy}
-              onChange={(e) => set("startsAt")(e.target.value)}
+              onChange={set("startsAt")}
               className={inputClass}
             />
             <p className={hintClass}>
@@ -303,13 +310,14 @@ function BannerContent({
             <label htmlFor="banner-ends" className={labelClass}>
               Ends
             </label>
-            <input
+            <DatePicker
               id="banner-ends"
-              type="datetime-local"
-              value={form.endsAt}
+              withTime
+              defaultTime="23:59"
               min={form.startsAt || undefined}
+              value={form.endsAt}
               disabled={busy}
-              onChange={(e) => set("endsAt")(e.target.value)}
+              onChange={set("endsAt")}
               className={inputClass}
             />
             <p className={hintClass}>Leave empty to show until deactivated.</p>
