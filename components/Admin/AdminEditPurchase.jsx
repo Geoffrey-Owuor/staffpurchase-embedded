@@ -288,7 +288,7 @@ function EditForm({
   return (
     <>
       <div className="mx-auto leading-relaxed dark:text-white">
-        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-3 px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-3 px-2 py-3">
           <div className="flex items-center gap-2 text-gray-900 dark:text-gray-200">
             <ClipboardPen className="h-6 w-6" />
             <h1 className="text-xl font-semibold">
