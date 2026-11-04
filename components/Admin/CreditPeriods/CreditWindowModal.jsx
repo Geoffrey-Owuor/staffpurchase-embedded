@@ -1,7 +1,8 @@
 "use client";
 import { useId, useState } from "react";
-import { Loader2, Save, X } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import Select from "../../Reusables/Select";
 import DatePicker from "../../Reusables/DatePicker";
 import {
@@ -125,31 +126,19 @@ function WindowForm({
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3
-            id={titleId}
-            className="text-xl font-bold text-gray-900 dark:text-white"
-          >
-            {current
-              ? "Edit extended credit window"
-              : "New extended credit window"}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Credit requests submitted inside the window may choose an
-            extension-only period up to the max months.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={
+          current ? "Edit extended credit window" : "New extended credit window"
+        }
+        onClose={onClose}
+        closeDisabled={busy}
+      />
+
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Credit requests submitted inside the window may choose an extension-only
+        period up to the max months.
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>

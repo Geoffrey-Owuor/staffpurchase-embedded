@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 // Nearest scrolling ancestor - the dashboard scrolls inside <main>, not the
 // window, so that's what a sticky element sticks to.
-function getScrollParent(el) {
+export function getScrollParent(el) {
   for (let node = el?.parentElement; node; node = node.parentElement) {
     if (/(auto|scroll)/.test(getComputedStyle(node).overflowY)) return node;
   }

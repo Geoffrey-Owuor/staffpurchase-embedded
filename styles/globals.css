@@ -210,6 +210,14 @@
   main form :is(input, select, textarea, button, [role="combobox"]) {
     scroll-margin-top: 5rem;
   }
+
+  /* The same for a Modal's pinned title bar, leaving out the bar's own controls. */
+  [role="dialog"]
+    :is(input, select, textarea, button, [role="combobox"]):not(
+      [data-modal-header] *
+    ) {
+    scroll-margin-top: 5.5rem;
+  }
 }
 
 /* Scrollbars

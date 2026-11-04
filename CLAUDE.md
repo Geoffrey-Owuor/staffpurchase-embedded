@@ -276,7 +276,11 @@ former ~700-800-line near-duplicate components:
   width; don't set width/height/rounding without `md:`. On desktop a
   `clip-path` rounds the panel's corners, so the flush scrollbar is cut along
   the same curve; the radius only shapes the border. It also cuts the panel's
-  outer shadow, and anything overflowing the panel.
+  outer shadow, and anything overflowing the panel. Start a panel with
+  `components/Reusables/Modal/ModalHeader.jsx`, the pinned title bar: pass the
+  panel's padding (`padding`, 4/5/6) and keep long descriptions in the body.
+  Settings (two columns) and the Changelog (its own inner scroller) pin their
+  own headers instead.
 - **Toasts**: call `triggerAlert("success" | "error", message)` from
   `store/useAlertStore.js` (works outside React too). Don't keep alert state
   in a component: `components/Reusables/Alerts/AlertLayer.jsx` in the root
