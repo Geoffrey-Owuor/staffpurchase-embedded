@@ -2,7 +2,7 @@ import { FileSliders } from "lucide-react";
 import TopBarButtons from "../Reusables/TopBarButtons/TopBarButtons";
 import StickyPageHeader from "../Reusables/StickyPageHeader";
 
-export default function EditPurchaseHeading() {
+export default function EditPurchaseHeading({ action }) {
   return (
     <>
       <StickyPageHeader className="flex items-center justify-between px-2 pt-2 pb-4">
@@ -12,7 +12,10 @@ export default function EditPurchaseHeading() {
             Manage Request
           </h2>
         </div>
-        <TopBarButtons />
+        <div className="flex items-center gap-2">
+          {action}
+          <TopBarButtons />
+        </div>
       </StickyPageHeader>
     </>
   );
