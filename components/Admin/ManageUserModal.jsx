@@ -9,9 +9,9 @@ import {
   ShieldCheck,
   UserCheck,
   UserX,
-  X,
 } from "lucide-react";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import Select from "../Reusables/Select";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UserStatusBadge, { getUserStatus } from "./UserStatusBadge";
@@ -144,28 +144,13 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3
-            id={titleId}
-            className="truncate text-xl font-bold text-gray-900 dark:text-white"
-          >
-            {user.name}
-          </h3>
-          <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-            {user.email}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={user.name}
+        subtitle={user.email}
+        onClose={onClose}
+        closeDisabled={busy}
+      />
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
         <UserStatusBadge user={user} />

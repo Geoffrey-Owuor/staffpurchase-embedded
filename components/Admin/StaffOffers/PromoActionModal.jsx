@@ -1,7 +1,8 @@
 "use client";
 import { useId, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { usePromoSave } from "./usePromoSave";
 import DatePicker from "../../Reusables/DatePicker";
 import {
@@ -93,23 +94,12 @@ function PromoActionForm({ action, promo, titleId, onClose, onDone }) {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <h3
-          id={titleId}
-          className="text-xl font-bold text-gray-900 dark:text-white"
-        >
-          {TITLES[action]}
-        </h3>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={TITLES[action]}
+        onClose={onClose}
+        closeDisabled={busy}
+      />
 
       {error && (
         <p

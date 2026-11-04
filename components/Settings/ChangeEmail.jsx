@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useId } from "react";
-import { Mail, Loader2, X } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
 import { triggerAlert } from "@/store/useAlertStore";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { useRouter } from "next/navigation";
 import { LoggingOutOverlay } from "../Reusables/LoadingBar";
 import { basePath } from "@/utils/basePath";
@@ -207,22 +208,11 @@ function ChangeEmailContent({ titleId, onClose }) {
       {loggingOut && <LoggingOutOverlay isLoggingOut={loggingOut} />}
       {step === "step1" && (
         <>
-          <div className="flex items-start justify-between">
-            <h3
-              id={titleId}
-              className="text-xl font-bold text-gray-900 dark:text-white"
-            >
-              Change Your Email
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              aria-label="Close dialog"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title="Change Your Email"
+            onClose={onClose}
+          />
 
           <form onSubmit={handleVerifyEmail} className="mt-4 space-y-4">
             {/* New Email Field */}
@@ -307,22 +297,11 @@ function ChangeEmailContent({ titleId, onClose }) {
       {step === "step2" && (
         <>
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <h3
-              id={titleId}
-              className="text-xl font-bold text-gray-900 dark:text-white"
-            >
-              Verify Your New Email
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              aria-label="Close dialog"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title="Verify Your New Email"
+            onClose={onClose}
+          />
 
           {/* Informational Text */}
           <div className="mt-6 mb-7 text-center">

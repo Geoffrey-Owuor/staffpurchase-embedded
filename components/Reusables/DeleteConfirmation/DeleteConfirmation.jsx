@@ -1,9 +1,10 @@
 "use client";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { useId, useState } from "react";
 import FormAsterisk from "../FormAsterisk/FormAsterisk";
 import Modal from "../Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { basePath } from "@/utils/basePath";
 
 // Keep mounted and toggle `open`; the steps live in their own component so
@@ -76,22 +77,12 @@ function DeleteSteps({ titleId, onConfirm, onCancel, busy }) {
     <>
       {step === 1 && (
         <div>
-          <div className="flex items-start justify-between">
-            <h3
-              id={titleId}
-              className="mb-3 text-xl font-bold text-gray-900 dark:text-white"
-            >
-              Delete Purchase Request
-            </h3>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              aria-label="Close dialog"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title="Delete Purchase Request"
+            onClose={onCancel}
+            padding={4}
+          />
           <p className="mb-4 text-center text-gray-700 dark:text-gray-400">
             Enter your password before proceeding
           </p>
@@ -147,23 +138,13 @@ function DeleteSteps({ titleId, onConfirm, onCancel, busy }) {
 
       {step === 2 && (
         <div>
-          <div className="flex items-start justify-between">
-            <h3
-              id={titleId}
-              className="mb-3 text-xl font-bold text-gray-900 dark:text-white"
-            >
-              Confirm Deletion
-            </h3>
-            <button
-              onClick={onCancel}
-              type="button"
-              disabled={busy}
-              className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-              aria-label="Close dialog"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title="Confirm Deletion"
+            onClose={onCancel}
+            closeDisabled={busy}
+            padding={4}
+          />
           <p className="mb-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-400">
             Type in "I AM SURE" in capital letters
           </p>
