@@ -21,6 +21,7 @@ import Select from "../Reusables/Select";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import EditFormSkeleton from "../skeletons/EditFormSkeleton";
 import { triggerAlert } from "@/store/useAlertStore";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 import AdminStageFields from "./AdminStageFields";
 import AdminDeleteRequestDialog from "./AdminDeleteRequestDialog";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
@@ -287,7 +288,7 @@ function EditForm({
   return (
     <>
       <div className="mx-auto leading-relaxed dark:text-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-3 px-2 pt-2 pb-4">
           <div className="flex items-center gap-2 text-gray-900 dark:text-gray-200">
             <ClipboardPen className="h-6 w-6" />
             <h1 className="text-xl font-semibold">
@@ -310,7 +311,7 @@ function EditForm({
               Delete
             </button>
           </div>
-        </div>
+        </StickyPageHeader>
 
         <p className="mx-2 mb-4 rounded-lg bg-blue-50 p-2 text-xs text-blue-900 dark:bg-blue-950 dark:text-blue-200">
           Admin override: changes skip the approval workflow and its emails, and

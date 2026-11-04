@@ -12,6 +12,7 @@ import {
 import { triggerAlert } from "@/store/useAlertStore";
 import ReferenceDataSkeleton from "../skeletons/ReferenceDataSkeleton";
 import CreditPeriodsSection from "./CreditPeriods/CreditPeriodsSection";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 import {
   fetchReferenceData,
   saveReferenceData,
@@ -63,17 +64,17 @@ export default function ReferenceDataPage() {
   return (
     <>
       <div className="px-2 pb-6">
-        <div className="mt-3 mb-5 px-1">
+        <StickyPageHeader className="px-1 pt-3 pb-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Database className="h-5 w-5" />
             Reference data
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Dropdown lists and settings used across the portal. Deactivate
-            entries instead of deleting them - requests and users that already
-            use them keep their value. Every change is in the audit log.
-          </p>
-        </div>
+        </StickyPageHeader>
+        <p className="mb-5 px-1 text-sm text-gray-500 dark:text-gray-400">
+          Dropdown lists and settings used across the portal. Deactivate entries
+          instead of deleting them - requests and users that already use them
+          keep their value. Every change is in the audit log.
+        </p>
 
         {isLoading ? (
           <ReferenceDataSkeleton />
