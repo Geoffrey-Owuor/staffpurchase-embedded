@@ -64,7 +64,8 @@ const openPanels = [];
 // per-open state in a child component so it resets on reopen.
 // `dismissible={false}` blocks Escape/backdrop/close while e.g. a request is
 // in flight. Mark the element that should receive initial focus with
-// `data-autofocus` (defaults to the first focusable element).
+// `data-autofocus` (defaults to the panel, so opening a modal doesn't ring the
+// close button; the first Tab then moves to the first focusable element).
 //
 // `className` styles the panel (colors, border, padding) and must give it a
 // desktop width (e.g. `md:max-w-md`; panels are w-full). Don't
@@ -97,11 +98,9 @@ export default function Modal({
     openPanels.push(panel);
     useModalStackStore.getState().modalOpened();
     const unlockScroll = lockPageScroll();
-    (
-      panel?.querySelector("[data-autofocus]") ||
-      panel?.querySelector(FOCUSABLE) ||
-      panel
-    )?.focus({ preventScroll: true });
+    (panel?.querySelector("[data-autofocus]") || panel)?.focus({
+      preventScroll: true,
+    });
 
     const handleKeyDown = (e) => {
       if (!panel || openPanels[openPanels.length - 1] !== panel) return;
