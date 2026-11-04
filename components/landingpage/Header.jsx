@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import ThemeToggleCompact from "../Reusables/ThemeProviders/ThemeToggleCompact";
 import Link from "next/link";
-import { basePath, LandingPageLogo } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
+import { LandingPageLogo } from "@/components/Reusables/AppLogos";
 
 const NAV_LINK_CLASSES =
   "relative text-gray-600 transition hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full dark:after:bg-red-400";

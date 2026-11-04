@@ -14,7 +14,7 @@ import {
   STAFF_CHECK_OPTIONS,
   USER_STATUS_OPTIONS,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { useDepartments } from "@/hooks/useReferenceData";
 
 const BASE_FILTER_FIELDS = [

@@ -4,7 +4,7 @@ import { useUser } from "@/context/UserContext";
 import { useId, useState } from "react";
 import FormAsterisk from "../FormAsterisk/FormAsterisk";
 import Modal from "../Modal/Modal";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 // Keep mounted and toggle `open`; the steps live in their own component so
 // the password/confirmation text reset every time the dialog reopens.

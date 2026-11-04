@@ -11,7 +11,7 @@ import {
   PROBATION_OPTIONS,
   PURCHASE_HISTORY_COMMENT_OPTIONS,
 } from "@/utils/Approvals/stageFieldOptions";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 const inputClass =
   "w-full rounded-xl border border-gray-200 bg-white px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white";

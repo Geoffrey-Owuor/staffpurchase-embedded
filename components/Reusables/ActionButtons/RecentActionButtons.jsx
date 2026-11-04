@@ -12,7 +12,7 @@ import ClientPortal from "../ClientPortal/ClientPortal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import ConfirmationDialog from "../ConfirmationDialog";
 import { useUser } from "@/context/UserContext";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 // Reusable style for the dropdown menu items
 // The table row's Delete action is switched off - see the comment on it.

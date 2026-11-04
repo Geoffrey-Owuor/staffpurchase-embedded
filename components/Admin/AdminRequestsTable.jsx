@@ -10,7 +10,7 @@ import { triggerAlert } from "@/store/useAlertStore";
 import AdminDeleteRequestDialog from "./AdminDeleteRequestDialog";
 import { fetchApproverPurchases } from "@/utils/FetchPurchases/fetchApproverPurchases";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 // approvalStatus means the overall outcome for admin (see
 // api/tablesdata/purchaseshistorydata).

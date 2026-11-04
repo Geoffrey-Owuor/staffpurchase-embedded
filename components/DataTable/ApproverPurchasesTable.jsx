@@ -9,7 +9,7 @@ import PurchasesHistoryHeading from "../Reusables/Headings/PurchasesHistoryHeadi
 import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButtons";
 import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
 import { triggerAlert } from "@/store/useAlertStore";

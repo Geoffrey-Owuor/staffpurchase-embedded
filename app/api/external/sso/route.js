@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createSession } from "@/app/lib/auth";
 import { getCurrentUser } from "@/app/lib/auth";
 import crypto from "crypto";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { isValidRole } from "@/utils/routes";
 import pool from "@/lib/db";
 import { getRequestBaseUrl } from "@/lib/requestBaseUrl";

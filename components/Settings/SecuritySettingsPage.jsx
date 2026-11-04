@@ -7,7 +7,7 @@ import { triggerAlert } from "@/store/useAlertStore";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import ChangeEmail from "./ChangeEmail";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export default function SecuritySettingsPage() {
   const { email } = useUser();

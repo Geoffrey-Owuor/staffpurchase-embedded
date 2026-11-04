@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { getRequestBaseUrl } from "@/lib/requestBaseUrl";
 
 // Where the dashboard layout sends a session whose JWT is still valid but

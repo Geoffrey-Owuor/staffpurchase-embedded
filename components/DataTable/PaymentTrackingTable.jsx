@@ -7,7 +7,7 @@ import { useTableQuery } from "./useTableQuery";
 import TrackingApprovalCards from "../Reusables/ReusableApprovalCards/TrackingApprovalCards";
 import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButtons";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import {
   PaymentStatus,

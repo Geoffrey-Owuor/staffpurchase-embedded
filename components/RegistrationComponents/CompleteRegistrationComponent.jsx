@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "../Reusables/Images/AuthBackground";
 import { triggerAlert } from "@/store/useAlertStore";
 import Select from "../Reusables/Select";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { useDepartments } from "@/hooks/useReferenceData";
 import { isValidRole } from "@/utils/routes";
 
