@@ -9,6 +9,21 @@ function getScrollParent(el) {
   return null;
 }
 
+// The scroller's exact inner edges (scrollbar excluded), from a throwaway
+// absolutely positioned child, so the scroller must be positioned (<main> is).
+// clientLeft/clientWidth are rounded: at 150% display scaling a 1px border is
+// really 0.67px, so they put the right edge up to a pixel too far out, and a
+// stuck element stretched to it overflows and brings up a horizontal scrollbar.
+function getInnerEdges(scroller) {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:absolute;left:0;right:0;height:0;visibility:hidden";
+  scroller.appendChild(probe);
+  const { left, right } = probe.getBoundingClientRect();
+  probe.remove();
+  return { left, right };
+}
+
 // For a sticky element preceded by the returned `sentinelRef` (a zero-height
 // marker in the same slot): `isStuck` once the marker has scrolled out of the
 // scroll container, and `bleed` - how far the slot's edges sit inside the
@@ -32,12 +47,12 @@ export function useStickyBleed() {
 
     const measure = () => {
       const slot = sentinel.getBoundingClientRect();
-      const box = scroller.getBoundingClientRect();
-      const innerLeft = box.left + scroller.clientLeft;
-      const innerRight = innerLeft + scroller.clientWidth;
+      const inner = getInnerEdges(scroller);
+      // Rounded down: float noise alone (a 0.01px overshoot) can overflow too
+      const toBleed = (gap) => Math.max(0, Math.floor(gap * 10) / 10);
       setBleed({
-        left: Math.max(0, slot.left - innerLeft),
-        right: Math.max(0, innerRight - slot.right),
+        left: toBleed(slot.left - inner.left),
+        right: toBleed(inner.right - slot.right),
       });
     };
     measure();
