@@ -58,7 +58,7 @@ correctness check available.
   `session_version` to end a user's sessions (deactivation, role change,
   password reset). `getCurrentUser()` alone is JWT-only.
 - **Lockout vs deactivation**: a lockout is `password_attempts >=
-  MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
+MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
   or admin unlock clears it. `is_active` is changed only by an admin - login
   no longer sets it on lockout.
 - **Staff directory checks** (`db/migrations/2026-10-20_staff_verification.sql`):
@@ -75,7 +75,7 @@ correctness check available.
     and the reply/next page look the same (no enumeration), so the
     verify-code page needs only the `verify_email` cookie, not a code row.
   - The `verify_email` cookie (`lib/verifyEmailCookie.js`, path
-    `${basePath}/`) is required by the register pages *and* by
+    `${basePath}/`) is required by the register pages _and_ by
     `staffdetails`/`completeregistration`, which only act on the email it
     names - knowing a freshly verified email isn't enough to finish that
     registration from another browser.
@@ -93,7 +93,7 @@ correctness check available.
     because that runs on every request. The admin Users page shows
     Verified/Unverified and Duplicate payroll pills (`staffCheck` filter);
     the migration has the review queries.
-- **Roles**: `admin` is a *requester* role (`REQUESTER_ROLES`/
+- **Roles**: `admin` is a _requester_ role (`REQUESTER_ROLES`/
   `isRequesterRole` in `utils/routes.js`): it submits and sees its own
   requests exactly like `staff` and is never part of the approval chain. Use
   `isRequesterRole(role)` rather than `role === "staff"` for "acts like a
@@ -101,7 +101,7 @@ correctness check available.
   get (e.g. the own-requests-only rule in `generalviewpurchases`).
 - **Admin tools** live under `/dashboard/admin/*` (gated by
   `admin/layout.js`) and `/api/admin/*` (`requireAuth(..., { roles:
-  ["admin"] })`). Users page: `components/Admin/AdminUsersTable.jsx` +
+["admin"] })`). Users page: `components/Admin/AdminUsersTable.jsx` +
   `ManageUserModal.jsx` -> `PATCH /api/admin/users/[id]` with an `action`
   (`update_profile`, `change_role`, `deactivate`, `reactivate`, `unlock`,
   `send_reset`). Guardrails are server-side: role change/deactivation can't
@@ -113,8 +113,8 @@ correctness check available.
 - **Audit log**: every admin action (plus CC product removals, see Pricing)
   writes `admin_audit_log`
   (`db/migrations/2026-10-17_admin_audit_log.sql`) via
-  `lib/adminAudit.js` `writeAdminAudit(connection, ...)`, in the *same
-  transaction* as the change. Snapshots never include password/token
+  `lib/adminAudit.js` `writeAdminAudit(connection, ...)`, in the _same
+  transaction_ as the change. Snapshots never include password/token
   columns. Add any new action's label to `ADMIN_AUDIT_ACTIONS` in
   `utils/Admin/adminConstants.js`. Viewer: `/dashboard/admin/audit-log`.
 - **Admin request editor**: `/dashboard/admin/requests` (all requests,
@@ -143,7 +143,7 @@ correctness check available.
   `/api/staffpurchaseshistory`.
 - **Admin analytics**: `/dashboard/admin/analytics` (the `/dashboard/admin`
   landing page) <- `GET /api/admin/analytics?fromDate&toDate&status`. The
-  count tiles and approval pipeline cover requests *submitted* in the range;
+  count tiles and approval pipeline cover requests _submitted_ in the range;
   the value tile, monthly charts, Volume & value and Products follow
   `status` (`approved` default / `inProgress` / `declined` / `all`,
   `STATUS_SCOPES` in the route) and range on the date each request reached
@@ -305,13 +305,13 @@ before the code that depends on it deploys.
   rename via the admin page also renames it on `users`) and `app_settings`
   (only keys whitelisted in `APP_SETTINGS`, `utils/Admin/adminConstants.js`
   - currently `mpesa_till_number`). Edited at `/dashboard/admin/reference-data`
-  (`/api/admin/reference-data`, audited, revalidates the tag itself).
-  Entries are deactivated, never deleted: inactive ones aren't offered but
-  still label existing records. Client components read them through
-  `hooks/useReferenceData.js` (`useInvoicingLocations`, `useDepartments`,
-  `useAppSettings`; react-query keys under `"referenceData"`). Registration
-  and the admin profile edit only accept an active department. New accounts
-  are always `staff` - there's no email->role mapping any more.
+    (`/api/admin/reference-data`, audited, revalidates the tag itself).
+    Entries are deactivated, never deleted: inactive ones aren't offered but
+    still label existing records. Client components read them through
+    `hooks/useReferenceData.js` (`useInvoicingLocations`, `useDepartments`,
+    `useAppSettings`; react-query keys under `"referenceData"`). Registration
+    and the admin profile edit only accept an active department. New accounts
+    are always `staff` - there's no email->role mapping any more.
 - **Credit periods** (`db/migrations/2026-10-21_credit_periods.sql`), also
   on the Reference Data page (`components/Admin/CreditPeriods/`,
   `/api/admin/credit-periods`, rules in `lib/adminCreditPeriods.js`,
@@ -367,7 +367,7 @@ before the code that depends on it deploys.
 - **Promos** (`db/migrations/2026-10-20_staff_offer_promos.sql`): every
   offer row belongs to a `staff_offer_promos` promo (`promo_id`, NOT NULL)
   that owns the window and an active flag. An offer applies only when the
-  row *and* its promo are active and `NOW()` is inside the *promo's*
+  row _and_ its promo are active and `NOW()` is inside the _promo's_
   window; the row's `starts_at`/`ends_at`/`promo_name` just mirror the
   promo (`syncPromoRows`) for hand queries. Managed at
   `/dashboard/admin/staff-offers` (`components/Admin/StaffOffers/`,
@@ -455,7 +455,7 @@ before the code that depends on it deploys.
   add their own do-not-reply text.
 - Email links (workflow templates, the password-reset link, that footer)
   use `NEXT_PUBLIC_BASE_URL` as-is, so it must be the full public URL
-  *including* the base path (e.g. `https://host/staffproductpurchase`).
+  _including_ the base path (e.g. `https://host/staffproductpurchase`).
   Nothing derives it from `NEXT_PUBLIC_BASE_PATH` - keep the two in sync per
   environment.
 
@@ -502,6 +502,15 @@ before the code that depends on it deploys.
 - `generaleditpurchases/[id]/route.js` whitelists exactly which columns each
   role may write (`allowedFields`) — don't loosen this without checking the
   approval-chain implications.
+
+## Working on proposed changes (`.claude/skills/CHANGES.md`)
+
+Proposed bug fixes and UI/UX changes are written up in `.claude/skills/CHANGES.md`. Each time you pick that file up:
+
+- **Clarify first.** If anything in a proposal is ambiguous, ask before you implement. Put every open question in one round of multiple-choice questions, with a recommended option where you have one.
+- **Critique and recommend.** Say so if a proposal has trade-offs, edge cases (mobile, dark mode, accessibility) or a better alternative, and point out related bugs you notice along the way.
+- **Phase the work.** Split larger changes into phases. Verify each phase before you commit it, and use one focused commit per change.
+- **Verify in the running app.** A signed-in dev server is usually running at `localhost:1557/staffproductpurchase` in Chrome, so check there first. If none is running, start one (`npm run dev`). If you're blocked (e.g. a sign-in is needed, or the browser can't reach the server), ask the user to step in rather than skipping verification.
 
 ## Verification
 
