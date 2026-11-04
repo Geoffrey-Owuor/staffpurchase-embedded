@@ -291,7 +291,7 @@ former ~700-800-line near-duplicate components:
   hidden native input, so the browser still blocks the submit. On end fields
   pass `defaultTime="23:59"`.
 - **Sticky title bars**: `components/Reusables/StickyPageHeader.jsx` pins a
-  page's title row (from `md` up, not on short viewports) and shares
+  page's title row (from `md` up, at least 500px tall) and shares
   `hooks/useStickyBleed.js` with `FilterPanel`. Don't use it on a page with a
   `FilterPanel`, which already pins, and keep long descriptions below it. The
   edit pages also have Save there, via the button's `form` attribute.

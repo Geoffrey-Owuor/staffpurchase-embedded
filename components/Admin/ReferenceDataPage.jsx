@@ -64,7 +64,7 @@ export default function ReferenceDataPage() {
   return (
     <>
       <div className="px-2 pb-6">
-        <StickyPageHeader className="px-1 pt-3 pb-3">
+        <StickyPageHeader className="px-1 py-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Database className="h-5 w-5" />
             Reference data

@@ -155,7 +155,7 @@ export default function GeneralViewPurchases({ id }) {
       {/* Details Card */}
       <div className="mx-auto rounded-xl pb-6">
         {/* Header with back button */}
-        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-4 px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-4 px-2 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <View className="h-6 w-6" />

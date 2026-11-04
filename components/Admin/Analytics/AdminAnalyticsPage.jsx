@@ -107,7 +107,7 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="px-2 pb-8">
       {/* Filters live in one row above the charts */}
-      <StickyPageHeader className="flex flex-col gap-3 px-1 pt-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+      <StickyPageHeader className="flex flex-col gap-3 px-1 py-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
           <BarChart3 className="h-5 w-5" />
           Analytics

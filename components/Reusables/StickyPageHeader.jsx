@@ -3,9 +3,10 @@
 import { useSyncExternalStore } from "react";
 import { useStickyBleed } from "@/hooks/useStickyBleed";
 
-// Tablet and up, and not on short viewports (the `short:` variant's limit): on a
-// phone these bars wrap to 2-3 rows, which would take too much of the screen.
-const PIN_QUERY = "(min-width: 768px) and (min-height: 641px)";
+// Tablet and up: on a phone these bars wrap to 2-3 rows, which would take too
+// much of the screen. The height limit only rules out phones held sideways; a
+// laptop at 150% display scaling has about 600px, and pins.
+const PIN_QUERY = "(min-width: 768px) and (min-height: 500px)";
 const subscribe = (callback) => {
   const mql = window.matchMedia(PIN_QUERY);
   mql.addEventListener("change", callback);
