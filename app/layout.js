@@ -12,6 +12,8 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Only a few small labels use it, so it needn't compete with the first paint
+  preload: false,
 });
 
 export const metadata = {
@@ -25,7 +27,6 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      data-font="geist"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >

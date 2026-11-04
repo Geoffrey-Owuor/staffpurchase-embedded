@@ -26,10 +26,6 @@
   );
 }
 
-html[data-font="geist"] {
-  font-family: var(--font-sans);
-}
-
 [data-theme="dark"] {
   --shimmer-background: #1f2937;
 }
@@ -64,6 +60,22 @@ html[data-font="geist"] {
     to {
       transform: translateY(-100%);
       opacity: 0;
+    }
+  }
+
+  /* A CSS animation, so the server-rendered hero shows at first paint instead of
+     staying hidden until the JS that would reveal it has loaded */
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
+  .animate-hero-rise {
+    animation: hero-rise 0.5s ease-out both;
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
     }
   }
 
@@ -140,16 +152,6 @@ html[data-font="geist"] {
     background-image: url(../public/dark_mode_bg.svg);
   }
 
-  /* Background for layoutshell page */
-  .layout-shell {
-    background-image: url(../public/layout_light_bg.png);
-    background-repeat: repeat; /* Use 'no-repeat' and 'background-size: cover' if it's a single big image */
-    background-position: center;
-    background-size: 500px;
-  }
-  [data-theme="dark"] .layout-shell {
-    background-image: url(../public/layout_dark_bg.png);
-  }
   .bg-base-classes {
     @apply bg-white dark:bg-gray-950;
   }

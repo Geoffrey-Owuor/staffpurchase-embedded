@@ -1,5 +1,3 @@
-import hotpoint_logo from "./hotpoint_logo.webp";
-import hotpoint_white_logo from "./hotpoint_white_logo.webp";
 import dark_mode_bg from "./dark_mode_bg.svg";
 import light_mode_bg from "./light_mode_bg.svg";
 import hat from "./hat.png";
@@ -11,8 +9,6 @@ export const assets = {
   hat,
   dark_mode_bg,
   light_mode_bg,
-  hotpoint_logo,
-  hotpoint_white_logo,
 };
 
 export const formatDateLong = (dateString) => {
