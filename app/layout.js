@@ -3,6 +3,7 @@ import "../styles/globals.css";
 import LoadingLine from "@/components/Reusables/LoadingLine";
 import AlertLayer from "@/components/Reusables/Alerts/AlertLayer";
 import { ThemeProvider } from "next-themes";
+import ThemeShortcut from "@/components/Reusables/ThemeProviders/ThemeShortcut";
 import QueryProvider from "@/components/QueryProvider";
 
 const geistSans = Geist({
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
           defaultTheme="system"
           disableTransitionOnChange={true}
         >
+          <ThemeShortcut />
           <LoadingLine />
           <AlertLayer />
           <QueryProvider>{children}</QueryProvider>
