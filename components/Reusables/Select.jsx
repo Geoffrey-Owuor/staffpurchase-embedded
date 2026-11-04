@@ -37,6 +37,8 @@ export default function Select({
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const listRef = useRef(null);
+  const panelRef = useRef(null);
   const listboxId = useId();
 
   const showSearch = searchable && options.length > SEARCH_THRESHOLD;
@@ -66,9 +68,14 @@ export default function Select({
   useEffect(() => {
     if (!isOpen) {
       setSearchQuery("");
-    } else if (showSearch) {
-      searchInputRef.current?.focus();
+      return;
     }
+    const focusTarget = showSearch ? searchInputRef : listRef;
+    focusTarget.current?.focus({ preventScroll: true });
+    // One page move on open, if the panel doesn't fit, so every option can be
+    // seen. After that only the list scrolls. The panel's scroll margin covers
+    // what the opening animation shrinks it by.
+    panelRef.current?.scrollIntoView({ block: "nearest" });
   }, [isOpen, showSearch]);
 
   // Keep the highlighted index valid whenever the filtered list grows or
@@ -85,12 +92,21 @@ export default function Select({
     );
   }, [filteredCount]);
 
-  // Long lists open and move past the visible rows, so keep the highlight in view
+  // Long lists open and move past the visible rows, so keep the highlight in
+  // view. Only the list scrolls: scrollIntoView would move the page too. Offsets
+  // rather than rects, which the opening scale animation would distort.
   useEffect(() => {
     if (!isOpen || highlightedIndex < 0) return;
-    document
-      .getElementById(`${listboxId}-${highlightedIndex}`)
-      ?.scrollIntoView({ block: "nearest" });
+    const list = listRef.current;
+    const option = document.getElementById(`${listboxId}-${highlightedIndex}`);
+    if (!list || !option) return;
+    const top = option.offsetTop - list.offsetTop;
+    const bottom = top + option.offsetHeight;
+    if (top < list.scrollTop) {
+      list.scrollTop = top;
+    } else if (bottom > list.scrollTop + list.clientHeight) {
+      list.scrollTop = bottom - list.clientHeight;
+    }
   }, [isOpen, highlightedIndex, listboxId]);
 
   const openList = (initialIndex) => {
@@ -261,6 +277,7 @@ export default function Select({
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={panelRef}
             initial={{
               scale: 0.95,
               opacity: 0,
@@ -273,7 +290,7 @@ export default function Select({
               y: openDirection === "down" ? -6 : 6,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-100 w-max max-w-[min(32rem,90vw)] min-w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
+            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-100 w-max max-w-[min(32rem,90vw)] min-w-full scroll-my-4 overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
           >
             <div className="p-1">
               {showSearch && (
@@ -304,7 +321,7 @@ export default function Select({
                   showSearch ? undefined : activeDescendant
                 }
                 onKeyDown={showSearch ? undefined : handleListKeyDown}
-                ref={showSearch ? undefined : (node) => node?.focus()}
+                ref={listRef}
                 className="small-scrollbar max-h-60 overflow-auto"
               >
                 {filteredOptions.length === 0 && (
