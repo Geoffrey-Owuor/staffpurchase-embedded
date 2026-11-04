@@ -26,6 +26,7 @@ import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import { triggerAlert } from "@/store/useAlertStore";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 
 export default function GeneralViewPurchases({ id }) {
   const queryClient = useQueryClient();
@@ -153,7 +154,7 @@ export default function GeneralViewPurchases({ id }) {
       {/* Details Card */}
       <div className="mx-auto rounded-xl pb-6">
         {/* Header with back button */}
-        <div className="flex flex-wrap items-center justify-between gap-4 px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-4 px-2 pt-2 pb-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <View className="h-6 w-6" />
@@ -223,7 +224,7 @@ export default function GeneralViewPurchases({ id }) {
             {/* Top bar buttons */}
             <TopBarButtons />
           </div>
-        </div>
+        </StickyPageHeader>
         {/* Staff Information Section */}
         <div className="border-b border-gray-200 px-2 py-6 dark:border-gray-700">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">

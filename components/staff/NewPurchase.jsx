@@ -4,6 +4,7 @@ import StaffInformation from "../StaffInformation";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing/ProductPricing";
 import { triggerAlert } from "@/store/useAlertStore";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
@@ -256,7 +257,7 @@ export default function NewPurchase({ approversPurchasing }) {
   return (
     <>
       <div className="mx-auto leading-relaxed dark:text-white">
-        <div className="flex items-center justify-between px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex items-center justify-between px-2 pt-2 pb-4">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-900 dark:text-gray-200">
             <div className="flex items-center gap-2">
               <ClipboardList className="h-6 w-6" />
@@ -266,7 +267,7 @@ export default function NewPurchase({ approversPurchasing }) {
             <MpesaTillNumber />
           </div>
           <TopBarButtons />
-        </div>
+        </StickyPageHeader>
 
         <form
           id="staffInformation"
