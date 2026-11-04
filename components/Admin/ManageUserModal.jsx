@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   KeyRound,
@@ -84,6 +84,12 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
   const [pendingConfirm, setPendingConfirm] = useState(null);
   const [error, setError] = useState("");
   const [warning, setWarning] = useState("");
+  const warningRef = useRef(null);
+
+  // Shown at the top of the panel, but the action that caused it is further down
+  useEffect(() => {
+    if (warning) warningRef.current?.scrollIntoView({ block: "nearest" });
+  }, [warning]);
 
   const isSelf = user.id === currentAdminId;
   const status = getUserStatus(user);
@@ -180,7 +186,10 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
         </p>
       )}
       {warning && (
-        <p className="mt-4 rounded-lg bg-amber-100 p-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <p
+          ref={warningRef}
+          className="mt-4 scroll-mt-24 rounded-lg bg-amber-100 p-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+        >
           {warning}
         </p>
       )}
