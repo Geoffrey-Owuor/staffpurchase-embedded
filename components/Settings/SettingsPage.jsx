@@ -81,7 +81,7 @@ function SettingsContent({ titleId, onClose }) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 cursor-pointer rounded-full bg-gray-50/80 p-1.5 text-gray-900 transition-colors hover:text-gray-700 dark:bg-gray-900/80 dark:text-gray-200 dark:hover:text-gray-400"
+          className="absolute top-3 right-4 cursor-pointer md:top-7.5 rounded-full bg-gray-50/80 p-1.5 text-gray-900 transition-colors hover:text-gray-700 dark:bg-gray-900/80 dark:text-gray-200 dark:hover:text-gray-400"
           aria-label="Close settings"
         >
           <X className="h-6 w-6" />
