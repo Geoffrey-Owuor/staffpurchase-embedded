@@ -73,15 +73,18 @@ export default function ModalHeader({
             </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={closeDisabled}
-          aria-label="Close"
-          className="-m-1 shrink-0 cursor-pointer rounded-full p-1 text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
+        {/* The height of the title's first line, so the button centers on it */}
+        <div className="flex h-7 shrink-0 items-center">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={closeDisabled}
+            aria-label="Close"
+            className="-m-1 cursor-pointer rounded-full p-1 text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
       </div>
     </>
   );
