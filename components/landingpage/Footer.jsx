@@ -1,6 +1,5 @@
 // app/components/Footer.js
 import { ShoppingBag, ArrowUpRight, Mail } from "lucide-react";
-import ThemeToggle from "../Reusables/ThemeProviders/ThemeToggle";
 import Link from "next/link";
 import { basePath } from "@/utils/basePath";
 
@@ -79,9 +78,6 @@ export default function Footer() {
               <Mail className="h-4 w-4" />
               itsupport@hotpoint.co.ke
             </a>
-            <div className="mt-4 block w-22 sm:hidden">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
 
