@@ -296,6 +296,16 @@ function EditForm({
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              form="admin-edit-form"
+              disabled={saving || fetchingIndices.size > 0 || !reason.trim()}
+              title={reason.trim() ? undefined : "Add a reason to save"}
+              className="hidden items-center gap-1 rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 md:inline-flex dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+            >
+              <Save className="h-4 w-4" />
+              Save changes
+            </button>
             <Link
               href={getViewPathName(id)}
               className="rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
@@ -327,7 +337,7 @@ function EditForm({
           </p>
         )}
 
-        <form onSubmit={handleSubmit} autoComplete="off">
+        <form id="admin-edit-form" onSubmit={handleSubmit} autoComplete="off">
           <StaffInformation
             formData={staffInfo}
             handleChange={handleStaffChange}

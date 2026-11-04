@@ -15,7 +15,9 @@ import BIApprovalSection from "../FormEditComponents/BIApprovalSection";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UnauthorizedEdit from "../Reusables/UnauthorizedEdit";
 import EditPurchaseHeading from "../EditPurchaseComponents/EditPurchaseHeading";
-import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
+import SaveCloseComponent, {
+  SaveChangesButton,
+} from "../EditPurchaseComponents/SaveCloseComponent";
 import RemovedProductsPanel from "./RemovedProductsPanel";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
@@ -352,9 +354,27 @@ function PurchaseForm({ purchase, userRole, name, id }) {
   return (
     <>
       <div className="mx-auto pb-6">
-        <EditPurchaseHeading />
+        <EditPurchaseHeading
+          action={
+            <SaveChangesButton
+              form="edit-purchase-form"
+              className="hidden md:inline-flex"
+              payrollApproval={purchase.Payroll_Approval}
+              hrApproval={purchase.HR_Approval}
+              ccApproval={purchase.CC_Approval}
+              disabled={
+                submitting || isFetchingAnyPrice || isDecliningWithRemovals
+              }
+            />
+          }
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        <form
+          id="edit-purchase-form"
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          autoComplete="off"
+        >
           {/* Staff Info Component */}
           <StaffInformation
             formData={staffInfo}
