@@ -1,4 +1,4 @@
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { buildPurchaseQueryParams } from "./buildPurchaseQueryParams";
 
 // filters: { page, pageSize, search, referenceNumber, payrollNumber, paymentTerms, monthPeriod, requestClosure }

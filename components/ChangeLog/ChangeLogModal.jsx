@@ -2,7 +2,7 @@
 import { useId } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, X, Calendar } from "lucide-react";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import Modal from "../Reusables/Modal/Modal";
 
 // Date formatting helper function to format dates for the ui

@@ -20,7 +20,7 @@ import RemovedProductsPanel from "./RemovedProductsPanel";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useRouter } from "next/navigation";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { parseCreditPeriod } from "@/utils/formatCreditPeriod";
 
 // The initial state for a single product

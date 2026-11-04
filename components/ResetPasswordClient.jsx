@@ -6,7 +6,7 @@ import Link from "next/link";
 import AuthBackground from "./Reusables/Images/AuthBackground";
 import { Eye, EyeClosed } from "lucide-react";
 import { triggerAlert } from "@/store/useAlertStore";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export default function ResetPasswordClient({ token }) {
   const router = useRouter();

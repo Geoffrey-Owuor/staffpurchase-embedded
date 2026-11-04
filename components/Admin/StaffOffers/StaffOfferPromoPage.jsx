@@ -41,7 +41,7 @@ import {
   OFFER_STATUS_OPTIONS,
   PROMO_EXTEND_GRACE_DAYS,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { formatWallClock } from "@/utils/Admin/wallClock";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 

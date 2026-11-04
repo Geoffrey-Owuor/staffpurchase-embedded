@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import HotpointWordmark from "./HotpointWordmark";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 const stats = [
   { icon: Workflow, label: "4-stage approval chain" },

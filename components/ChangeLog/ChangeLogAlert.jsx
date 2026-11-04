@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ChangeLogModal from "./ChangeLogModal";
 import { X } from "lucide-react";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 const ChangeLogAlert = () => {
   const [isOpen, setIsOpen] = useState(false);

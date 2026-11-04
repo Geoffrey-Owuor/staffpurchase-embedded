@@ -24,7 +24,7 @@ import {
   REASON_MAX_LENGTH,
   PROFILE_FIELD_MAX_LENGTH,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 const inputClass =
   "w-full rounded-xl border border-gray-200 bg-white px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:disabled:bg-gray-800";

@@ -21,7 +21,7 @@ import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { FetchAvailableCreditPeriods } from "@/app/lib/FetchAvailableCreditPeriods";
 import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { isRequesterRole } from "@/utils/routes";
 
 // The initial state for a single product

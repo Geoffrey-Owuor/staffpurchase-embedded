@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { triggerAlert } from "@/store/useAlertStore";
 import AuthBackground from "../Reusables/Images/AuthBackground";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export default function VerifyCodeComponent({ email, isCompanyEmail }) {
   const router = useRouter();

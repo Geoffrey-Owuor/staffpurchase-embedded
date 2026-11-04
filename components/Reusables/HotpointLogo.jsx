@@ -1,5 +1,5 @@
 import { ShoppingBagIcon } from "lucide-react";
-import { assets } from "@/public/assets";
+import { assets } from "@/components/Reusables/AppLogos";
 import Image from "next/image";
 export default function HotpointLogo({ isOpen }) {
   return (

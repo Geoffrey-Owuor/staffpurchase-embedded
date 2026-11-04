@@ -2,7 +2,7 @@
 import { ShoppingBag, ArrowUpRight, Mail } from "lucide-react";
 import ThemeToggle from "../Reusables/ThemeProviders/ThemeToggle";
 import Link from "next/link";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export default function Footer() {
   return (

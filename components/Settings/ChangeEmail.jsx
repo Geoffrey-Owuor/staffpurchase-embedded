@@ -6,7 +6,7 @@ import { triggerAlert } from "@/store/useAlertStore";
 import Modal from "../Reusables/Modal/Modal";
 import { useRouter } from "next/navigation";
 import { LoggingOutOverlay } from "../Reusables/LoadingBar";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { isValidEmail, normalizeEmail } from "@/lib/emailValidation";
 
 // Full screen on mobile. Keep mounted and toggle `open`; the flow's state

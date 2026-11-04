@@ -13,7 +13,7 @@ import {
   BANNER_SEVERITY_OPTIONS,
   BANNER_STATUS_OPTIONS,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 const FILTER_FIELDS = [
   {

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { triggerAlert } from "@/store/useAlertStore";
 import AuthBackground from "@/components/Reusables/Images/AuthBackground";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { isValidEmail, normalizeEmail } from "@/lib/emailValidation";
 
 export default function ForgotPassword() {
