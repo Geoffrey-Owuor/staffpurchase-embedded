@@ -158,7 +158,7 @@ export default function Modal({
               aria-labelledby={labelledBy}
               tabIndex={-1}
               {...panelMotion}
-              className={`flex flex-col overflow-y-auto overscroll-contain focus:outline-none md:max-h-[calc(100dvh-2rem)] md:rounded-2xl ${layout.panel} ${className}`}
+              className={`app-scrollbars flex flex-col overflow-y-auto overscroll-contain focus:outline-none md:max-h-[calc(100dvh-2rem)] md:rounded-2xl ${layout.panel} ${className}`}
             >
               {children}
               {/* Keeps content clear of the iOS home indicator */}

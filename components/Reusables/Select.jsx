@@ -290,7 +290,7 @@ export default function Select({
                 }
                 onKeyDown={showSearch ? undefined : handleListKeyDown}
                 ref={showSearch ? undefined : (node) => node?.focus()}
-                className="max-h-60 overflow-auto [scrollbar-width:thin]"
+                className="small-scrollbar max-h-60 overflow-auto"
               >
                 {filteredOptions.length === 0 && (
                   <li className="px-3 py-1.5 text-sm text-gray-400 dark:text-gray-500">

@@ -212,7 +212,7 @@ export default function MobileHeader() {
         <nav
           ref={navRef}
           style={navFadeStyle}
-          className="short:mt-3 mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          className="app-scrollbars short:mt-3 mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain"
         >
           <ul className="short:space-y-1 space-y-2">
             {navItems.map((item) => (

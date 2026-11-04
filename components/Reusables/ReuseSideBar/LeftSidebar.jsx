@@ -185,7 +185,7 @@ function NavFlyout({ group, active, activeTab, onNavigate }) {
           <div
             ref={menuRef}
             style={position}
-            className="fixed z-60 max-h-[calc(100dvh-1rem)] min-w-48 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+            className="small-scrollbar fixed z-60 max-h-[calc(100dvh-1rem)] min-w-48 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
           >
             <p
               aria-hidden="true"
@@ -282,7 +282,7 @@ const LeftSidebar = ({
         <nav
           ref={navRef}
           style={navFadeStyle}
-          className={`${sidebarOpen ? "mt-1" : "mt-20"} min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2 transition-all duration-200 [scrollbar-width:thin]`}
+          className={`small-scrollbar ${sidebarOpen ? "mt-1" : "mt-20"} min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2 transition-all duration-200`}
         >
           <ul className="space-y-1">
             <li>

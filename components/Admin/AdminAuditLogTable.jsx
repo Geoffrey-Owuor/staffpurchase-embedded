@@ -240,7 +240,7 @@ function AuditEntryModal({ open, entry, onClose }) {
               No field values changed (e.g. a reset link was sent).
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+            <div className="small-scrollbar overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-800 text-left text-white">
                   <tr>
