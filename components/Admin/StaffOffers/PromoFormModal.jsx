@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { Copy, Loader2, Plus, X } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
 import { usePromoSave } from "./usePromoSave";
+import DatePicker from "../../Reusables/DatePicker";
 import {
   hintClass,
   inputClass,
@@ -124,13 +125,13 @@ function PromoForm({ source, titleId, onClose, onCreated }) {
             <label htmlFor="promo-starts" className={labelClass}>
               Starts
             </label>
-            <input
+            <DatePicker
               id="promo-starts"
-              type="datetime-local"
+              withTime
               required
               value={form.startsAt}
               disabled={busy}
-              onChange={set("startsAt")}
+              onChange={(value) => set("startsAt")({ target: { value } })}
               className={inputClass}
             />
           </div>
@@ -138,14 +139,15 @@ function PromoForm({ source, titleId, onClose, onCreated }) {
             <label htmlFor="promo-ends" className={labelClass}>
               Ends
             </label>
-            <input
+            <DatePicker
               id="promo-ends"
-              type="datetime-local"
+              withTime
               required
+              defaultTime="23:59"
               min={form.startsAt || undefined}
               value={form.endsAt}
               disabled={busy}
-              onChange={set("endsAt")}
+              onChange={(value) => set("endsAt")({ target: { value } })}
               className={inputClass}
             />
             <p className={hintClass}>

@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
 import { usePromoSave } from "./usePromoSave";
+import DatePicker from "../../Reusables/DatePicker";
 import {
   dangerButton,
   hintClass,
@@ -93,7 +94,10 @@ function PromoActionForm({ action, promo, titleId, onClose, onDone }) {
   return (
     <>
       <div className="flex items-start justify-between gap-4">
-        <h3 id={titleId} className="text-xl font-bold text-gray-900 dark:text-white">
+        <h3
+          id={titleId}
+          className="text-xl font-bold text-gray-900 dark:text-white"
+        >
           {TITLES[action]}
         </h3>
         <button
@@ -147,13 +151,13 @@ function PromoActionForm({ action, promo, titleId, onClose, onDone }) {
                 <label htmlFor="promo-period-start" className={labelClass}>
                   Starts
                 </label>
-                <input
+                <DatePicker
                   id="promo-period-start"
-                  type="datetime-local"
+                  withTime
                   required
                   value={startsAt}
                   disabled={busy || promo.phase !== "upcoming"}
-                  onChange={(e) => setStartsAt(e.target.value)}
+                  onChange={setStartsAt}
                   className={inputClass}
                 />
               </div>
@@ -161,14 +165,15 @@ function PromoActionForm({ action, promo, titleId, onClose, onDone }) {
                 <label htmlFor="promo-period-end" className={labelClass}>
                   Ends
                 </label>
-                <input
+                <DatePicker
                   id="promo-period-end"
-                  type="datetime-local"
+                  withTime
                   required
+                  defaultTime="23:59"
                   min={promo.phase === "over" ? promo.endsAt : startsAt}
                   value={endsAt}
                   disabled={busy}
-                  onChange={(e) => setEndsAt(e.target.value)}
+                  onChange={setEndsAt}
                   className={inputClass}
                 />
                 <p className={hintClass}>Inclusive, to the minute.</p>

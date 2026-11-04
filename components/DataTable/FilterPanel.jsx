@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Filter, FilterX, ChevronDown, X, Check } from "lucide-react";
 import Select from "../Reusables/Select";
+import DatePicker from "../Reusables/DatePicker";
 
 const inputClass =
   "w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white";
@@ -248,7 +249,13 @@ export default function FilterPanel({
           </div>
 
           {activeField && (
-            <div className="flex min-w-[16rem] flex-1 items-center gap-1.5">
+            <div
+              className={`flex flex-1 items-center gap-1.5 ${
+                activeField.type === "dateRange"
+                  ? "min-w-[min(20rem,100%)]"
+                  : "min-w-[16rem]"
+              }`}
+            >
               {activeField.type === "text" && (
                 <input
                   type="text"
@@ -275,23 +282,24 @@ export default function FilterPanel({
 
               {activeField.type === "dateRange" && (
                 <div className="flex w-full items-center gap-1.5">
-                  <input
-                    type="date"
-                    aria-label="From date"
+                  <DatePicker
+                    ariaLabel="From date"
+                    placeholder="From"
+                    clearable={false}
                     value={effectiveValue("fromDate", staged, committed)}
-                    onChange={(e) =>
-                      onStagedValueChange("fromDate", e.target.value)
-                    }
+                    onChange={(value) => onStagedValueChange("fromDate", value)}
                     className={inputClass}
                   />
                   <span className="shrink-0 text-gray-400">to</span>
-                  <input
-                    type="date"
-                    aria-label="To date"
-                    value={effectiveValue("toDate", staged, committed)}
-                    onChange={(e) =>
-                      onStagedValueChange("toDate", e.target.value)
+                  <DatePicker
+                    ariaLabel="To date"
+                    placeholder="To"
+                    clearable={false}
+                    min={
+                      effectiveValue("fromDate", staged, committed) || undefined
                     }
+                    value={effectiveValue("toDate", staged, committed)}
+                    onChange={(value) => onStagedValueChange("toDate", value)}
                     className={inputClass}
                   />
                 </div>
