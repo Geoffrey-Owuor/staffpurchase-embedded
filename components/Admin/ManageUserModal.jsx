@@ -116,6 +116,8 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
     } catch (err) {
       if (err.user) setUser(err.user);
       setError(err.message);
+      // The inline message sits at the top, out of view when scrolled down
+      onResult("error", err.message);
     } finally {
       setBusyAction(null);
       setPendingConfirm(null);
