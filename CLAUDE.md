@@ -161,7 +161,8 @@ MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
   (open while one of its pages is current, `useNavGroupOpen`) and a portaled
   flyout in the collapsed sidebar. Use `flattenNavItems`/`navItemContains`
   (same file) for active-page checks. Menu keyboard handling is shared via
-  `components/Reusables/ReuseSideBar/useNavMenu.js`. The sidebar and drawer
+  `components/Reusables/ReuseSideBar/useNavMenu.js` (also used by the table
+  row menu, `RecentActionButtons`; it skips disabled items). The sidebar and drawer
   nav lists are their only scrolling regions (header/footer pinned, edge
   fade from `hooks/useScrollFade.js`) and compact under the `short:`
   variant (viewport height ≤ 640px).

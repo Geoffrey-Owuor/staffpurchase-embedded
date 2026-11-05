@@ -6,13 +6,14 @@ import {
   MoreVertical,
   GitPullRequestClosed,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ClientPortal from "../ClientPortal/ClientPortal";
 import DeleteConfirmation from "../DeleteConfirmation/DeleteConfirmation";
 import ConfirmationDialog from "../ConfirmationDialog";
 import { useUser } from "@/context/UserContext";
 import { basePath } from "@/utils/basePath";
+import { useNavMenu } from "../ReuseSideBar/useNavMenu";
 
 // Reusable style for the dropdown menu items
 // The table row's Delete action is switched off - see the comment on it.
@@ -40,25 +41,38 @@ export const RecentActionButtons = ({
   disableEdit = false,
 }) => {
   const { role: userRole } = useUser();
-  const [isOpen, setIsOpen] = useState(false);
+  const {
+    open: isOpen,
+    setOpen: setIsOpen,
+    buttonRef,
+    menuRef,
+    itemRefs,
+    handleMenuKeyDown,
+  } = useNavMenu();
   const [deleting, setIsDeleting] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
-  const menuRef = useRef(null);
 
   // State to store the calculated menu coordinates
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [openUpwards, setOpenUpwards] = useState(false); //state that tracks whether the menu opens upwards or downwards
 
+  // Focus goes back to the trigger first: its item is about to unmount, and a
+  // dialog opening next restores focus to whatever had it.
+  const closeMenu = () => {
+    buttonRef.current?.focus();
+    setIsOpen(false);
+  };
+
   const handleConfirmDelete = () => {
     setShowConfirmation(true);
-    setIsOpen(false);
+    closeMenu();
   };
 
   const handleConfirmClose = () => {
     setShowCloseConfirmation(true);
-    setIsOpen(false);
+    closeMenu();
   };
 
   const handleClose = async () => {
@@ -105,46 +119,31 @@ export const RecentActionButtons = ({
     }
   };
 
-  // Effect to handle clicking outside the dropdown to close it
+  // The menu is positioned once on open, so any scrolling closes it
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      const menuElement = document.getElementById(`action-menu-${id}`);
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target) &&
-        (!menuElement || !menuElement.contains(event.target))
-      ) {
-        setIsOpen(false);
-      }
-    };
-
+    if (!isOpen) return;
     const handleScroll = () => {
+      if (menuRef.current?.contains(document.activeElement)) {
+        buttonRef.current?.focus({ preventScroll: true });
+      }
       setIsOpen(false);
     };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("scroll", handleScroll, true);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("scroll", handleScroll, true);
-    };
-  }, [id, isOpen]);
+    document.addEventListener("scroll", handleScroll, true);
+    return () => document.removeEventListener("scroll", handleScroll, true);
+  }, [isOpen, setIsOpen, menuRef, buttonRef]);
 
   const handleActionClick = (action, event) => {
     event.stopPropagation();
     action(id);
-    setIsOpen(false);
+    closeMenu();
   };
 
   // Update toggleDropdown to calculate precise coordinates for the portal
   const toggleDropdown = (e) => {
     e.stopPropagation();
 
-    if (!isOpen && menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
       const dropdownHeight = 150; // Estimated height of the dropdown
       const dropdownWidth = 128; // w-32 = 8rem = 128px
       let topPosition;
@@ -169,9 +168,10 @@ export const RecentActionButtons = ({
     setIsOpen(!isOpen);
   };
 
-  // The JSX for the menu, to be rendered in the portal
-  const DropdownMenu = () => {
-    const content = (
+  // Inlined rather than a component defined here: that would be a new component
+  // on every render, remounting the menu and dropping focus from its items.
+  const dropdownMenu = (
+    <ClientPortal>
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: openUpwards ? 10 : -10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -181,7 +181,10 @@ export const RecentActionButtons = ({
           stiffness: 300,
           damping: 30,
         }}
-        id={`action-menu-${id}`}
+        ref={menuRef}
+        role="menu"
+        aria-label="Request actions"
+        onKeyDown={handleMenuKeyDown}
         style={{
           position: "absolute",
           top: `${menuPosition.top}px`,
@@ -193,6 +196,8 @@ export const RecentActionButtons = ({
         <div className="p-1">
           <button
             type="button"
+            role="menuitem"
+            ref={(el) => (itemRefs.current[0] = el)}
             onClick={(e) => handleActionClick(gotoPurchaseView, e)}
             disabled={goingTo === id}
             className={menuItemStyles}
@@ -203,6 +208,8 @@ export const RecentActionButtons = ({
 
           <button
             type="button"
+            role="menuitem"
+            ref={(el) => (itemRefs.current[1] = el)}
             onClick={(e) => handleActionClick(gotoPurchaseEdit, e)}
             disabled={
               //Approver cannot edit once approved
@@ -236,6 +243,8 @@ export const RecentActionButtons = ({
           <div className="mt-1 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
+              role="menuitem"
+              ref={(el) => (itemRefs.current[2] = el)}
               onClick={(e) => {
                 e.stopPropagation();
                 handleConfirmDelete();
@@ -265,6 +274,8 @@ export const RecentActionButtons = ({
           {closeButton && (
             <button
               type="button"
+              role="menuitem"
+              ref={(el) => (itemRefs.current[3] = el)}
               onClick={(e) => {
                 e.stopPropagation();
                 handleConfirmClose();
@@ -278,9 +289,8 @@ export const RecentActionButtons = ({
           )}
         </div>
       </motion.div>
-    );
-    return <ClientPortal>{content}</ClientPortal>;
-  };
+    </ClientPortal>
+  );
 
   return (
     <>
@@ -302,17 +312,21 @@ export const RecentActionButtons = ({
         busyLabel="Closing..."
       />
 
-      <div className="relative inline-block text-left" ref={menuRef}>
+      <div className="relative inline-block text-left">
         <button
+          ref={buttonRef}
           type="button"
           onClick={(e) => toggleDropdown(e)}
           title="More options"
+          aria-label="More options"
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
           className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-50"
         >
           <MoreVertical className="h-4 w-4" />
         </button>
 
-        {isOpen && <DropdownMenu />}
+        {isOpen && dropdownMenu}
       </div>
     </>
   );

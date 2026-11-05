@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 // Open state + keyboard handling shared by the nav's popup menus (topbar
-// "More"/group dropdowns, the collapsed sidebar's group flyout). Opening
-// focuses the first item; Escape / outside click / Tab close it and arrow
-// keys move between items. Attach `buttonRef` to the trigger, `menuRef` to
+// "More"/group dropdowns, the collapsed sidebar's group flyout) and the table
+// row's actions menu. Opening focuses the first enabled item; Escape / outside
+// click / Tab close it and arrow keys move between enabled items. Attach `buttonRef` to the trigger, `menuRef` to
 // the popup (it may be portaled - both count as "inside"), `itemRefs` to
 // each item and `handleMenuKeyDown` to the popup.
+const enabledItems = (items) => items.filter((el) => el && !el.disabled);
+
 export function useNavMenu() {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
@@ -25,12 +27,12 @@ export function useNavMenu() {
       setOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
-    itemRefs.current[0]?.focus();
+    enabledItems(itemRefs.current)[0]?.focus({ preventScroll: true });
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
   const handleMenuKeyDown = (event) => {
-    const focusable = itemRefs.current.filter(Boolean);
+    const focusable = enabledItems(itemRefs.current);
     const index = focusable.indexOf(document.activeElement);
     if (event.key === "Escape") {
       event.preventDefault();
@@ -49,6 +51,9 @@ export function useNavMenu() {
       event.preventDefault();
       focusable[focusable.length - 1]?.focus();
     } else if (event.key === "Tab") {
+      // Tab on from the trigger: a portaled menu sits at the end of the page,
+      // so its removal would otherwise send focus out of the document
+      buttonRef.current?.focus();
       setOpen(false);
     }
   };
