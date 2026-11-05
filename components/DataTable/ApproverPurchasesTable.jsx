@@ -240,6 +240,7 @@ export default function ApproverPurchasesTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
+        pinActions="always"
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}

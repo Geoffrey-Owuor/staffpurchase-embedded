@@ -228,7 +228,9 @@ former ~700-800-line near-duplicate components:
 - `DataTable.jsx` — presentational: takes a `columns` config
   (`{key,label,toggleable?,render(row)}`), an optional `filterFields` config
   (consumed by `FilterPanel.jsx`), and renders loading/error/empty states +
-  `Pagination`.
+  `Pagination`. `renderActions` adds a titled Actions column pinned to the right edge
+  (`pinActions`: `"sm"` by default, `"always"` for narrow ones like a kebab menu,
+  `false` to scroll normally).
 - `FilterPanel.jsx` — the committed-filters UI: "+ Add filter" opens a
   dropdown of fields not yet staged/committed; picking one adds an inline
   value editor (`text`/`select`/`dateRange`) to the staging area; "Apply
