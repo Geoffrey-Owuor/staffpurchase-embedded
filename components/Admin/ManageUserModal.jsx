@@ -7,8 +7,8 @@ import {
   LockOpen,
   Save,
   ShieldCheck,
-  UserCheck,
-  UserX,
+  UserRoundCheck,
+  UserRoundX,
 } from "lucide-react";
 import Modal from "../Reusables/Modal/Modal";
 import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
@@ -378,7 +378,7 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
                 disabled={busy || isSelf || needsReason("deactivate")}
                 className={dangerButton}
               >
-                <UserX className="h-4 w-4" />
+                <UserRoundX className="h-4 w-4" />
                 Deactivate
               </button>
             ) : (
@@ -391,7 +391,7 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
                 {busyAction === "reactivate" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <UserCheck className="h-4 w-4" />
+                  <UserRoundCheck className="h-4 w-4" />
                 )}
                 Reactivate
               </button>

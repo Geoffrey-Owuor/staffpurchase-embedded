@@ -1,11 +1,11 @@
 // app/components/HowItWorks.js
-import { Users, Scroll, Send, AudioWaveform } from "lucide-react";
+import { UsersRound, Scroll, Send, AudioWaveform } from "lucide-react";
 
 const steps = [
   {
     id: 1,
     number: 1,
-    icon: Users,
+    icon: UsersRound,
     title: "Register",
     description: "Create your account using your company credentials",
   },

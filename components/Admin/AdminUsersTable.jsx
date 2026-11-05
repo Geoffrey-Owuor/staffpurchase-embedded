@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { UserCog } from "lucide-react";
+import { UserRound } from "lucide-react";
 import DataTable from "../DataTable/DataTable";
 import { useTableQuery } from "../DataTable/useTableQuery";
 import { triggerAlert } from "@/store/useAlertStore";
@@ -169,7 +169,7 @@ export default function AdminUsersTable() {
             }}
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
           >
-            <UserCog className="h-4 w-4" />
+            <UserRound className="h-4 w-4" />
             Manage
           </button>
         )}
