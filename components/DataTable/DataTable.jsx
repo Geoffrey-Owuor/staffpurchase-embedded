@@ -135,7 +135,7 @@ export default function DataTable({
                     ))}
                     {renderActions && (
                       <th
-                        className={`bg-gray-800 px-3 py-3 text-left text-sm font-semibold whitespace-nowrap sm:px-6 ${pinnedActions?.head ?? ""}`}
+                        className={`bg-gray-800 px-3 py-3 text-center text-sm font-semibold whitespace-nowrap sm:px-6 ${pinnedActions?.head ?? ""}`}
                       >
                         {actionsLabel}
                       </th>
@@ -162,7 +162,9 @@ export default function DataTable({
                           <td
                             className={`bg-inherit px-3 py-4 whitespace-nowrap sm:px-6 ${pinnedActions?.cell ?? ""}`}
                           >
-                            {renderActions(row)}
+                            <div className="flex justify-center">
+                              {renderActions(row)}
+                            </div>
                           </td>
                         )}
                       </tr>
