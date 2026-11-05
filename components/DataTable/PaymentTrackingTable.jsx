@@ -254,6 +254,7 @@ export default function PaymentTrackingTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
+        pinActions="always"
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}
