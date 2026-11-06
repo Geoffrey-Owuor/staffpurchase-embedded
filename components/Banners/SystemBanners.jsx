@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import BannerCard from "./BannerCard";
 
 const DISMISSED_KEY = "dismissed_system_banners";

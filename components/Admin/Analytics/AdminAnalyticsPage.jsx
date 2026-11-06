@@ -16,6 +16,7 @@ import {
 import { fetchAdminAnalytics } from "@/utils/FetchAdmin/fetchAdmin";
 import { ROLE_LABELS } from "@/utils/Admin/adminConstants";
 import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
+import StickyPageHeader from "../../Reusables/StickyPageHeader";
 
 const RANGE_OPTIONS = [
   { value: "30d", label: "Last 30 days" },
@@ -106,18 +107,11 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="px-2 pb-8">
       {/* Filters live in one row above the charts */}
-      <div className="mt-3 mb-5 flex flex-col gap-3 px-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-            <BarChart3 className="h-5 w-5" />
-            Analytics
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Request counts and the approval pipeline cover requests submitted
-            in the period; value, monthly, breakdown and product figures follow
-            the status filter. User figures are all-time.
-          </p>
-        </div>
+      <StickyPageHeader className="flex flex-col gap-3 px-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
+          <BarChart3 className="h-5 w-5" />
+          Analytics
+        </h2>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Select
             id="analytics-status"
@@ -134,7 +128,12 @@ export default function AdminAnalyticsPage() {
             options={RANGE_OPTIONS}
           />
         </div>
-      </div>
+      </StickyPageHeader>
+      <p className="mb-5 px-1 text-sm text-gray-500 dark:text-gray-400">
+        Request counts and the approval pipeline cover requests submitted in the
+        period; value, monthly, breakdown and product figures follow the status
+        filter. User figures are all-time.
+      </p>
 
       {isLoading ? (
         <AnalyticsSkeleton />

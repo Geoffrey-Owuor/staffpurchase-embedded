@@ -10,7 +10,7 @@ export default function TableSkeleton() {
   return (
     <div className="animate-pulse">
       {/* 3. The Table */}
-      <div className="overflow-x-auto rounded-xl">
+      <div className="small-scrollbar overflow-x-auto rounded-xl">
         <table className="min-w-full">
           {/* Table Header */}
           <thead className="bg-gray-700">

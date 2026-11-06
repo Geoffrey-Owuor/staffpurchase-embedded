@@ -1,7 +1,7 @@
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import PresetCommentField from "../Reusables/PresetCommentField";
 import Select from "../Reusables/Select";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import {
   APPROVAL_STATUS_OPTIONS,
   ONE_THIRD_RULE_OPTIONS,

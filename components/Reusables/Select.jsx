@@ -1,12 +1,57 @@
 "use client";
 
-import { useState, useRef, useEffect, useId, useMemo } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useId,
+  useMemo,
+} from "react";
 import { ChevronDown, Check, Search } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 // Options lists longer than this get a sticky search box at the top of the
 // listbox so users don't have to scroll through everything.
 const SEARCH_THRESHOLD = 6;
+
+// The horizontal space the panel can use: the nearest ancestor that clips or
+// scrolls sideways (a Modal panel, <main>, a table wrapper), else the viewport.
+function getHorizontalBounds(element) {
+  for (
+    let node = element.parentElement;
+    node && node !== document.body;
+    node = node.parentElement
+  ) {
+    if (getComputedStyle(node).overflowX !== "visible") {
+      const left = node.getBoundingClientRect().left + node.clientLeft;
+      return { left, right: left + node.clientWidth };
+    }
+  }
+  return { left: 0, right: document.documentElement.clientWidth };
+}
+
+// The panel is as wide as its longest option and starts at the trigger's left
+// edge, so near a right edge it can overflow and give the scroller a sideways
+// scrollbar. Move it back inside: line up with the trigger's right edge if that
+// fits, else pin it to the left bound, narrowed (labels wrap) if it must be.
+function fitPanelHorizontally(panel, container) {
+  panel.style.left = "";
+  panel.style.right = "";
+  panel.style.maxWidth = "";
+
+  const bounds = getHorizontalBounds(container);
+  const anchor = container.getBoundingClientRect();
+  if (anchor.left + panel.offsetWidth <= bounds.right) return;
+
+  if (anchor.right - panel.offsetWidth >= bounds.left) {
+    panel.style.left = "auto";
+    panel.style.right = "0";
+    return;
+  }
+  panel.style.left = `${bounds.left - anchor.left}px`;
+  panel.style.maxWidth = `${bounds.right - bounds.left}px`;
+}
 
 // Accessible single-select listbox, built to replace native <select> elements
 // while keeping the same keyboard behavior a native select gives for free:
@@ -28,6 +73,8 @@ export default function Select({
   disabled = false,
   name,
   required = false,
+  searchable = true,
+  ariaLabel,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -35,9 +82,11 @@ export default function Select({
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const listRef = useRef(null);
+  const panelRef = useRef(null);
   const listboxId = useId();
 
-  const showSearch = options.length > SEARCH_THRESHOLD;
+  const showSearch = searchable && options.length > SEARCH_THRESHOLD;
 
   const filteredOptions = useMemo(() => {
     if (!showSearch || !searchQuery.trim()) return options;
@@ -61,12 +110,26 @@ export default function Select({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Written straight to the DOM in a layout effect, so it's in place before the
+  // first paint and before the scrollIntoView below measures the panel (which
+  // would otherwise scroll the page sideways to reveal the overflow).
+  useLayoutEffect(() => {
+    if (isOpen && panelRef.current && containerRef.current) {
+      fitPanelHorizontally(panelRef.current, containerRef.current);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) {
       setSearchQuery("");
-    } else if (showSearch) {
-      searchInputRef.current?.focus();
+      return;
     }
+    const focusTarget = showSearch ? searchInputRef : listRef;
+    focusTarget.current?.focus({ preventScroll: true });
+    // One page move on open, if the panel doesn't fit, so every option can be
+    // seen. After that only the list scrolls. The panel's scroll margin covers
+    // what the opening animation shrinks it by.
+    panelRef.current?.scrollIntoView({ block: "nearest" });
   }, [isOpen, showSearch]);
 
   // Keep the highlighted index valid whenever the filtered list grows or
@@ -82,6 +145,23 @@ export default function Select({
         : Math.min(Math.max(current, 0), filteredCount - 1),
     );
   }, [filteredCount]);
+
+  // Long lists open and move past the visible rows, so keep the highlight in
+  // view. Only the list scrolls: scrollIntoView would move the page too. Offsets
+  // rather than rects, which the opening scale animation would distort.
+  useEffect(() => {
+    if (!isOpen || highlightedIndex < 0) return;
+    const list = listRef.current;
+    const option = document.getElementById(`${listboxId}-${highlightedIndex}`);
+    if (!list || !option) return;
+    const top = option.offsetTop - list.offsetTop;
+    const bottom = top + option.offsetHeight;
+    if (top < list.scrollTop) {
+      list.scrollTop = top;
+    } else if (bottom > list.scrollTop + list.clientHeight) {
+      list.scrollTop = bottom - list.clientHeight;
+    }
+  }, [isOpen, highlightedIndex, listboxId]);
 
   const openList = (initialIndex) => {
     setIsOpen(true);
@@ -152,6 +232,8 @@ export default function Select({
         break;
       case "Escape":
         event.preventDefault();
+        // Only the list closes, not a Modal or calendar it sits in
+        event.stopPropagation();
         closeList();
         break;
       case "Tab":
@@ -180,6 +262,8 @@ export default function Select({
         break;
       case "Escape":
         event.preventDefault();
+        // Only the list closes, not a Modal or calendar it sits in
+        event.stopPropagation();
         closeList();
         break;
       case "Tab":
@@ -228,6 +312,7 @@ export default function Select({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
+        aria-label={ariaLabel}
         disabled={disabled}
         onClick={() => (isOpen ? closeList() : openList())}
         onKeyDown={handleTriggerKeyDown}
@@ -246,6 +331,7 @@ export default function Select({
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={panelRef}
             initial={{
               scale: 0.95,
               opacity: 0,
@@ -258,7 +344,7 @@ export default function Select({
               y: openDirection === "down" ? -6 : 6,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-100 w-max max-w-[min(32rem,90vw)] min-w-full overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
+            className={`absolute ${openDirection === "down" ? "top-full mt-1" : "bottom-full mb-1"} z-100 w-max max-w-[min(32rem,90vw)] min-w-full scroll-my-4 overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800`}
           >
             <div className="p-1">
               {showSearch && (
@@ -289,8 +375,8 @@ export default function Select({
                   showSearch ? undefined : activeDescendant
                 }
                 onKeyDown={showSearch ? undefined : handleListKeyDown}
-                ref={showSearch ? undefined : (node) => node?.focus()}
-                className="max-h-60 overflow-auto [scrollbar-width:thin]"
+                ref={listRef}
+                className="small-scrollbar max-h-60 overflow-auto"
               >
                 {filteredOptions.length === 0 && (
                   <li className="px-3 py-1.5 text-sm text-gray-400 dark:text-gray-500">

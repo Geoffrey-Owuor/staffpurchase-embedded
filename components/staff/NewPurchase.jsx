@@ -3,7 +3,8 @@ import { useState, useMemo, useEffect } from "react";
 import StaffInformation from "../StaffInformation";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductPricing from "../ProductPricing/ProductPricing";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import {
   ClipboardList,
@@ -20,7 +21,7 @@ import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { FetchAvailableCreditPeriods } from "@/app/lib/FetchAvailableCreditPeriods";
 import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { isRequesterRole } from "@/utils/routes";
 
 // The initial state for a single product
@@ -95,9 +96,6 @@ export default function NewPurchase({ approversPurchasing }) {
   }));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("success");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Reloads the periods on offer; a chosen period that's no longer offered
@@ -194,9 +192,8 @@ export default function NewPurchase({ approversPurchasing }) {
     );
 
     if (missingPriceProducts.length > 0) {
-      setShowAlert(true);
-      setAlertType("error");
-      setAlertMessage(
+      triggerAlert(
+        "error",
         "Price is missing, enter a valid product code so it can be fetched",
       );
     } else {
@@ -232,9 +229,7 @@ export default function NewPurchase({ approversPurchasing }) {
         throw new Error(data.message || "Failed to submit form");
       }
 
-      setAlertMessage(data.message || "Purchase request sent");
-      setAlertType("success");
-      setShowAlert(true);
+      triggerAlert("success", data.message || "Purchase request sent");
 
       // Invalidate query data
       queryClient.invalidateQueries({ queryKey: ["staffPurchases"] });
@@ -247,11 +242,10 @@ export default function NewPurchase({ approversPurchasing }) {
       }, 700);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setAlertMessage(
+      triggerAlert(
+        "error",
         error.message || "An error occurred while submitting the form",
       );
-      setAlertType("error");
-      setShowAlert(true);
       // The refusal may be an ended extended credit window
       loadCreditPeriods();
     } finally {
@@ -263,7 +257,7 @@ export default function NewPurchase({ approversPurchasing }) {
   return (
     <>
       <div className="mx-auto leading-relaxed dark:text-white">
-        <div className="flex items-center justify-between px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex items-center justify-between px-2 py-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-900 dark:text-gray-200">
             <div className="flex items-center gap-2">
               <ClipboardList className="h-6 w-6" />
@@ -273,7 +267,7 @@ export default function NewPurchase({ approversPurchasing }) {
             <MpesaTillNumber />
           </div>
           <TopBarButtons />
-        </div>
+        </StickyPageHeader>
 
         <form
           id="staffInformation"
@@ -375,15 +369,6 @@ export default function NewPurchase({ approversPurchasing }) {
           </button>
         </form>
       </div>
-
-      {/* Alert Component */}
-      {showAlert && (
-        <Alert
-          message={alertMessage}
-          type={alertType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
 
       <ConfirmationDialog
         message="Are you sure you want to submit this purchase request? (You cannot edit after submission)"

@@ -1,6 +1,3 @@
-// app/components/Hero.js
-"use client";
-
 import {
   ShoppingBag,
   ArrowRight,
@@ -10,9 +7,8 @@ import {
   Radar,
 } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import LandingLogo from "./LandingLogo";
-import { basePath } from "@/public/assets";
+import HotpointWordmark from "./HotpointWordmark";
+import { basePath } from "@/utils/basePath";
 
 const stats = [
   { icon: Workflow, label: "4-stage approval chain" },
@@ -38,15 +34,10 @@ export default function Hero() {
       <div className="px-6">
         <div className="flex flex-col items-center lg:flex-row">
           {/* Left content */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="mb-10 w-full lg:mb-0 lg:w-1/2"
-          >
+          <div className="animate-hero-rise mb-10 w-full lg:mb-0 lg:w-1/2">
             {/* Landing Logo - Reserving a fixed height for it */}
-            <div className="h-40 md:h-50">
-              <LandingLogo />
+            <div className="flex h-40 justify-center md:h-50 lg:justify-start">
+              <HotpointWordmark className="h-auto w-140 max-w-full shrink-0 text-black lg:w-120 dark:text-white" />
             </div>
 
             {/* Eyebrow badge */}
@@ -95,15 +86,10 @@ export default function Hero() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Right content (card with features) */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
-            className="flex w-full justify-center lg:w-1/2"
-          >
+          <div className="animate-hero-rise flex w-full justify-center [animation-delay:150ms] lg:w-1/2">
             <div className="relative w-full lg:max-w-md">
               {/* Blurred background accents */}
               <div className="absolute -top-6 -left-6 h-64 w-64 rounded-full bg-red-100 opacity-70 blur-xl dark:hidden"></div>
@@ -156,7 +142,7 @@ export default function Hero() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

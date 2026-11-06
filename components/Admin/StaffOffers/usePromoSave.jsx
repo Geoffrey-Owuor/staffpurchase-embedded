@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationDialog from "../../Reusables/ConfirmationDialog";
 import { saveAdminPromo } from "@/utils/FetchAdmin/fetchAdmin";
+import { triggerAlert } from "@/store/useAlertStore";
 import { invalidatePromoQueries, overlapMessage } from "./staffOfferUi";
 
 // Runs one Staff Offers write (saveAdminPromo) and owns the shared bits:
@@ -32,6 +33,8 @@ export function usePromoSave() {
       } else {
         setOverlap(null);
         setError(err.message);
+        // Inline messages sit above the form, out of view when scrolled down
+        triggerAlert("error", err.message);
       }
     } finally {
       setBusyKey(null);

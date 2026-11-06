@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useId } from "react";
-import { Mail, Loader2, X } from "lucide-react";
-import Alert from "../Alert";
+import { Mail, Loader2 } from "lucide-react";
+import { triggerAlert } from "@/store/useAlertStore";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { useRouter } from "next/navigation";
 import { LoggingOutOverlay } from "../Reusables/LoadingBar";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { isValidEmail, normalizeEmail } from "@/lib/emailValidation";
 
 // Full screen on mobile. Keep mounted and toggle `open`; the flow's state
@@ -33,11 +34,8 @@ function ChangeEmailContent({ titleId, onClose }) {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [error, setError] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState(false);
   const [sending, setSending] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [alertType, setAlertType] = useState("");
   const [coolDown, setCoolDown] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -73,20 +71,14 @@ function ChangeEmailContent({ titleId, onClose }) {
 
       const data = await response.json();
       if (response.ok) {
-        setShowAlert(true);
-        setAlertType("success");
-        setAlertMessage(data.message || "Verification Code Sent");
+        triggerAlert("success", data.message || "Verification Code Sent");
         setStep("step2");
       } else {
-        setShowAlert(true);
-        setAlertType("error");
-        setAlertMessage(data.message || "Failed to send code");
+        triggerAlert("error", data.message || "Failed to send code");
       }
     } catch (error) {
       console.error("Failed to send code", error);
-      setShowAlert(true);
-      setAlertType("error");
-      setAlertMessage(error.message || "Failed to send code");
+      triggerAlert("error", error.message || "Failed to send code");
     } finally {
       setSending(false);
     }
@@ -111,9 +103,7 @@ function ChangeEmailContent({ titleId, onClose }) {
 
         const data = await response.json();
         if (response.ok) {
-          setShowAlert(true);
-          setAlertType("success");
-          setAlertMessage(data.message || "Email updated successfully");
+          triggerAlert("success", data.message || "Email updated successfully");
           setOtp(new Array(6).fill(""));
 
           //Call the logout api endpoint
@@ -125,18 +115,14 @@ function ChangeEmailContent({ titleId, onClose }) {
             router.push("/login");
           }, 2000); //2 second delay for the user to read the alert
         } else {
-          setShowAlert(true);
-          setAlertType("error");
-          setAlertMessage(data.message || "Failed to verify code");
+          triggerAlert("error", data.message || "Failed to verify code");
           setOtp(new Array(6).fill("")); //Clear otp on error
           // Focus first input on error
           inputRefs.current[0]?.focus();
         }
       } catch (error) {
         console.error("Failed to verify the code:", error);
-        setShowAlert(true);
-        setAlertType("error");
-        setAlertMessage(error.message || "Failed to update email");
+        triggerAlert("error", error.message || "Failed to update email");
         setOtp(new Array(6).fill("")); //Clear otp on error
         // Focus first input on error
         inputRefs.current[0]?.focus();
@@ -219,32 +205,14 @@ function ChangeEmailContent({ titleId, onClose }) {
 
   return (
     <>
-      {showAlert && (
-        <Alert
-          message={alertMessage}
-          type={alertType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
       {loggingOut && <LoggingOutOverlay isLoggingOut={loggingOut} />}
       {step === "step1" && (
         <>
-          <div className="flex items-start justify-between">
-            <h3
-              id={titleId}
-              className="text-xl font-bold text-gray-900 dark:text-white"
-            >
-              Change Your Email
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              aria-label="Close dialog"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title="Change Your Email"
+            onClose={onClose}
+          />
 
           <form onSubmit={handleVerifyEmail} className="mt-4 space-y-4">
             {/* New Email Field */}
@@ -298,9 +266,7 @@ function ChangeEmailContent({ titleId, onClose }) {
 
             {/* Error Message */}
             {error && (
-              <p className="text-sm text-red-600 dark:text-red-500">
-                {error}
-              </p>
+              <p className="text-sm text-red-600 dark:text-red-500">{error}</p>
             )}
 
             {/* Informational Text */}
@@ -331,22 +297,11 @@ function ChangeEmailContent({ titleId, onClose }) {
       {step === "step2" && (
         <>
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <h3
-              id={titleId}
-              className="text-xl font-bold text-gray-900 dark:text-white"
-            >
-              Verify Your New Email
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              aria-label="Close dialog"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title="Verify Your New Email"
+            onClose={onClose}
+          />
 
           {/* Informational Text */}
           <div className="mt-6 mb-7 text-center">
@@ -412,9 +367,7 @@ function ChangeEmailContent({ titleId, onClose }) {
                 onClick={handleResendCode}
                 className={`${coolDown > 0 ? "cursor-default" : "cursor-pointer hover:underline"} font-semibold text-gray-700 dark:text-gray-300 dark:hover:text-white`}
               >
-                {coolDown > 0
-                  ? `Resend code in ${coolDown}s`
-                  : "Resend code"}
+                {coolDown > 0 ? `Resend code in ${coolDown}s` : "Resend code"}
               </button>
             </div>
           </form>

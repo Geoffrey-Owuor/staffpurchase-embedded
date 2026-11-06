@@ -3,6 +3,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ClientPortal from "../ClientPortal/ClientPortal";
 import { lockPageScroll } from "@/utils/scrollLock";
+import { useModalStackStore } from "@/store/useModalStackStore";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -63,7 +64,8 @@ const openPanels = [];
 // per-open state in a child component so it resets on reopen.
 // `dismissible={false}` blocks Escape/backdrop/close while e.g. a request is
 // in flight. Mark the element that should receive initial focus with
-// `data-autofocus` (defaults to the first focusable element).
+// `data-autofocus` (defaults to the panel, so opening a modal doesn't ring the
+// close button; the first Tab then moves to the first focusable element).
 //
 // `className` styles the panel (colors, border, padding) and must give it a
 // desktop width (e.g. `md:max-w-md`; panels are w-full). Don't
@@ -94,12 +96,11 @@ export default function Modal({
     const previouslyFocused = document.activeElement;
 
     openPanels.push(panel);
+    useModalStackStore.getState().modalOpened();
     const unlockScroll = lockPageScroll();
-    (
-      panel?.querySelector("[data-autofocus]") ||
-      panel?.querySelector(FOCUSABLE) ||
-      panel
-    )?.focus({ preventScroll: true });
+    (panel?.querySelector("[data-autofocus]") || panel)?.focus({
+      preventScroll: true,
+    });
 
     const handleKeyDown = (e) => {
       if (!panel || openPanels[openPanels.length - 1] !== panel) return;
@@ -108,11 +109,19 @@ export default function Modal({
         e.preventDefault();
         onCloseRef.current?.();
       } else if (e.key === "Tab") {
-        const focusable = [...panel.querySelectorAll(FOCUSABLE)];
+        // The toasts sit outside the panel but must stay reachable by keyboard
+        const focusable = [
+          ...panel.querySelectorAll(FOCUSABLE),
+          ...document.querySelectorAll("[data-alert-layer] button"),
+        ];
         if (focusable.length === 0) return e.preventDefault();
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
+        // Focus fell out of the cycle, e.g. the toast it was on just closed
+        if (!focusable.includes(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -126,6 +135,7 @@ export default function Modal({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       openPanels.splice(openPanels.indexOf(panel), 1);
+      useModalStackStore.getState().modalClosed();
       unlockScroll();
       previouslyFocused?.focus?.({ preventScroll: true });
     };
@@ -158,7 +168,10 @@ export default function Modal({
               aria-labelledby={labelledBy}
               tabIndex={-1}
               {...panelMotion}
-              className={`flex flex-col overflow-y-auto overscroll-contain focus:outline-none md:max-h-[calc(100dvh-2rem)] md:rounded-2xl ${layout.panel} ${className}`}
+              // Desktop corners: the scrollbar sits flush against the panel's edge, and
+              // the clip rounds it with the panel. The radius only shapes the border, and
+              // the track inset keeps the thumb clear of the clipped corners.
+              className={`app-scrollbars flex flex-col overflow-y-auto overscroll-contain focus:outline-none md:max-h-[calc(100dvh-2rem)] md:rounded-2xl md:[--scrollbar-inset:1rem] md:[clip-path:inset(0_round_1rem)] ${layout.panel} ${className}`}
             >
               {children}
               {/* Keeps content clear of the iOS home indicator */}

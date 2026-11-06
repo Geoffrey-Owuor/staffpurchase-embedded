@@ -9,9 +9,9 @@ import PurchasesHistoryHeading from "../Reusables/Headings/PurchasesHistoryHeadi
 import { RecentActionButtons } from "../Reusables/ActionButtons/RecentActionButtons";
 import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import { fetchStaffPurchases } from "@/utils/FetchPurchases/fetchStaffPurchases";
 
 const APPROVAL_STATUS_OPTIONS = [
@@ -73,12 +73,6 @@ export default function StaffPurchasesTable() {
   const { handleViewClick, getViewPathName } = useDashboardRoutes();
   const [goingTo, setGoingTo] = useState(null);
   const [visibleColumns, setVisibleColumns] = useState(DEFAULT_VISIBLE_COLUMNS);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
-
 
   const table = useTableQuery({
     queryKeyPrefix: ["staffPurchases"],
@@ -97,11 +91,10 @@ export default function StaffPurchasesTable() {
 
   const handleDeleteSuccess = useCallback(
     (deletedId, message) => {
-      setAlertInfo({
-        show: true,
-        type: "success",
-        message: message || "Purchase Request Successfully Deleted",
-      });
+      triggerAlert(
+        "success",
+        message || "Purchase Request Successfully Deleted",
+      );
       queryClient.invalidateQueries({ queryKey: ["staffPurchases"] });
       queryClient.invalidateQueries({ queryKey: ["ApprovalCardCounts"] });
     },
@@ -109,11 +102,7 @@ export default function StaffPurchasesTable() {
   );
 
   const handleDeleteError = useCallback((message) => {
-    setAlertInfo({
-      show: true,
-      type: "error",
-      message: message || "Error Deleting Purchase Request",
-    });
+    triggerAlert("error", message || "Error Deleting Purchase Request");
   }, []);
 
   const columns = [
@@ -193,13 +182,6 @@ export default function StaffPurchasesTable() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <ApprovalCards filters={table.filters} />
       <DataTable
         heading={<PurchasesHistoryHeading />}
@@ -228,6 +210,7 @@ export default function StaffPurchasesTable() {
         isError={table.isError}
         onRefetch={table.refetch}
         onRowClick={handleTableRowClick}
+        pinActions="always"
         renderActions={(p) => (
           <RecentActionButtons
             id={p.id}

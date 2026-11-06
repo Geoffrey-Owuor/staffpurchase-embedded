@@ -1,7 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import LoadingLine from "@/components/Reusables/LoadingLine";
+import AlertLayer from "@/components/Reusables/Alerts/AlertLayer";
 import { ThemeProvider } from "next-themes";
+import ThemeShortcut from "@/components/Reusables/ThemeProviders/ThemeShortcut";
 import QueryProvider from "@/components/QueryProvider";
 
 const geistSans = Geist({
@@ -12,6 +14,8 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Only a few small labels use it, so it needn't compete with the first paint
+  preload: false,
 });
 
 export const metadata = {
@@ -25,7 +29,6 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      data-font="geist"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
@@ -38,7 +41,9 @@ export default function RootLayout({ children }) {
           defaultTheme="system"
           disableTransitionOnChange={true}
         >
+          <ThemeShortcut />
           <LoadingLine />
+          <AlertLayer />
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>

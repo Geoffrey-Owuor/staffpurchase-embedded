@@ -2,7 +2,7 @@
 
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 
-import { AuthPagesLogo } from "@/public/assets";
+import { AuthPagesLogo } from "@/components/Reusables/AppLogos";
 
 export default function UnauthorizedPage() {
   return (

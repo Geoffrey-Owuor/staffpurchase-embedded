@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthBackground from "./Reusables/Images/AuthBackground";
 import { Eye, EyeClosed } from "lucide-react";
-import Alert from "./Alert";
-import { basePath } from "@/public/assets";
+import { triggerAlert } from "@/store/useAlertStore";
+import { basePath } from "@/utils/basePath";
 
 export default function ResetPasswordClient({ token }) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -59,23 +56,17 @@ export default function ResetPasswordClient({ token }) {
       const data = await res.json();
 
       if (res.ok) {
-        setShowAlert(true);
-        setMessageType("success");
-        setMessage(data.message || "Password reset successful!");
+        triggerAlert("success", data.message || "Password reset successful!");
         setPassword("");
         setConfirmPassword("");
         setTimeout(() => {
           router.push("/login");
         }, 2000);
       } else {
-        setShowAlert(true);
-        setMessageType("error");
-        setMessage(data.message || "Failed to reset password");
+        triggerAlert("error", data.message || "Failed to reset password");
       }
     } catch (error) {
-      setShowAlert(true);
-      setMessageType("error");
-      setMessage("Failed to reset password");
+      triggerAlert("error", "Failed to reset password");
     } finally {
       setIsLoading(false);
     }
@@ -83,13 +74,6 @@ export default function ResetPasswordClient({ token }) {
 
   return (
     <>
-      {showAlert && (
-        <Alert
-          message={message}
-          type={messageType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
       <AuthBackground>
         <div className="flex items-center justify-center rounded-2xl border border-gray-200/80 bg-gray-50 p-7 shadow-xl ring-1 ring-black/5 dark:border-gray-800 dark:bg-gray-950 dark:ring-white/5">
           <div className="w-full max-w-sm space-y-6">
@@ -135,7 +119,7 @@ export default function ResetPasswordClient({ token }) {
                     placeholder="••••••••"
                     minLength="8"
                     // Standard Input Style
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
                   />
                   <button
                     type="button"
@@ -165,7 +149,7 @@ export default function ResetPasswordClient({ token }) {
                     required
                     placeholder="••••••••"
                     // Standard Input Style
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500 dark:hover:border-gray-600 dark:focus:border-gray-600 dark:focus:ring-gray-600"
                   />
                 </div>
               </div>
@@ -174,7 +158,7 @@ export default function ResetPasswordClient({ token }) {
               <button
                 type="submit"
                 disabled={isLoading || passwordError}
-                className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-gray-600"
+                className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-gray-600"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">

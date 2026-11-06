@@ -1,9 +1,10 @@
 "use client";
 import { useId, useState } from "react";
-import { Eye, X } from "lucide-react";
+import { Eye } from "lucide-react";
 import DataTable from "../DataTable/DataTable";
 import { useTableQuery } from "../DataTable/useTableQuery";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { fetchAdminAuditLog } from "@/utils/FetchAdmin/fetchAdmin";
 import {
   ADMIN_AUDIT_ACTIONS,
@@ -189,27 +190,12 @@ function AuditEntryModal({ open, entry, onClose }) {
     >
       {entry && (
         <>
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h3
-                id={titleId}
-                className="text-xl font-bold text-gray-900 dark:text-white"
-              >
-                {ADMIN_AUDIT_ACTIONS[entry.action] ?? entry.action}
-              </h3>
-              <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-                {entry.target_label || entry.target_id}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <ModalHeader
+            titleId={titleId}
+            title={ADMIN_AUDIT_ACTIONS[entry.action] ?? entry.action}
+            subtitle={entry.target_label || entry.target_id}
+            onClose={onClose}
+          />
 
           <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
             <dt className="font-semibold text-gray-700 dark:text-gray-400">
@@ -240,7 +226,7 @@ function AuditEntryModal({ open, entry, onClose }) {
               No field values changed (e.g. a reset link was sent).
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+            <div className="small-scrollbar overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-800 text-left text-white">
                   <tr>

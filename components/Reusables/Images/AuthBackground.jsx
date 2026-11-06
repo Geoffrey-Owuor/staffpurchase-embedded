@@ -1,6 +1,6 @@
 import { ShoppingBag, Check, Radar, FileSpreadsheet } from "lucide-react";
 import ThemeToggle from "../ThemeProviders/ThemeToggle";
-import { AuthPagesLogo } from "@/public/assets";
+import { AuthPagesLogo } from "@/components/Reusables/AppLogos";
 import Link from "next/link";
 
 const highlights = [

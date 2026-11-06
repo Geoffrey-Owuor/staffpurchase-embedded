@@ -58,7 +58,7 @@ correctness check available.
   `session_version` to end a user's sessions (deactivation, role change,
   password reset). `getCurrentUser()` alone is JWT-only.
 - **Lockout vs deactivation**: a lockout is `password_attempts >=
-  MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
+MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
   or admin unlock clears it. `is_active` is changed only by an admin - login
   no longer sets it on lockout.
 - **Staff directory checks** (`db/migrations/2026-10-20_staff_verification.sql`):
@@ -75,7 +75,7 @@ correctness check available.
     and the reply/next page look the same (no enumeration), so the
     verify-code page needs only the `verify_email` cookie, not a code row.
   - The `verify_email` cookie (`lib/verifyEmailCookie.js`, path
-    `${basePath}/`) is required by the register pages *and* by
+    `${basePath}/`) is required by the register pages _and_ by
     `staffdetails`/`completeregistration`, which only act on the email it
     names - knowing a freshly verified email isn't enough to finish that
     registration from another browser.
@@ -93,7 +93,7 @@ correctness check available.
     because that runs on every request. The admin Users page shows
     Verified/Unverified and Duplicate payroll pills (`staffCheck` filter);
     the migration has the review queries.
-- **Roles**: `admin` is a *requester* role (`REQUESTER_ROLES`/
+- **Roles**: `admin` is a _requester_ role (`REQUESTER_ROLES`/
   `isRequesterRole` in `utils/routes.js`): it submits and sees its own
   requests exactly like `staff` and is never part of the approval chain. Use
   `isRequesterRole(role)` rather than `role === "staff"` for "acts like a
@@ -101,7 +101,7 @@ correctness check available.
   get (e.g. the own-requests-only rule in `generalviewpurchases`).
 - **Admin tools** live under `/dashboard/admin/*` (gated by
   `admin/layout.js`) and `/api/admin/*` (`requireAuth(..., { roles:
-  ["admin"] })`). Users page: `components/Admin/AdminUsersTable.jsx` +
+["admin"] })`). Users page: `components/Admin/AdminUsersTable.jsx` +
   `ManageUserModal.jsx` -> `PATCH /api/admin/users/[id]` with an `action`
   (`update_profile`, `change_role`, `deactivate`, `reactivate`, `unlock`,
   `send_reset`). Guardrails are server-side: role change/deactivation can't
@@ -113,8 +113,8 @@ correctness check available.
 - **Audit log**: every admin action (plus CC product removals, see Pricing)
   writes `admin_audit_log`
   (`db/migrations/2026-10-17_admin_audit_log.sql`) via
-  `lib/adminAudit.js` `writeAdminAudit(connection, ...)`, in the *same
-  transaction* as the change. Snapshots never include password/token
+  `lib/adminAudit.js` `writeAdminAudit(connection, ...)`, in the _same
+  transaction_ as the change. Snapshots never include password/token
   columns. Add any new action's label to `ADMIN_AUDIT_ACTIONS` in
   `utils/Admin/adminConstants.js`. Viewer: `/dashboard/admin/audit-log`.
 - **Admin request editor**: `/dashboard/admin/requests` (all requests,
@@ -143,7 +143,7 @@ correctness check available.
   `/api/staffpurchaseshistory`.
 - **Admin analytics**: `/dashboard/admin/analytics` (the `/dashboard/admin`
   landing page) <- `GET /api/admin/analytics?fromDate&toDate&status`. The
-  count tiles and approval pipeline cover requests *submitted* in the range;
+  count tiles and approval pipeline cover requests _submitted_ in the range;
   the value tile, monthly charts, Volume & value and Products follow
   `status` (`approved` default / `inProgress` / `declined` / `all`,
   `STATUS_SCOPES` in the route) and range on the date each request reached
@@ -161,7 +161,8 @@ correctness check available.
   (open while one of its pages is current, `useNavGroupOpen`) and a portaled
   flyout in the collapsed sidebar. Use `flattenNavItems`/`navItemContains`
   (same file) for active-page checks. Menu keyboard handling is shared via
-  `components/Reusables/ReuseSideBar/useNavMenu.js`. The sidebar and drawer
+  `components/Reusables/ReuseSideBar/useNavMenu.js` (also used by the table
+  row menu, `RecentActionButtons`; it skips disabled items). The sidebar and drawer
   nav lists are their only scrolling regions (header/footer pinned, edge
   fade from `hooks/useScrollFade.js`) and compact under the `short:`
   variant (viewport height ≤ 640px).
@@ -228,7 +229,9 @@ former ~700-800-line near-duplicate components:
 - `DataTable.jsx` — presentational: takes a `columns` config
   (`{key,label,toggleable?,render(row)}`), an optional `filterFields` config
   (consumed by `FilterPanel.jsx`), and renders loading/error/empty states +
-  `Pagination`.
+  `Pagination`. `renderActions` adds a titled, centred Actions column pinned to the right edge
+  (`pinActions`: `"sm"` by default, `"always"` for narrow ones like a kebab menu,
+  `false` to scroll normally).
 - `FilterPanel.jsx` — the committed-filters UI: "+ Add filter" opens a
   dropdown of fields not yet staged/committed; picking one adds an inline
   value editor (`text`/`select`/`dateRange`) to the staging area; "Apply
@@ -273,7 +276,52 @@ former ~700-800-line near-duplicate components:
   `md` it's either `mobile="sheet"` (default; bottom sheet - short
   dialogs) or `mobile="fullscreen"` (content-heavy: Settings, Change Email,
   Price Comparison, Changelog). `className` must give the panel an `md:`
-  width; don't set width/height/rounding without `md:`.
+  width; don't set width/height/rounding without `md:`. On desktop a
+  `clip-path` rounds the panel's corners, so the flush scrollbar is cut along
+  the same curve; the radius only shapes the border. It also cuts the panel's
+  outer shadow, and anything overflowing the panel. Start a panel with
+  `components/Reusables/Modal/ModalHeader.jsx`, the pinned title bar: pass the
+  panel's padding (`padding`, 4/5/6) and keep long descriptions in the body.
+  Settings (two columns) and the Changelog (its own inner scroller) pin their
+  own headers instead.
+- **Toasts**: call `triggerAlert("success" | "error", message)` from
+  `store/useAlertStore.js` (works outside React too). Don't keep alert state
+  in a component: `components/Reusables/Alerts/AlertLayer.jsx` in the root
+  layout renders them all, so a toast outlives the page that fired it. They
+  stack (4 at most, in the bottom-right corner) and repeats count up. On phones
+  the layer moves to the top while a Modal is open (`useModalStackStore`), and
+  Modal's focus trap includes it (`data-alert-layer`).
+- **Dates**: use `components/Reusables/DatePicker.jsx`, never a native date
+  input. `onChange` gets the value string, not an event. Values are the same
+  wall-clock strings as the native inputs (`YYYY-MM-DD`, or
+  `YYYY-MM-DDTHH:mm` with `withTime`). `required` and `min` are enforced by a
+  hidden native input, so the browser still blocks the submit. On end fields
+  pass `defaultTime="23:59"`.
+- **Sticky title bars**: `components/Reusables/StickyPageHeader.jsx` pins a
+  page's title row (from `md` up, at least 500px tall) and shares
+  `hooks/useStickyBleed.js` with `FilterPanel`. Don't use it on a page with a
+  `FilterPanel`, which already pins, and keep long descriptions below it. The
+  edit pages also have Save there, via the button's `form` attribute. Keep
+  pinned bars outside `<form>`s and don't put scroll padding on `<main>`: form
+  fields get their clearance from `scroll-margin-top` (`styles/globals.css`),
+  and anything focused inside a pinned bar would otherwise scroll the page.
+- **Theme**: the "D" key shortcut is `ThemeShortcut.jsx`, mounted once in the root
+  layout; `ThemeToggle` is only the buttons, so it can be mounted or not freely.
+- **Scrollbars**: `.app-scrollbars` (the dashboard `<main>`, Modal panels, mobile
+  drawer) styles itself and every scroller inside; `.small-scrollbar` is the thin
+  variant for tables and menus (`styles/globals.css`). Don't use
+  `scrollbar-width`/`scrollbar-color` on them: Chromium then ignores the custom
+  styling.
+  The track is inset at both ends by `--scrollbar-inset` so the thumb stays off
+  rounded corners: scrollers with `rounded-lg/xl/2xl` get it automatically; a
+  scroller that is rounded only at a breakpoint, clipped round, or sits on a
+  rounded edge (the Modal panel, the Changelog scroller) sets it to that
+  radius, e.g. `[--scrollbar-inset:1rem]`. The dashboard `<main>` is left
+  without one on purpose: its scrollbar runs under the corner ears.
+- **Images**: the landing logo is inline SVG (`HotpointWordmark.jsx`, traced
+  from the old raster), so it follows the text colour. Render above-the-fold
+  content on the server and animate it with CSS: framer-motion's `initial` keeps
+  it hidden until hydration.
 - **Confirming async actions**: `ConfirmationDialog`/`DeleteConfirmation`
   take `busy` (+ `busyLabel`). Keep the dialog open with `busy` while the
   request runs and close it in `finally` - don't close it first and mount
@@ -305,13 +353,13 @@ before the code that depends on it deploys.
   rename via the admin page also renames it on `users`) and `app_settings`
   (only keys whitelisted in `APP_SETTINGS`, `utils/Admin/adminConstants.js`
   - currently `mpesa_till_number`). Edited at `/dashboard/admin/reference-data`
-  (`/api/admin/reference-data`, audited, revalidates the tag itself).
-  Entries are deactivated, never deleted: inactive ones aren't offered but
-  still label existing records. Client components read them through
-  `hooks/useReferenceData.js` (`useInvoicingLocations`, `useDepartments`,
-  `useAppSettings`; react-query keys under `"referenceData"`). Registration
-  and the admin profile edit only accept an active department. New accounts
-  are always `staff` - there's no email->role mapping any more.
+    (`/api/admin/reference-data`, audited, revalidates the tag itself).
+    Entries are deactivated, never deleted: inactive ones aren't offered but
+    still label existing records. Client components read them through
+    `hooks/useReferenceData.js` (`useInvoicingLocations`, `useDepartments`,
+    `useAppSettings`; react-query keys under `"referenceData"`). Registration
+    and the admin profile edit only accept an active department. New accounts
+    are always `staff` - there's no email->role mapping any more.
 - **Credit periods** (`db/migrations/2026-10-21_credit_periods.sql`), also
   on the Reference Data page (`components/Admin/CreditPeriods/`,
   `/api/admin/credit-periods`, rules in `lib/adminCreditPeriods.js`,
@@ -367,7 +415,7 @@ before the code that depends on it deploys.
 - **Promos** (`db/migrations/2026-10-20_staff_offer_promos.sql`): every
   offer row belongs to a `staff_offer_promos` promo (`promo_id`, NOT NULL)
   that owns the window and an active flag. An offer applies only when the
-  row *and* its promo are active and `NOW()` is inside the *promo's*
+  row _and_ its promo are active and `NOW()` is inside the _promo's_
   window; the row's `starts_at`/`ends_at`/`promo_name` just mirror the
   promo (`syncPromoRows`) for hand queries. Managed at
   `/dashboard/admin/staff-offers` (`components/Admin/StaffOffers/`,
@@ -455,7 +503,7 @@ before the code that depends on it deploys.
   add their own do-not-reply text.
 - Email links (workflow templates, the password-reset link, that footer)
   use `NEXT_PUBLIC_BASE_URL` as-is, so it must be the full public URL
-  *including* the base path (e.g. `https://host/staffproductpurchase`).
+  _including_ the base path (e.g. `https://host/staffproductpurchase`).
   Nothing derives it from `NEXT_PUBLIC_BASE_PATH` - keep the two in sync per
   environment.
 
@@ -502,6 +550,21 @@ before the code that depends on it deploys.
 - `generaleditpurchases/[id]/route.js` whitelists exactly which columns each
   role may write (`allowedFields`) — don't loosen this without checking the
   approval-chain implications.
+
+## Working on proposed changes (`.claude/skills/CHANGES.md`)
+
+Proposed bug fixes and UI/UX changes are written up in `.claude/skills/CHANGES.md`. Each time you pick that file up:
+
+- **Clarify first.** If anything in a proposal is ambiguous, ask before you implement. Put every open question in one round of multiple-choice questions, with a recommended option where you have one.
+- **Critique and recommend.** Say so if a proposal has trade-offs, edge cases (mobile, dark mode, accessibility) or a better alternative, and point out related bugs you notice along the way.
+- **Phase the work.** Split larger changes into phases. Verify each phase before you commit it, and use one focused commit per change.
+- **Verify in the running app.** A signed-in dev server is usually running at `localhost:1557/staffproductpurchase` in Chrome, so check there first. If none is running, start one (`npm run dev`). If you're blocked (e.g. a sign-in is needed, or the browser can't reach the server), ask the user to step in rather than skipping verification.
+
+## Module locations
+
+Nothing importable lives in `public/`, since everything there is downloadable:
+`basePath` is in `utils/basePath.js`, `formatDateLong` in
+`utils/formatDateLong.js` and the text logos in `components/Reusables/AppLogos.jsx`.
 
 ## Verification
 

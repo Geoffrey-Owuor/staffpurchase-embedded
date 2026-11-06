@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { HandCoins, PackagePlus, Trash2 } from "lucide-react";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fetchPurchaseDetails } from "@/utils/FetchPurchaseDetails/fetchPurchaseDetails";
 import StaffInformation from "../StaffInformation";
@@ -15,12 +15,14 @@ import BIApprovalSection from "../FormEditComponents/BIApprovalSection";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UnauthorizedEdit from "../Reusables/UnauthorizedEdit";
 import EditPurchaseHeading from "../EditPurchaseComponents/EditPurchaseHeading";
-import SaveCloseComponent from "../EditPurchaseComponents/SaveCloseComponent";
+import SaveCloseComponent, {
+  SaveChangesButton,
+} from "../EditPurchaseComponents/SaveCloseComponent";
 import RemovedProductsPanel from "./RemovedProductsPanel";
 import { useUser } from "@/context/UserContext";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
 import { useRouter } from "next/navigation";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { parseCreditPeriod } from "@/utils/formatCreditPeriod";
 
 // The initial state for a single product
@@ -211,10 +213,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
   const isFetchingAnyPrice = fetchingIndices.size > 0;
 
   const [submitting, setIsSubmitting] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [alertType, setAlertType] = useState("success");
 
   //Handler for other formdata change
   const handleChange = (e) => {
@@ -320,12 +319,11 @@ function PurchaseForm({ purchase, userRole, name, id }) {
         throw new Error(result.message || "failed to update purchase");
       }
 
-      setAlertMessage(
+      triggerAlert(
+        "success",
         result.message ||
           "Purchase request has been updated successfully, Redirecting...",
       );
-      setAlertType("success");
-      setShowAlert(true);
 
       setIsSubmitting(false);
 
@@ -346,9 +344,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
       }, 700);
     } catch (err) {
       console.error("Error updating purchase:", err);
-      setAlertMessage(err.message || "Failed to update purchase");
-      setAlertType("error");
-      setShowAlert(true);
+      triggerAlert("error", err.message || "Failed to update purchase");
     } finally {
       setIsSubmitting(false);
       setShowConfirmation(false);
@@ -358,9 +354,27 @@ function PurchaseForm({ purchase, userRole, name, id }) {
   return (
     <>
       <div className="mx-auto pb-6">
-        <EditPurchaseHeading />
+        <EditPurchaseHeading
+          action={
+            <SaveChangesButton
+              form="edit-purchase-form"
+              className="hidden md:inline-flex"
+              payrollApproval={purchase.Payroll_Approval}
+              hrApproval={purchase.HR_Approval}
+              ccApproval={purchase.CC_Approval}
+              disabled={
+                submitting || isFetchingAnyPrice || isDecliningWithRemovals
+              }
+            />
+          }
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        <form
+          id="edit-purchase-form"
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          autoComplete="off"
+        >
           {/* Staff Info Component */}
           <StaffInformation
             formData={staffInfo}
@@ -505,15 +519,6 @@ function PurchaseForm({ purchase, userRole, name, id }) {
         busy={submitting}
         busyLabel="Saving..."
       />
-
-      {/* Alert Component */}
-      {showAlert && (
-        <Alert
-          message={alertMessage}
-          type={alertType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
     </>
   );
 }

@@ -2,7 +2,7 @@
 import { useId } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, X, Calendar } from "lucide-react";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import Modal from "../Reusables/Modal/Modal";
 
 // Date formatting helper function to format dates for the ui
@@ -75,7 +75,7 @@ const ChangeLogModal = ({ changelogs, isModalOpen, setIsModalOpen }) => {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="min-h-0 flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto p-6 md:[--scrollbar-inset:1rem]">
         <div className="relative space-y-8">
           {/* Vertical timeline line (Optional - remove if too stylized) */}
           <div className="absolute top-2 bottom-2 left-6 w-px bg-gray-100 dark:bg-gray-800" />

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import ThemeToggleCompact from "../Reusables/ThemeProviders/ThemeToggleCompact";
 import Link from "next/link";
-import { basePath, LandingPageLogo } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
+import { LandingPageLogo } from "@/components/Reusables/AppLogos";
 
 const NAV_LINK_CLASSES =
   "relative text-gray-600 transition hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full dark:after:bg-red-400";
@@ -26,7 +27,7 @@ export default function Header() {
           : "border-b border-transparent bg-white dark:bg-gray-950"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-1 px-3 py-3 sm:px-4">
         {/* Logo */}
         <LandingPageLogo />
 
@@ -44,20 +45,17 @@ export default function Header() {
         </nav>
 
         {/* Auth Buttons  */}
-        <div className="flex items-center space-x-2">
-          {/* Theme switcher in a fixed space div */}
-          <div className="w-8">
-            <ThemeToggleCompact />
-          </div>
+        <div className="flex shrink-0 items-center space-x-1 sm:space-x-2">
+          <ThemeToggleCompact />
           <Link
             href="/login"
-            className="rounded-full px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-600/20"
+            className="rounded-full px-2.5 py-1.5 text-sm font-semibold whitespace-nowrap text-red-600 sm:px-3 transition hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-600/20"
           >
             Login
           </Link>
           <Link
             href="/register"
-            className="rounded-full bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 hover:shadow-md dark:bg-red-500 dark:hover:bg-red-600"
+            className="rounded-full bg-red-600 px-2.5 py-1.5 text-sm font-semibold whitespace-nowrap text-white sm:px-3 shadow-sm transition hover:bg-red-700 hover:shadow-md dark:bg-red-500 dark:hover:bg-red-600"
           >
             Sign Up
           </Link>

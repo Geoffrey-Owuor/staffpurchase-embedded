@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import DataTable from "../../DataTable/DataTable";
 import { useTableQuery } from "../../DataTable/useTableQuery";
-import Alert from "../../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import PromoStatusBadge from "./PromoStatusBadge";
 import PromoActionModal from "./PromoActionModal";
 import PromoFormModal from "./PromoFormModal";
@@ -41,7 +41,7 @@ import {
   OFFER_STATUS_OPTIONS,
   PROMO_EXTEND_GRACE_DAYS,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { formatWallClock } from "@/utils/Admin/wallClock";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 
@@ -69,12 +69,7 @@ export default function StaffOfferPromoPage({ id }) {
   const [actionOpen, setActionOpen] = useState(false);
   const [duplicating, setDuplicating] = useState(null);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
-  const notify = (type, message) => setAlertInfo({ show: true, type, message });
+  const notify = (type, message) => triggerAlert(type, message);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["adminPromo", id],
@@ -89,13 +84,6 @@ export default function StaffOfferPromoPage({ id }) {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <div className="px-2 pt-3">
         <Link
           href={adminStaffOffersPath}

@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import { Eye, EyeOff, Loader2 } from "lucide-react"; // Import icons
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import FormAsterisk from "../Reusables/FormAsterisk/FormAsterisk";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import ChangeEmail from "./ChangeEmail";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export default function SecuritySettingsPage() {
   const { email } = useUser();
@@ -22,10 +22,7 @@ export default function SecuritySettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [passwordError, setPasswordError] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [message, setMessage] = useState("");
-  const [errorType, setErrorType] = useState("");
   const [confirmationDialogue, setConfirmationDialogue] = useState(false);
 
   // Effect to check if new passwords match
@@ -56,22 +53,19 @@ export default function SecuritySettingsPage() {
 
       const data = await response.json();
       if (response.ok) {
-        setShowAlert(true);
-        setErrorType("success");
-        setMessage(data.message || "Password updated successfully");
+        triggerAlert(
+          "success",
+          data.message || "Password updated successfully",
+        );
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
         setUpdating(false);
       } else {
-        setShowAlert(true);
-        setErrorType("error");
-        setMessage(data.message || "Failed to reset password");
+        triggerAlert("error", data.message || "Failed to reset password");
       }
     } catch (error) {
-      setShowAlert(true);
-      setErrorType("error");
-      setMessage("Failed to reset password");
+      triggerAlert("error", "Failed to reset password");
       console.error("Failed to update password:", error);
     } finally {
       setUpdating(false);
@@ -94,14 +88,6 @@ export default function SecuritySettingsPage() {
         busy={updating}
         busyLabel="Updating..."
       />
-
-      {showAlert && (
-        <Alert
-          message={message}
-          type={errorType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
 
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">

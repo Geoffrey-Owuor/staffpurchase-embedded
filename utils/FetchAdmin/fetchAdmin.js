@@ -1,4 +1,4 @@
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 // Admin page fetchers. Admin filters aren't purchase filters, so they don't
 // go through buildPurchaseQueryParams - this keeps the same rule (only

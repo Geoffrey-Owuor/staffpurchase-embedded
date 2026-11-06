@@ -20,7 +20,8 @@ import ProductPricing from "../ProductPricing/ProductPricing";
 import Select from "../Reusables/Select";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import EditFormSkeleton from "../skeletons/EditFormSkeleton";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 import AdminStageFields from "./AdminStageFields";
 import AdminDeleteRequestDialog from "./AdminDeleteRequestDialog";
 import { FetchPeriodsPolicies } from "@/app/lib/FetchPeriodsPolicies";
@@ -193,11 +194,6 @@ function EditForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
   const handleFetchStatusChange = (index, isFetching) =>
@@ -263,7 +259,7 @@ function EditForm({
         purchase: { ...staffInfo, ...paymentFields, ...stageData },
         products,
       });
-      setAlertInfo({ show: true, type: "success", message: result.message });
+      triggerAlert("success", result.message);
       // The fresh copy re-keys this form (new version)
       queryClient.setQueryData(["adminPurchase", id], {
         purchase: result.purchase,
@@ -291,16 +287,8 @@ function EditForm({
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
-
       <div className="mx-auto leading-relaxed dark:text-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-3 px-2 py-3">
           <div className="flex items-center gap-2 text-gray-900 dark:text-gray-200">
             <ClipboardPen className="h-6 w-6" />
             <h1 className="text-xl font-semibold">
@@ -308,6 +296,16 @@ function EditForm({
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              form="admin-edit-form"
+              disabled={saving || fetchingIndices.size > 0 || !reason.trim()}
+              title={reason.trim() ? undefined : "Add a reason to save"}
+              className="hidden items-center gap-1 rounded-xl bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 md:inline-flex dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300"
+            >
+              <Save className="h-4 w-4" />
+              Save changes
+            </button>
             <Link
               href={getViewPathName(id)}
               className="rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
@@ -323,7 +321,7 @@ function EditForm({
               Delete
             </button>
           </div>
-        </div>
+        </StickyPageHeader>
 
         <p className="mx-2 mb-4 rounded-lg bg-blue-50 p-2 text-xs text-blue-900 dark:bg-blue-950 dark:text-blue-200">
           Admin override: changes skip the approval workflow and its emails, and
@@ -339,7 +337,7 @@ function EditForm({
           </p>
         )}
 
-        <form onSubmit={handleSubmit} autoComplete="off">
+        <form id="admin-edit-form" onSubmit={handleSubmit} autoComplete="off">
           <StaffInformation
             formData={staffInfo}
             handleChange={handleStaffChange}
@@ -542,7 +540,7 @@ function EditForm({
         onClose={() => setDeleteOpen(false)}
         onDeleted={(message) => {
           invalidatePurchaseQueries(queryClient);
-          setAlertInfo({ show: true, type: "success", message });
+          triggerAlert("success", message);
           setTimeout(() => navigate(adminRequestsPath), 700);
         }}
       />

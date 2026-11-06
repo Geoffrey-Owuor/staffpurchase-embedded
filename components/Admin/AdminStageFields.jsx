@@ -3,6 +3,7 @@ import Select from "../Reusables/Select";
 import PresetCommentField from "../Reusables/PresetCommentField";
 import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
 import { APPROVAL_STAGES } from "@/utils/Approvals/approvalStages";
+import DatePicker from "../Reusables/DatePicker";
 import {
   EMPLOYMENT_STATUS_OPTIONS,
   HR_COMMENT_OPTIONS,
@@ -10,7 +11,7 @@ import {
   PROBATION_OPTIONS,
   PURCHASE_HISTORY_COMMENT_OPTIONS,
 } from "@/utils/Approvals/stageFieldOptions";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 const inputClass =
   "w-full rounded-xl border border-gray-200 bg-white px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white";
@@ -122,7 +123,13 @@ export default function AdminStageFields({ purchase, values, onChange }) {
           <label htmlFor="admin-invoice_date" className={labelClass}>
             Date of Invoice
           </label>
-          {text("invoice_date", "date")}
+          <DatePicker
+            id="admin-invoice_date"
+            name="invoice_date"
+            value={values.invoice_date ?? ""}
+            onChange={(value) => onChange("invoice_date", value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label htmlFor="admin-invoice_number" className={labelClass}>

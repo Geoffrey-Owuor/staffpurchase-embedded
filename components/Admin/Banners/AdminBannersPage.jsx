@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Megaphone, Pencil, Plus } from "lucide-react";
 import DataTable from "../../DataTable/DataTable";
 import { useTableQuery } from "../../DataTable/useTableQuery";
-import Alert from "../../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import { severityStyles } from "../../Banners/BannerCard";
 import BannerStatusBadge from "./BannerStatusBadge";
 import BannerModal from "./BannerModal";
@@ -13,7 +13,7 @@ import {
   BANNER_SEVERITY_OPTIONS,
   BANNER_STATUS_OPTIONS,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 const FILTER_FIELDS = [
   {
@@ -59,11 +59,6 @@ export default function AdminBannersPage() {
   // animation still has content
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   const table = useTableQuery({
     queryKeyPrefix: ["adminBanners"],
@@ -119,13 +114,6 @@ export default function AdminBannersPage() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <DataTable
         heading={<BannersHeading />}
         toolbarExtra={
@@ -184,9 +172,7 @@ export default function AdminBannersPage() {
         editing={editing}
         onClose={() => setModalOpen(false)}
         onDuplicate={(banner) => open("create", banner)}
-        onResult={(type, message) =>
-          setAlertInfo({ show: true, type, message })
-        }
+        onResult={(type, message) => triggerAlert(type, message)}
       />
     </>
   );

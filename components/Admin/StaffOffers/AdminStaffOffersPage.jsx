@@ -168,6 +168,8 @@ export default function AdminStaffOffersPage() {
         emptyMessage="No promos yet - create one to start offering staff prices"
         filteredEmptyMessage="No promos match the active filters."
         errorMessage="Failed to load promos. Please try refreshing the page."
+        actionsLabel=""
+        pinActions={false}
         renderActions={() => (
           <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden="true" />
         )}

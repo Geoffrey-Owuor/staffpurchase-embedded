@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Filter, FilterX, ChevronDown, X, Check } from "lucide-react";
 import Select from "../Reusables/Select";
+import { useStickyBleed } from "@/hooks/useStickyBleed";
+import DatePicker from "../Reusables/DatePicker";
 
 const inputClass =
   "w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white";
@@ -29,61 +31,6 @@ function isFieldCommitted(field, committed) {
     const value = committed[key];
     return value !== undefined && value !== null && value !== "";
   });
-}
-
-// Nearest scrolling ancestor - the dashboard scrolls inside <main>, not the
-// window, so that's what the sticky panel sticks to.
-function getScrollParent(el) {
-  for (let node = el?.parentElement; node; node = node.parentElement) {
-    if (/(auto|scroll)/.test(getComputedStyle(node).overflowY)) return node;
-  }
-  return null;
-}
-
-// For a sticky element preceded by `sentinelRef` (a zero-height marker in the
-// same slot): `isStuck` once the marker has scrolled out of the scroll
-// container, and `bleed` - how far the slot's edges sit inside the
-// container's inner edges (padding + any space beside a max-width column;
-// scrollbar excluded), so the stuck element can stretch edge to edge.
-function useStickyBleed(sentinelRef) {
-  const [isStuck, setIsStuck] = useState(false);
-  const [bleed, setBleed] = useState({ left: 0, right: 0 });
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    const scroller = getScrollParent(sentinel);
-    if (!sentinel || !scroller) return;
-
-    const stuckObserver = new IntersectionObserver(
-      ([entry]) => setIsStuck(!entry.isIntersecting),
-      { root: scroller, threshold: 0 },
-    );
-    stuckObserver.observe(sentinel);
-
-    const measure = () => {
-      const slot = sentinel.getBoundingClientRect();
-      const box = scroller.getBoundingClientRect();
-      const innerLeft = box.left + scroller.clientLeft;
-      const innerRight = innerLeft + scroller.clientWidth;
-      setBleed({
-        left: Math.max(0, slot.left - innerLeft),
-        right: Math.max(0, innerRight - slot.right),
-      });
-    };
-    measure();
-    // The slot resizes with the column, the scroller with the sidebar
-    // toggle and scrollbar appearing/disappearing.
-    const resizeObserver = new ResizeObserver(measure);
-    resizeObserver.observe(sentinel);
-    resizeObserver.observe(scroller);
-
-    return () => {
-      stuckObserver.disconnect();
-      resizeObserver.disconnect();
-    };
-  }, [sentinelRef]);
-
-  return { isStuck, bleed };
 }
 
 function effectiveValue(key, staged, committed) {
@@ -124,8 +71,7 @@ export default function FilterPanel({
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const selectorRef = useRef(null);
-  const sentinelRef = useRef(null);
-  const { isStuck, bleed } = useStickyBleed(sentinelRef);
+  const { sentinelRef, isStuck, bleed } = useStickyBleed();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -248,7 +194,13 @@ export default function FilterPanel({
           </div>
 
           {activeField && (
-            <div className="flex min-w-[16rem] flex-1 items-center gap-1.5">
+            <div
+              className={`flex flex-1 items-center gap-1.5 ${
+                activeField.type === "dateRange"
+                  ? "min-w-[min(20rem,100%)]"
+                  : "min-w-[16rem]"
+              }`}
+            >
               {activeField.type === "text" && (
                 <input
                   type="text"
@@ -275,23 +227,24 @@ export default function FilterPanel({
 
               {activeField.type === "dateRange" && (
                 <div className="flex w-full items-center gap-1.5">
-                  <input
-                    type="date"
-                    aria-label="From date"
+                  <DatePicker
+                    ariaLabel="From date"
+                    placeholder="From"
+                    clearable={false}
                     value={effectiveValue("fromDate", staged, committed)}
-                    onChange={(e) =>
-                      onStagedValueChange("fromDate", e.target.value)
-                    }
+                    onChange={(value) => onStagedValueChange("fromDate", value)}
                     className={inputClass}
                   />
                   <span className="shrink-0 text-gray-400">to</span>
-                  <input
-                    type="date"
-                    aria-label="To date"
-                    value={effectiveValue("toDate", staged, committed)}
-                    onChange={(e) =>
-                      onStagedValueChange("toDate", e.target.value)
+                  <DatePicker
+                    ariaLabel="To date"
+                    placeholder="To"
+                    clearable={false}
+                    min={
+                      effectiveValue("fromDate", staged, committed) || undefined
                     }
+                    value={effectiveValue("toDate", staged, committed)}
+                    onChange={(value) => onStagedValueChange("toDate", value)}
                     className={inputClass}
                   />
                 </div>

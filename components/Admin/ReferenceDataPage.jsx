@@ -9,9 +9,10 @@ import {
   Plus,
   Save,
 } from "lucide-react";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import ReferenceDataSkeleton from "../skeletons/ReferenceDataSkeleton";
 import CreditPeriodsSection from "./CreditPeriods/CreditPeriodsSection";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 import {
   fetchReferenceData,
   saveReferenceData,
@@ -40,11 +41,6 @@ export default function ReferenceDataPage() {
     queryFn: fetchReferenceData,
   });
   const [busyKey, setBusyKey] = useState(null);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   // Every change returns the full, fresh lists; the dropdown caches used by
   // the forms ("referenceData" queries) are refreshed too.
@@ -55,10 +51,10 @@ export default function ReferenceDataPage() {
       queryClient.setQueryData(["adminReferenceData"], result);
       queryClient.invalidateQueries({ queryKey: ["referenceData"] });
       queryClient.invalidateQueries({ queryKey: ["adminAuditLog"] });
-      setAlertInfo({ show: true, type: "success", message: result.message });
+      triggerAlert("success", result.message);
       return true;
     } catch (error) {
-      setAlertInfo({ show: true, type: "error", message: error.message });
+      triggerAlert("error", error.message);
       return false;
     } finally {
       setBusyKey(null);
@@ -67,25 +63,18 @@ export default function ReferenceDataPage() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, type: "", message: "" })}
-        />
-      )}
       <div className="px-2 pb-6">
-        <div className="mt-3 mb-5 px-1">
+        <StickyPageHeader className="px-1 py-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
             <Database className="h-5 w-5" />
             Reference data
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Dropdown lists and settings used across the portal. Deactivate
-            entries instead of deleting them - requests and users that already
-            use them keep their value. Every change is in the audit log.
-          </p>
-        </div>
+        </StickyPageHeader>
+        <p className="mb-5 px-1 text-sm text-gray-500 dark:text-gray-400">
+          Dropdown lists and settings used across the portal. Deactivate entries
+          instead of deleting them - requests and users that already use them
+          keep their value. Every change is in the audit log.
+        </p>
 
         {isLoading ? (
           <ReferenceDataSkeleton />
@@ -101,9 +90,7 @@ export default function ReferenceDataPage() {
               save={save}
             />
             <CreditPeriodsSection
-              onResult={({ type, message }) =>
-                setAlertInfo({ show: true, type, message })
-              }
+              onResult={({ type, message }) => triggerAlert(type, message)}
             />
             <ListSection
               type="location"

@@ -1,32 +1,11 @@
-import hotpoint_logo from "./hotpoint_logo.webp";
-import hotpoint_white_logo from "./hotpoint_white_logo.webp";
-import dark_mode_bg from "./dark_mode_bg.svg";
-import light_mode_bg from "./light_mode_bg.svg";
-import hat from "./hat.png";
 import Link from "next/link";
-
 import { ShoppingBag } from "lucide-react";
+import hat from "@/public/hat.png";
+import { basePath } from "@/utils/basePath";
 
-export const assets = {
-  hat,
-  dark_mode_bg,
-  light_mode_bg,
-  hotpoint_logo,
-  hotpoint_white_logo,
-};
-
-export const formatDateLong = (dateString) => {
-  if (!dateString) return "dd/mm/yy";
-  const date = new Date(dateString);
-  if (isNaN(date)) return "n/a"; // invalid date check
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
-
-export const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+// The seasonal Christmas hat, for the commented-out <Image> in these logos and
+// in HotpointLogo.jsx
+export const assets = { hat };
 
 export const AuthPagesLogo = () => {
   return (
@@ -63,4 +42,3 @@ export const LandingPageLogo = () => {
     </a>
   );
 };
-

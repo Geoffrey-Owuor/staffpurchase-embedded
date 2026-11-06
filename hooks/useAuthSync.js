@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 const SESSION_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 const SESSION_CHECK_THROTTLE_MS = 60 * 1000;
