@@ -1,7 +1,8 @@
 "use client";
 import { useId, useState } from "react";
-import { Loader2, Trash2, X } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { deleteAdminPurchase } from "@/utils/FetchAdmin/fetchAdmin";
 import { REASON_MAX_LENGTH } from "@/utils/Admin/adminConstants";
 
@@ -72,23 +73,13 @@ function DeleteForm({ titleId, request, busy, setBusy, onClose, onDeleted }) {
 
   return (
     <form onSubmit={handleDelete}>
-      <div className="flex items-start justify-between">
-        <h3
-          id={titleId}
-          className="text-lg font-semibold text-gray-900 dark:text-white"
-        >
-          Delete {request.reference_number}
-        </h3>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close dialog"
-          className="rounded-full bg-gray-100 p-1.5 text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={`Delete ${request.reference_number}`}
+        onClose={onClose}
+        closeDisabled={busy}
+        padding={5}
+      />
 
       <p className="mt-2 text-sm text-gray-700 dark:text-gray-400">
         This permanently removes {request.staffName}&apos;s request and its

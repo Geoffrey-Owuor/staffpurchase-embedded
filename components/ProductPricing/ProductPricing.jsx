@@ -363,7 +363,7 @@ const ProductPricing = ({
         Product {productNumber}
       </div>
 
-      <div className="space-y-6 overflow-x-auto px-2 py-4">
+      <div className="small-scrollbar space-y-6 overflow-x-auto px-2 py-4">
         {/* Grouped Inputs - 2 columns on md+ */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           {/* Product Code */}

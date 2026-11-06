@@ -6,7 +6,6 @@ import {
   View,
   GitPullRequestClosed,
   RotateCcw,
-  Blocks,
   ClipboardPen,
 } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -18,7 +17,8 @@ import { useRouter } from "next/navigation";
 import PurchaseDetailSkeleton from "../skeletons/PurchaseDetailsSkeleton";
 import DetailField from "../Reusables/DetailField";
 import { generateClientPDF } from "@/utils/returnPurchasePDF";
-import { basePath, formatDateLong } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import ProductItemsInfo from "../ProductItemsInfo/ProductItemsInfo";
 import { useUser } from "@/context/UserContext";
@@ -26,7 +26,8 @@ import { useInvoicingLocations } from "@/hooks/useReferenceData";
 import { formatCreditPeriod } from "@/utils/formatCreditPeriod";
 import ExtendedCreditBadge from "../Reusables/ExtendedCreditBadge";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 
 export default function GeneralViewPurchases({ id }) {
   const queryClient = useQueryClient();
@@ -48,9 +49,6 @@ export default function GeneralViewPurchases({ id }) {
   const [isClosing, setIsClosing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
   const [updating, setUpdating] = useState(false);
 
   const handleConfirmClose = () => {
@@ -69,9 +67,10 @@ export default function GeneralViewPurchases({ id }) {
       if (!response.ok) {
         throw new Error(result.message || "Error closing Purchase Request");
       }
-      setAlertType("success");
-      setAlertMessage(result.message || "Purchase request closed successfully");
-      setShowAlert(true);
+      triggerAlert(
+        "success",
+        result.message || "Purchase request closed successfully",
+      );
 
       queryClient.invalidateQueries({
         queryKey: ["TrackingApprovalCardCounts"],
@@ -79,9 +78,10 @@ export default function GeneralViewPurchases({ id }) {
       queryClient.invalidateQueries({ queryKey: ["paymentTracking"] });
     } catch (error) {
       console.error("Error Closing Purchase Request:", error);
-      setAlertType("error");
-      setAlertMessage(error.message || "Error closing the purchase request");
-      setShowAlert(true);
+      triggerAlert(
+        "error",
+        error.message || "Error closing the purchase request",
+      );
     } finally {
       setUpdating(false);
       setShowConfirmationDialog(false);
@@ -109,12 +109,6 @@ export default function GeneralViewPurchases({ id }) {
 
   const { handleEditClick, navigate, getAdminEditPathName } =
     useDashboardRoutes();
-
-  // const handleCustomAlertShow = () => {
-  //   setAlertType("success");
-  //   setAlertMessage("Custom Alert Message Showing");
-  //   setShowAlert(true);
-  // };
 
   const gotoPurchaseEdit = (id) => {
     setIsEditing(true);
@@ -161,7 +155,7 @@ export default function GeneralViewPurchases({ id }) {
       {/* Details Card */}
       <div className="mx-auto rounded-xl pb-6">
         {/* Header with back button */}
-        <div className="flex flex-wrap items-center justify-between gap-4 px-2 pt-2 pb-4">
+        <StickyPageHeader className="flex flex-wrap items-center justify-between gap-4 px-2 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <View className="h-6 w-6" />
@@ -173,12 +167,6 @@ export default function GeneralViewPurchases({ id }) {
             >
               <RotateCcw className="h-4 w-4" />
             </button>
-            {/* <button
-              onClick={handleCustomAlertShow}
-              className="rounded-full bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800"
-            >
-              <Blocks className="h-4 w-4" />
-            </button> */}
           </div>
           <div className="flex items-center justify-end gap-4">
             {/* Middle Edit Button */}
@@ -237,7 +225,7 @@ export default function GeneralViewPurchases({ id }) {
             {/* Top bar buttons */}
             <TopBarButtons />
           </div>
-        </div>
+        </StickyPageHeader>
         {/* Staff Information Section */}
         <div className="border-b border-gray-200 px-2 py-6 dark:border-gray-700">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
@@ -546,14 +534,6 @@ export default function GeneralViewPurchases({ id }) {
           )}
         </div>
       </div>
-
-      {showAlert && (
-        <Alert
-          message={alertMessage}
-          type={alertType}
-          onClose={() => setShowAlert(false)}
-        />
-      )}
 
       <ConfirmationDialog
         message="Are you sure you want to close this purchase request? (You cannot reopen after closing)"

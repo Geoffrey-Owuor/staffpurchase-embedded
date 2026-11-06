@@ -1,7 +1,7 @@
 "use client";
 import { useId } from "react";
-import { X } from "lucide-react";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import {
   PRICE_CODE_LABELS,
   STAFF_OFFER_CODE,
@@ -27,29 +27,19 @@ export default function PriceComparisonModal({
       mobile="fullscreen"
       className="border-gray-200 bg-gray-50 p-4 shadow-2xl md:max-w-lg md:border dark:border-gray-700 dark:bg-gray-950"
     >
-      <div className="mb-3 flex items-start justify-between">
-        <h3
-          id={titleId}
-          className="text-lg font-semibold text-gray-900 dark:text-white"
-        >
-          {title}
-        </h3>
-        <button
-          onClick={onClose}
-          type="button"
-          className="cursor-pointer rounded-full bg-gray-100 p-1.5 text-gray-700 hover:bg-gray-200 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-          aria-label="Close price comparison"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={title}
+        onClose={onClose}
+        padding={4}
+      />
 
       {pending && (
         <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
           Discounts only apply to the Trade price. Set{" "}
           <span className="font-medium">Item Status</span> and{" "}
-          <span className="font-medium">Payment Terms</span> to see which
-          price gets auto-selected.
+          <span className="font-medium">Payment Terms</span> to see which price
+          gets auto-selected.
         </p>
       )}
 
@@ -59,7 +49,7 @@ export default function PriceComparisonModal({
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="small-scrollbar overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-900">
             <tr>

@@ -10,7 +10,7 @@ export default function ThemeToggleCompact() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // This effect ensures the component only renders on the client side.
+  // The theme is only known on the client: the icon waits for this.
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -27,10 +27,6 @@ export default function ThemeToggleCompact() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownRef]);
-
-  if (!mounted) {
-    return null; // Avoids hydration mismatch
-  }
 
   const renderTriggerIcon = () => {
     // Displays the correct icon based on the current theme.
@@ -55,14 +51,15 @@ export default function ThemeToggleCompact() {
   ];
 
   return (
-    <div className="relative hidden sm:block" ref={dropdownRef}>
-      {/* Button to trigger the dropdown */}
+    <div className="relative" ref={dropdownRef}>
+      {/* Rendered on the server too, so it holds its place in the header. Only
+          the icon depends on the theme, which the server can't know. */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-full p-2 text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
         aria-label="Toggle theme menu"
       >
-        {renderTriggerIcon()}
+        {mounted && renderTriggerIcon()}
       </button>
 
       {/* The Dropdown Menu */}

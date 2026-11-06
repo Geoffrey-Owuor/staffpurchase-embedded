@@ -1,17 +1,10 @@
 "use client";
 import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Copy,
-  Eye,
-  EyeOff,
-  Loader2,
-  Plus,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
+import DatePicker from "../../Reusables/DatePicker";
+import { Copy, Eye, EyeOff, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import Select from "../../Reusables/Select";
 import ConfirmationDialog from "../../Reusables/ConfirmationDialog";
 import BannerCard from "../../Banners/BannerCard";
@@ -101,7 +94,8 @@ function BannerContent({
   const [error, setError] = useState("");
 
   const busy = busyAction !== null;
-  const set = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key) => (value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
   const everyone = form.targetRoles.length === 0;
 
   const toggleRole = (role) =>
@@ -147,6 +141,8 @@ function BannerContent({
       }
     } catch (err) {
       setError(err.message);
+      // The inline message sits at the top, out of view when scrolled down
+      onResult("error", err.message);
     } finally {
       setBusyAction(null);
       setConfirmDelete(false);
@@ -162,39 +158,32 @@ function BannerContent({
     if (isEdit) {
       run("save", "PATCH", { ...formBody(), reshow });
     } else {
-      run("create", "POST", { ...formBody(), isActive: form.isActive }, {
-        close: true,
-      });
+      run(
+        "create",
+        "POST",
+        { ...formBody(), isActive: form.isActive },
+        {
+          close: true,
+        },
+      );
     }
   };
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3
-            id={titleId}
-            className="text-xl font-bold text-gray-900 dark:text-white"
-          >
-            {isEdit ? `Banner #${banner.id}` : "New banner"}
-          </h3>
-          {isEdit && (
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-              <BannerStatusBadge status={banner.status} />
-              <span>{formatAudience(banner.targetRoles)}</span>
-            </div>
-          )}
+      <ModalHeader
+        titleId={titleId}
+        title={isEdit ? `Banner #${banner.id}` : "New banner"}
+        onClose={onClose}
+        closeDisabled={busy}
+      />
+
+      {isEdit && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+          <BannerStatusBadge status={banner.status} />
+          <span>{formatAudience(banner.targetRoles)}</span>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      )}
 
       {error && (
         <p
@@ -287,12 +276,12 @@ function BannerContent({
             <label htmlFor="banner-starts" className={labelClass}>
               Starts
             </label>
-            <input
+            <DatePicker
               id="banner-starts"
-              type="datetime-local"
+              withTime
               value={form.startsAt}
               disabled={busy}
-              onChange={(e) => set("startsAt")(e.target.value)}
+              onChange={set("startsAt")}
               className={inputClass}
             />
             <p className={hintClass}>
@@ -303,13 +292,14 @@ function BannerContent({
             <label htmlFor="banner-ends" className={labelClass}>
               Ends
             </label>
-            <input
+            <DatePicker
               id="banner-ends"
-              type="datetime-local"
-              value={form.endsAt}
+              withTime
+              defaultTime="23:59"
               min={form.startsAt || undefined}
+              value={form.endsAt}
               disabled={busy}
-              onChange={(e) => set("endsAt")(e.target.value)}
+              onChange={set("endsAt")}
               className={inputClass}
             />
             <p className={hintClass}>Leave empty to show until deactivated.</p>

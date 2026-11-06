@@ -5,10 +5,28 @@ import Pagination from "../pagination/Pagination";
 import ColumnToggle from "../Reusables/ColumnToggle";
 import FilterPanel from "./FilterPanel";
 
+// The Actions column stays in view while the other columns slide under it. The
+// left line is an inset shadow: with border-collapse, a real border on a sticky
+// cell scrolls away with the content.
+const PINNED_ACTIONS_CLASSES = {
+  always: {
+    head: "sticky right-0 z-10 shadow-[inset_1px_0_0_var(--color-gray-600)]",
+    cell: "sticky right-0 z-10 shadow-[inset_1px_0_0_var(--color-gray-200)] dark:shadow-[inset_1px_0_0_var(--color-gray-700)]",
+  },
+  sm: {
+    head: "sm:sticky sm:right-0 sm:z-10 sm:shadow-[inset_1px_0_0_var(--color-gray-600)]",
+    cell: "sm:sticky sm:right-0 sm:z-10 sm:shadow-[inset_1px_0_0_var(--color-gray-200)] sm:dark:shadow-[inset_1px_0_0_var(--color-gray-700)]",
+  },
+};
+
 // Config-driven table shell shared by every purchases/payment-tracking view.
 // columns: [{ key, label, title?, toggleable?, render(row) }]
 //   - non-toggleable columns (reference number, staff, payroll, actions) always render
 //   - toggleable columns are gated by `visibleColumns[key]`
+// pinActions: where the Actions column is pinned to the right edge
+//   - "sm" (default): from the sm breakpoint up, for action columns too wide to
+//     pin on a phone; "always": at every width, for narrow ones (a kebab menu);
+//     false: never
 export default function DataTable({
   heading,
   toolbarExtra,
@@ -37,6 +55,8 @@ export default function DataTable({
   isError,
   onRefetch,
   renderActions,
+  actionsLabel = "Actions",
+  pinActions = "sm",
   onRowClick,
   emptyMessage = "No purchase data found",
   filteredEmptyMessage = "No purchases match the active filters.",
@@ -50,6 +70,8 @@ export default function DataTable({
   const visibleColumnList = columns.filter(
     (column) => !column.toggleable || visibleColumns[column.key],
   );
+
+  const pinnedActions = PINNED_ACTIONS_CLASSES[pinActions];
 
   return (
     <>
@@ -98,7 +120,7 @@ export default function DataTable({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto rounded-xl">
+            <div className="small-scrollbar overflow-x-auto rounded-xl">
               <table className="mb-6 min-w-full">
                 <thead className="bg-gray-800 text-white">
                   <tr>
@@ -112,7 +134,11 @@ export default function DataTable({
                       </th>
                     ))}
                     {renderActions && (
-                      <th className="px-6 py-3 text-left text-sm font-semibold" />
+                      <th
+                        className={`bg-gray-800 px-3 py-3 text-center text-sm font-semibold whitespace-nowrap sm:px-6 ${pinnedActions?.head ?? ""}`}
+                      >
+                        {actionsLabel}
+                      </th>
                     )}
                   </tr>
                 </thead>
@@ -133,7 +159,13 @@ export default function DataTable({
                           </td>
                         ))}
                         {renderActions && (
-                          <td className="px-6 py-4">{renderActions(row)}</td>
+                          <td
+                            className={`bg-inherit px-3 py-4 whitespace-nowrap sm:px-6 ${pinnedActions?.cell ?? ""}`}
+                          >
+                            <div className="flex justify-center">
+                              {renderActions(row)}
+                            </div>
+                          </td>
                         )}
                       </tr>
                     ))

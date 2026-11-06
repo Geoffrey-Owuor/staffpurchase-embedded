@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   KeyRound,
@@ -7,11 +7,11 @@ import {
   LockOpen,
   Save,
   ShieldCheck,
-  UserCheck,
-  UserX,
-  X,
+  UserRoundCheck,
+  UserRoundX,
 } from "lucide-react";
 import Modal from "../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import Select from "../Reusables/Select";
 import ConfirmationDialog from "../Reusables/ConfirmationDialog";
 import UserStatusBadge, { getUserStatus } from "./UserStatusBadge";
@@ -24,7 +24,7 @@ import {
   REASON_MAX_LENGTH,
   PROFILE_FIELD_MAX_LENGTH,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 const inputClass =
   "w-full rounded-xl border border-gray-200 bg-white px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:disabled:bg-gray-800";
@@ -84,6 +84,12 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
   const [pendingConfirm, setPendingConfirm] = useState(null);
   const [error, setError] = useState("");
   const [warning, setWarning] = useState("");
+  const warningRef = useRef(null);
+
+  // Shown at the top of the panel, but the action that caused it is further down
+  useEffect(() => {
+    if (warning) warningRef.current?.scrollIntoView({ block: "nearest" });
+  }, [warning]);
 
   const isSelf = user.id === currentAdminId;
   const status = getUserStatus(user);
@@ -116,6 +122,8 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
     } catch (err) {
       if (err.user) setUser(err.user);
       setError(err.message);
+      // The inline message sits at the top, out of view when scrolled down
+      onResult("error", err.message);
     } finally {
       setBusyAction(null);
       setPendingConfirm(null);
@@ -144,28 +152,13 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3
-            id={titleId}
-            className="truncate text-xl font-bold text-gray-900 dark:text-white"
-          >
-            {user.name}
-          </h3>
-          <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-            {user.email}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={user.name}
+        subtitle={user.email}
+        onClose={onClose}
+        closeDisabled={busy}
+      />
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
         <UserStatusBadge user={user} />
@@ -193,7 +186,10 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
         </p>
       )}
       {warning && (
-        <p className="mt-4 rounded-lg bg-amber-100 p-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <p
+          ref={warningRef}
+          className="mt-4 scroll-mt-24 rounded-lg bg-amber-100 p-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+        >
           {warning}
         </p>
       )}
@@ -382,7 +378,7 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
                 disabled={busy || isSelf || needsReason("deactivate")}
                 className={dangerButton}
               >
-                <UserX className="h-4 w-4" />
+                <UserRoundX className="h-4 w-4" />
                 Deactivate
               </button>
             ) : (
@@ -395,7 +391,7 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
                 {busyAction === "reactivate" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <UserCheck className="h-4 w-4" />
+                  <UserRoundCheck className="h-4 w-4" />
                 )}
                 Reactivate
               </button>

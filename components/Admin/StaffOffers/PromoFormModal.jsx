@@ -1,8 +1,10 @@
 "use client";
 import { useId, useState } from "react";
-import { Copy, Loader2, Plus, X } from "lucide-react";
+import { Copy, Loader2, Plus } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import { usePromoSave } from "./usePromoSave";
+import DatePicker from "../../Reusables/DatePicker";
 import {
   hintClass,
   inputClass,
@@ -67,31 +69,19 @@ function PromoForm({ source, titleId, onClose, onCreated }) {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3
-            id={titleId}
-            className="text-xl font-bold text-gray-900 dark:text-white"
-          >
-            {source ? "Duplicate promo" : "New promo"}
-          </h3>
-          {source && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Copies {plural(source.activeProductCount, "active product")} from{" "}
-              {source.name} at their prices.
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title={source ? "Duplicate promo" : "New promo"}
+        onClose={onClose}
+        closeDisabled={busy}
+      />
+
+      {source && (
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Copies {plural(source.activeProductCount, "active product")} from{" "}
+          {source.name} at their prices.
+        </p>
+      )}
 
       {error && (
         <p
@@ -124,13 +114,13 @@ function PromoForm({ source, titleId, onClose, onCreated }) {
             <label htmlFor="promo-starts" className={labelClass}>
               Starts
             </label>
-            <input
+            <DatePicker
               id="promo-starts"
-              type="datetime-local"
+              withTime
               required
               value={form.startsAt}
               disabled={busy}
-              onChange={set("startsAt")}
+              onChange={(value) => set("startsAt")({ target: { value } })}
               className={inputClass}
             />
           </div>
@@ -138,14 +128,15 @@ function PromoForm({ source, titleId, onClose, onCreated }) {
             <label htmlFor="promo-ends" className={labelClass}>
               Ends
             </label>
-            <input
+            <DatePicker
               id="promo-ends"
-              type="datetime-local"
+              withTime
               required
+              defaultTime="23:59"
               min={form.startsAt || undefined}
               value={form.endsAt}
               disabled={busy}
-              onChange={set("endsAt")}
+              onChange={(value) => set("endsAt")({ target: { value } })}
               className={inputClass}
             />
             <p className={hintClass}>

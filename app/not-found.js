@@ -1,8 +1,8 @@
 // app/not-found.js
 import { Home, FileQuestion } from "lucide-react";
 import GoBackButton from "@/components/Reusables/GoBackButton";
-import { AuthPagesLogo } from "@/public/assets";
-import { basePath } from "@/public/assets";
+import { AuthPagesLogo } from "@/components/Reusables/AppLogos";
+import { basePath } from "@/utils/basePath";
 
 export const metadata = {
   title: "Page Not Found | Hotpoint Staff Portal",

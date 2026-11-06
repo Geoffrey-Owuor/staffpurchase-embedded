@@ -6,11 +6,11 @@ import { Eye, PencilLine, Trash2 } from "lucide-react";
 import DataTable from "../DataTable/DataTable";
 import { useTableQuery } from "../DataTable/useTableQuery";
 import { TableApprovalStatus } from "../Reusables/TableApprovalStatus";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import AdminDeleteRequestDialog from "./AdminDeleteRequestDialog";
 import { fetchApproverPurchases } from "@/utils/FetchPurchases/fetchApproverPurchases";
 import { useDashboardRoutes } from "@/utils/HandleActionClicks/useDashboardRoutes";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 
 // approvalStatus means the overall outcome for admin (see
 // api/tablesdata/purchaseshistorydata).
@@ -84,11 +84,6 @@ export default function AdminRequestsTable() {
     useDashboardRoutes();
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   const table = useTableQuery({
     queryKeyPrefix: ["adminPurchases"],
@@ -96,7 +91,7 @@ export default function AdminRequestsTable() {
   });
 
   const handleDeleted = (message) => {
-    setAlertInfo({ show: true, type: "success", message });
+    triggerAlert("success", message);
     // Every purchases table/count shares these prefixes
     for (const key of [
       "adminPurchases",
@@ -159,13 +154,6 @@ export default function AdminRequestsTable() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <DataTable
         heading={<RequestsHeading />}
         columns={columns}

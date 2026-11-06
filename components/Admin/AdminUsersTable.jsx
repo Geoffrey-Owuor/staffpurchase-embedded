@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import { UserCog } from "lucide-react";
+import { UserRoundCog } from "lucide-react";
 import DataTable from "../DataTable/DataTable";
 import { useTableQuery } from "../DataTable/useTableQuery";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import UserStatusBadge from "./UserStatusBadge";
 import StaffCheckBadges from "./StaffCheckBadges";
 import ManageUserModal from "./ManageUserModal";
@@ -14,7 +14,7 @@ import {
   STAFF_CHECK_OPTIONS,
   USER_STATUS_OPTIONS,
 } from "@/utils/Admin/adminConstants";
-import { formatDateLong } from "@/public/assets";
+import { formatDateLong } from "@/utils/formatDateLong";
 import { useDepartments } from "@/hooks/useReferenceData";
 
 const BASE_FILTER_FIELDS = [
@@ -65,11 +65,6 @@ function UsersHeading() {
 export default function AdminUsersTable() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [alertInfo, setAlertInfo] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
 
   // Every department, retired ones included, since they're existing data
   const { allOptions: departmentOptions } = useDepartments();
@@ -136,13 +131,6 @@ export default function AdminUsersTable() {
 
   return (
     <>
-      {alertInfo.show && (
-        <Alert
-          message={alertInfo.message}
-          type={alertInfo.type}
-          onClose={() => setAlertInfo({ show: false, message: "", type: "" })}
-        />
-      )}
       <DataTable
         heading={<UsersHeading />}
         columns={columns}
@@ -181,7 +169,7 @@ export default function AdminUsersTable() {
             }}
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
           >
-            <UserCog className="h-4 w-4" />
+            <UserRoundCog className="h-4 w-4" />
             Manage
           </button>
         )}
@@ -190,9 +178,7 @@ export default function AdminUsersTable() {
         open={modalOpen}
         user={selectedUser}
         onClose={() => setModalOpen(false)}
-        onResult={(type, message) =>
-          setAlertInfo({ show: true, type, message })
-        }
+        onResult={(type, message) => triggerAlert(type, message)}
       />
     </>
   );

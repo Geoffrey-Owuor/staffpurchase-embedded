@@ -1,4 +1,4 @@
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export async function fetchPurchaseDetails(id) {
   try {

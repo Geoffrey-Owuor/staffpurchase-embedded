@@ -1,6 +1,7 @@
 "use client";
 import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import DatePicker from "../../Reusables/DatePicker";
 import {
   CircleAlert,
   Download,
@@ -9,9 +10,9 @@ import {
   Loader2,
   TriangleAlert,
   Upload,
-  X,
 } from "lucide-react";
 import Modal from "../../Reusables/Modal/Modal";
+import ModalHeader from "@/components/Reusables/Modal/ModalHeader";
 import ConfirmationDialog from "../../Reusables/ConfirmationDialog";
 import {
   hintClass,
@@ -147,25 +148,17 @@ function UploadForm({ promo, titleId, onClose, onDone }) {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 id={titleId} className="text-xl font-bold text-gray-900 dark:text-white">
-            Upload offers from Excel
-          </h3>
-          <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-            {promo ? `Adding to ${promo.name}` : "Creates a new promo with the file's products"}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={busy !== null}
-          aria-label="Close"
-          className="cursor-pointer text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+      <ModalHeader
+        titleId={titleId}
+        title="Upload offers from Excel"
+        subtitle={
+          promo
+            ? `Adding to ${promo.name}`
+            : "Creates a new promo with the file's products"
+        }
+        onClose={onClose}
+        closeDisabled={busy !== null}
+      />
 
       <details className="mt-4 rounded-xl border border-gray-200 p-3 text-sm dark:border-gray-800">
         <summary className="cursor-pointer font-semibold text-gray-800 dark:text-gray-200">
@@ -207,13 +200,15 @@ function UploadForm({ promo, titleId, onClose, onDone }) {
                 <label htmlFor="upload-promo-starts" className={labelClass}>
                   Starts
                 </label>
-                <input
+                <DatePicker
                   id="upload-promo-starts"
-                  type="datetime-local"
+                  withTime
                   required
                   value={details.startsAt}
                   disabled={busy !== null}
-                  onChange={setDetail("startsAt")}
+                  onChange={(value) =>
+                    setDetail("startsAt")({ target: { value } })
+                  }
                   className={inputClass}
                 />
               </div>
@@ -221,17 +216,22 @@ function UploadForm({ promo, titleId, onClose, onDone }) {
                 <label htmlFor="upload-promo-ends" className={labelClass}>
                   Ends
                 </label>
-                <input
+                <DatePicker
                   id="upload-promo-ends"
-                  type="datetime-local"
+                  withTime
                   required
+                  defaultTime="23:59"
                   min={details.startsAt || undefined}
                   value={details.endsAt}
                   disabled={busy !== null}
-                  onChange={setDetail("endsAt")}
+                  onChange={(value) =>
+                    setDetail("endsAt")({ target: { value } })
+                  }
                   className={inputClass}
                 />
-                <p className={hintClass}>Inclusive - 23:59 covers the whole last day.</p>
+                <p className={hintClass}>
+                  Inclusive - 23:59 covers the whole last day.
+                </p>
               </div>
             </div>
           </>
@@ -394,7 +394,7 @@ function UploadPreview({ preview }) {
       )}
 
       {issues.length > 0 && (
-        <div className="max-h-72 overflow-auto rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="small-scrollbar max-h-72 overflow-auto rounded-xl border border-gray-200 dark:border-gray-800">
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 bg-gray-800 text-left text-white">
               <tr>
@@ -406,19 +406,27 @@ function UploadPreview({ preview }) {
             <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950">
               {issues.map((issue) => (
                 <tr key={issue.row}>
-                  <td className="px-3 py-2 align-top text-gray-500">{issue.row}</td>
+                  <td className="px-3 py-2 align-top text-gray-500">
+                    {issue.row}
+                  </td>
                   <td className="px-3 py-2 align-top font-mono break-all text-gray-900 dark:text-white">
                     {issue.productCode || "-"}
                   </td>
                   <td className="space-y-1 px-3 py-2">
                     {issue.errors.map((text) => (
-                      <p key={text} className="flex gap-1 text-red-700 dark:text-red-300">
+                      <p
+                        key={text}
+                        className="flex gap-1 text-red-700 dark:text-red-300"
+                      >
                         <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                         {text}
                       </p>
                     ))}
                     {issue.warnings.map((text) => (
-                      <p key={text} className="flex gap-1 text-amber-700 dark:text-amber-400">
+                      <p
+                        key={text}
+                        className="flex gap-1 text-amber-700 dark:text-amber-400"
+                      >
                         <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                         {text}
                       </p>

@@ -125,6 +125,9 @@ export function MonthlyColumns({ points, format = formatCount, title }) {
   const top = hasData ? max : 1;
   // Label every month when there are few, otherwise every 3rd
   const labelEvery = points.length > 12 ? 3 : 1;
+  // In a narrow card a full year of labels doesn't fit: show every other one,
+  // counted back from the latest month so that one always keeps its label
+  const thinsWhenNarrow = labelEvery === 1 && points.length > 6;
 
   return (
     <div>
@@ -175,11 +178,15 @@ export function MonthlyColumns({ points, format = formatCount, title }) {
           </span>
         )}
       </div>
-      <div className="mt-1 flex justify-between gap-0.5">
+      <div className="@container mt-1 flex justify-between gap-0.5">
         {points.map((point, index) => (
           <span
             key={point.month}
-            className="flex-1 text-center text-[10px] text-gray-500 dark:text-gray-400"
+            className={`min-w-0 flex-1 text-center text-[10px] whitespace-nowrap text-gray-500 dark:text-gray-400 ${
+              thinsWhenNarrow && (points.length - 1 - index) % 2 === 1
+                ? "@max-[260px]:invisible"
+                : ""
+            }`}
           >
             {index % labelEvery === 0 ? monthLabel(point.month) : ""}
           </span>

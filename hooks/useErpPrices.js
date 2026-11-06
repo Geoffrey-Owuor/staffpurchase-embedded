@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "./useDebouncedValue";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 const MIN_CODE_LENGTH = 3;
 const DEBOUNCE_MS = 600;

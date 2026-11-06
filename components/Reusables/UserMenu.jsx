@@ -8,7 +8,7 @@ import { useUser } from "@/context/UserContext";
 import ThemeToggle from "./ThemeProviders/ThemeToggle";
 import { LoggingOutOverlay } from "./LoadingBar";
 import { useShowTopbar, useSidebarStore } from "@/store/useSidebarStore";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 
 export default function UserMenu({ hideMobileMenu, menuOpen }) {
   const showTopbar = useShowTopbar();

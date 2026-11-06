@@ -26,10 +26,6 @@
   );
 }
 
-html[data-font="geist"] {
-  font-family: var(--font-sans);
-}
-
 [data-theme="dark"] {
   --shimmer-background: #1f2937;
 }
@@ -65,6 +61,47 @@ html[data-font="geist"] {
       transform: translateY(-100%);
       opacity: 0;
     }
+  }
+
+  /* A CSS animation, so the server-rendered hero shows at first paint instead of
+     staying hidden until the JS that would reveal it has loaded */
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+
+  .animate-hero-rise {
+    animation: hero-rise 0.5s ease-out both;
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+
+  .animate-toast-in {
+    animation: toast-in 0.2s ease-out both;
+    @media (prefers-reduced-motion: reduce) {
+      animation-name: none;
+    }
+  }
+
+  .animate-toast-out {
+    animation: toast-out 0.2s ease-in both;
   }
 
   .animate-slideDown {
@@ -140,16 +177,6 @@ html[data-font="geist"] {
     background-image: url(../public/dark_mode_bg.svg);
   }
 
-  /* Background for layoutshell page */
-  .layout-shell {
-    background-image: url(../public/layout_light_bg.png);
-    background-repeat: repeat; /* Use 'no-repeat' and 'background-size: cover' if it's a single big image */
-    background-position: center;
-    background-size: 500px;
-  }
-  [data-theme="dark"] .layout-shell {
-    background-image: url(../public/layout_dark_bg.png);
-  }
   .bg-base-classes {
     @apply bg-white dark:bg-gray-950;
   }
@@ -175,15 +202,180 @@ html[data-font="geist"] {
       max-width: 100rem /* 1536px */;
     }
   }
+
+  /* Keeps a field the browser jumps to (e.g. the first invalid one on submit)
+     clear of the pinned title bar. It's on the fields and not scroll padding on
+     <main>, which also covers the pinned bars: anything focused or typed into
+     in one then counts as hidden, and the page scrolls behind the bar. */
+  main form :is(input, select, textarea, button, [role="combobox"]) {
+    scroll-margin-top: 5rem;
+  }
+
+  /* The same for a Modal's pinned title bar, leaving out the bar's own controls. */
+  [role="dialog"]
+    :is(input, select, textarea, button, [role="combobox"]):not(
+      [data-modal-header] *
+    ) {
+    scroll-margin-top: 5.5rem;
+  }
+}
+
+/* Scrollbars
+   - The window (public pages) keeps the browser's native scrollbar, tinted with
+     the thumb token through the html rule below.
+   - .app-scrollbars styles itself and every scroller inside it: no arrow
+     buttons and a pill thumb flush against the scroller's edge in a transparent
+     track. On the dashboard <main>, the mobile drawer's nav and every Modal panel.
+   - .small-scrollbar is the thin variant for small scrollers (dropdowns, menus,
+     tables), inside the scope or not.
+   Chromium 121+ ignores the ::-webkit-scrollbar pseudo-elements on any element
+   with scrollbar-color or scrollbar-width set, and scrollbar-color is inherited.
+   So the standard properties are for Firefox only, the scoped elements reset the
+   colour to auto, and scrollbar-width must not be used inside the scope. Touch
+   screens keep their native auto-hiding overlay scrollbars. */
+:root {
+  --scrollbar-thumb: #9ca3af;
+  --scrollbar-thumb-hover: #6b7280;
+  --scrollbar-thumb-active: #4b5563;
+}
+
+html[data-theme="dark"] {
+  --scrollbar-thumb: #4b5563;
+  --scrollbar-thumb-hover: #6b7280;
+  --scrollbar-thumb-active: #9ca3af;
 }
 
 html {
   scroll-behavior: smooth;
-  scrollbar-color: #9ca3af transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-html[data-theme="dark"] {
-  scrollbar-color: #4b5563 transparent;
+/* Track inset at both ends of the scroll axis, so the thumb stops short of
+   rounded corners: Chromium clips a rounded scroller's bar to its radius, and
+   a square scroller on the edge of a rounded panel runs into the panel's curve.
+   The scrollbar pseudo-elements read it by inheriting from their scroller, so
+   it must inherit; every element resets it instead, so a rounded card or
+   modal panel doesn't inset the scrollers inside it. (An @property with
+   inherits: false would leave the pseudo-elements at 0.) The reset is in the
+   base layer so utilities override it. Scrollers rounded with the classes
+   below get it automatically; one that sits on a rounded panel's edge, or is
+   rounded only at a breakpoint, sets it to that radius, e.g.
+   md:[--scrollbar-inset:1rem] on the Modal panel. */
+@layer base {
+  * {
+    --scrollbar-inset: 0px;
+  }
+}
+
+.small-scrollbar.rounded-lg,
+.app-scrollbars .rounded-lg {
+  --scrollbar-inset: 0.5rem;
+}
+.small-scrollbar.rounded-xl,
+.app-scrollbars .rounded-xl {
+  --scrollbar-inset: 0.75rem;
+}
+.small-scrollbar.rounded-2xl,
+.app-scrollbars .rounded-2xl {
+  --scrollbar-inset: 1rem;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .app-scrollbars {
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  .small-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+@supports selector(::-webkit-scrollbar) {
+  @media (hover: hover) and (pointer: fine) {
+    .app-scrollbars,
+    .small-scrollbar {
+      scrollbar-color: auto;
+    }
+
+    .app-scrollbars::-webkit-scrollbar,
+    .app-scrollbars *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+      background: transparent;
+    }
+    .small-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+      background: transparent;
+    }
+
+    .app-scrollbars::-webkit-scrollbar-thumb,
+    .app-scrollbars *::-webkit-scrollbar-thumb,
+    .small-scrollbar::-webkit-scrollbar-thumb {
+      background-color: var(--scrollbar-thumb);
+      background-clip: padding-box;
+      border: 0 solid transparent;
+      border-radius: 999px;
+    }
+    /* Inset from the content side only, so the thumb sits flush against the
+       scroller's edge. The painted (padding-box) corners are the outer radii
+       minus the border, so a one-sided border would make uneven, pinched ends;
+       the inset side's radii are 2px larger along the border so the visible
+       thumb ends in a true semicircle. */
+    .app-scrollbars::-webkit-scrollbar-thumb:vertical,
+    .app-scrollbars *::-webkit-scrollbar-thumb:vertical {
+      border-left-width: 2px;
+      border-radius: 6px 4px 4px 6px / 4px;
+    }
+    .app-scrollbars::-webkit-scrollbar-thumb:horizontal,
+    .app-scrollbars *::-webkit-scrollbar-thumb:horizontal {
+      border-top-width: 2px;
+      border-radius: 4px / 6px 6px 4px 4px;
+    }
+    .small-scrollbar::-webkit-scrollbar-thumb:vertical {
+      border-left-width: 2px;
+      border-radius: 4px 2px 2px 4px / 2px;
+    }
+    .small-scrollbar::-webkit-scrollbar-thumb:horizontal {
+      border-top-width: 2px;
+      border-radius: 2px / 4px 4px 2px 2px;
+    }
+    .app-scrollbars::-webkit-scrollbar-thumb:hover,
+    .app-scrollbars *::-webkit-scrollbar-thumb:hover,
+    .small-scrollbar::-webkit-scrollbar-thumb:hover {
+      background-color: var(--scrollbar-thumb-hover);
+    }
+    .app-scrollbars::-webkit-scrollbar-thumb:active,
+    .app-scrollbars *::-webkit-scrollbar-thumb:active,
+    .small-scrollbar::-webkit-scrollbar-thumb:active {
+      background-color: var(--scrollbar-thumb-active);
+    }
+
+    .app-scrollbars::-webkit-scrollbar-track,
+    .app-scrollbars *::-webkit-scrollbar-track,
+    .small-scrollbar::-webkit-scrollbar-track,
+    .app-scrollbars::-webkit-scrollbar-corner,
+    .app-scrollbars *::-webkit-scrollbar-corner,
+    .small-scrollbar::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+    .app-scrollbars::-webkit-scrollbar-track:vertical,
+    .app-scrollbars *::-webkit-scrollbar-track:vertical,
+    .small-scrollbar::-webkit-scrollbar-track:vertical {
+      margin-block: var(--scrollbar-inset);
+    }
+    .app-scrollbars::-webkit-scrollbar-track:horizontal,
+    .app-scrollbars *::-webkit-scrollbar-track:horizontal,
+    .small-scrollbar::-webkit-scrollbar-track:horizontal {
+      margin-inline: var(--scrollbar-inset);
+    }
+
+    .app-scrollbars::-webkit-scrollbar-button,
+    .app-scrollbars *::-webkit-scrollbar-button,
+    .small-scrollbar::-webkit-scrollbar-button {
+      display: none;
+    }
+  }
 }
 
 /* Fake rounded corners for the dashboard scroller (ReusableLayoutShell).

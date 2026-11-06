@@ -1,5 +1,5 @@
 "use client";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { useState } from "react";
 

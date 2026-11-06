@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import AuthBackground from "../Reusables/Images/AuthBackground";
-import Alert from "../Alert";
+import { triggerAlert } from "@/store/useAlertStore";
 import Select from "../Reusables/Select";
-import { basePath } from "@/public/assets";
+import { basePath } from "@/utils/basePath";
 import { useDepartments } from "@/hooks/useReferenceData";
 import { isValidRole } from "@/utils/routes";
 
@@ -38,7 +38,10 @@ export default function CompleteRegistrationComponent({
   const [lookingUp, setLookingUp] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showAlert, setShowAlert] = useState(true);
+  useEffect(() => {
+    triggerAlert("success", "Your email has been verified successfully");
+  }, []);
+
   // DB-managed (admin Reference Data) - active departments only
   const { options: departmentOptions } = useDepartments();
 
@@ -113,14 +116,6 @@ export default function CompleteRegistrationComponent({
 
   return (
     <AuthBackground>
-      {showAlert && (
-        <Alert
-          message="Your email has been verified successfully"
-          type="success"
-          onClose={() => setShowAlert(false)}
-        />
-      )}
-
       {/* Card */}
       <div className="my-10 rounded-2xl border border-gray-200/80 bg-gray-50 px-7 py-8 shadow-xl ring-1 ring-black/5 dark:border-gray-800 dark:bg-gray-950 dark:ring-white/5">
         <div className="w-full max-w-sm space-y-4">
@@ -235,7 +230,9 @@ export default function CompleteRegistrationComponent({
                         id="department"
                         value={formData.department}
                         onChange={(value) =>
-                          handleChange({ target: { name: "department", value } })
+                          handleChange({
+                            target: { name: "department", value },
+                          })
                         }
                         options={departmentOptions}
                         placeholder="Select a department"
@@ -272,7 +269,11 @@ export default function CompleteRegistrationComponent({
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
