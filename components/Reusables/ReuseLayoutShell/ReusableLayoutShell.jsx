@@ -56,11 +56,12 @@ function ShellFrame({ user, children }) {
             Chrome recomposite a rounded clip mask on every scroll frame
             whenever it contains a nested scroller (the tables), which halved
             the frame rate on 4K screens. The rounded look comes from the
-            corner "ears" painted on top instead (see .shell-ear). */}
+            corner "ears" painted on top instead (see .shell-ear); the track
+            inset keeps the scrollbar thumb out from under them. */}
         <div
           className={`fixed right-0 ${mainMarginClass} custom:right-2 custom:bottom-2 top-16 bottom-0 left-0 transition-all duration-200`}
         >
-          <main className="app-scrollbars bg-base-classes absolute inset-0 overflow-auto border border-gray-300 px-2 dark:border-gray-800">
+          <main className="app-scrollbars bg-base-classes absolute inset-0 overflow-auto border border-gray-300 px-2 [--scrollbar-inset:1rem] dark:border-gray-800">
             <div className="mx-auto mt-2 flex h-full max-w-7xl flex-col">
               {/* DB-driven announcements (system_banners table) */}
               <SystemBanners />

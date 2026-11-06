@@ -169,8 +169,9 @@ export default function Modal({
               tabIndex={-1}
               {...panelMotion}
               // Desktop corners: the scrollbar sits flush against the panel's edge, and
-              // the clip rounds it with the panel. The radius only shapes the border.
-              className={`app-scrollbars flex flex-col overflow-y-auto overscroll-contain focus:outline-none md:max-h-[calc(100dvh-2rem)] md:rounded-2xl md:[clip-path:inset(0_round_1rem)] ${layout.panel} ${className}`}
+              // the clip rounds it with the panel. The radius only shapes the border, and
+              // the track inset keeps the thumb clear of the clipped corners.
+              className={`app-scrollbars flex flex-col overflow-y-auto overscroll-contain focus:outline-none md:max-h-[calc(100dvh-2rem)] md:rounded-2xl md:[--scrollbar-inset:1rem] md:[clip-path:inset(0_round_1rem)] ${layout.panel} ${className}`}
             >
               {children}
               {/* Keeps content clear of the iOS home indicator */}
