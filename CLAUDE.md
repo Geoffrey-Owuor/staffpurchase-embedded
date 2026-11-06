@@ -312,6 +312,11 @@ former ~700-800-line near-duplicate components:
   variant for tables and menus (`styles/globals.css`). Don't use
   `scrollbar-width`/`scrollbar-color` on them: Chromium then ignores the custom
   styling.
+  The track is inset at both ends by `--scrollbar-inset` so the thumb stays off
+  rounded corners: scrollers with `rounded-lg/xl/2xl` get it automatically; a
+  scroller that is rounded only at a breakpoint, clipped round, or sits on a
+  rounded edge (the Modal panel, the Changelog scroller, `<main>` under its
+  ears) sets it to that radius, e.g. `[--scrollbar-inset:1rem]`.
 - **Images**: the landing logo is inline SVG (`HotpointWordmark.jsx`, traced
   from the old raster), so it follows the text colour. Render above-the-fold
   content on the server and animate it with CSS: framer-motion's `initial` keeps
