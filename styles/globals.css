@@ -250,6 +250,36 @@ html {
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
+/* Track inset at both ends of the scroll axis, so the thumb stops short of
+   rounded corners: Chromium clips a rounded scroller's bar to its radius, and
+   a square scroller on the edge of a rounded panel runs into the panel's curve.
+   The scrollbar pseudo-elements read it by inheriting from their scroller, so
+   it must inherit; every element resets it instead, so a rounded card or
+   modal panel doesn't inset the scrollers inside it. (An @property with
+   inherits: false would leave the pseudo-elements at 0.) The reset is in the
+   base layer so utilities override it. Scrollers rounded with the classes
+   below get it automatically; one that sits on a rounded panel's edge, or is
+   rounded only at a breakpoint, sets it to that radius, e.g.
+   md:[--scrollbar-inset:1rem] on the Modal panel. */
+@layer base {
+  * {
+    --scrollbar-inset: 0px;
+  }
+}
+
+.small-scrollbar.rounded-lg,
+.app-scrollbars .rounded-lg {
+  --scrollbar-inset: 0.5rem;
+}
+.small-scrollbar.rounded-xl,
+.app-scrollbars .rounded-xl {
+  --scrollbar-inset: 0.75rem;
+}
+.small-scrollbar.rounded-2xl,
+.app-scrollbars .rounded-2xl {
+  --scrollbar-inset: 1rem;
+}
+
 @supports not selector(::-webkit-scrollbar) {
   .app-scrollbars {
     scrollbar-color: var(--scrollbar-thumb) transparent;
@@ -328,6 +358,16 @@ html {
     .app-scrollbars *::-webkit-scrollbar-corner,
     .small-scrollbar::-webkit-scrollbar-corner {
       background: transparent;
+    }
+    .app-scrollbars::-webkit-scrollbar-track:vertical,
+    .app-scrollbars *::-webkit-scrollbar-track:vertical,
+    .small-scrollbar::-webkit-scrollbar-track:vertical {
+      margin-block: var(--scrollbar-inset);
+    }
+    .app-scrollbars::-webkit-scrollbar-track:horizontal,
+    .app-scrollbars *::-webkit-scrollbar-track:horizontal,
+    .small-scrollbar::-webkit-scrollbar-track:horizontal {
+      margin-inline: var(--scrollbar-inset);
     }
 
     .app-scrollbars::-webkit-scrollbar-button,
