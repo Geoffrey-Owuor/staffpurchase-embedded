@@ -157,6 +157,7 @@ function EditForm({
     staffName: toFormValue(purchase.staffName),
     payrollNo: toFormValue(purchase.payrollNo),
     department: toFormValue(purchase.department),
+    user_email: toFormValue(purchase.user_email),
   }));
   const [paymentInfo, setPaymentInfo] = useState(() => ({
     employee_payment_terms: toFormValue(purchase.employee_payment_terms),
@@ -269,6 +270,7 @@ function EditForm({
       invalidatePurchaseQueries(queryClient);
     } catch (err) {
       setError({ message: err.message, conflict: err.status === 409 });
+      triggerAlert("error", err.message);
     } finally {
       setSaving(false);
       setShowConfirm(false);
@@ -343,6 +345,7 @@ function EditForm({
             handleChange={handleStaffChange}
             userRole={user.role}
             approversPurchasing={true}
+            contactEmailMode="admin"
           />
           <PaymentDetails
             formData={paymentInfo}
@@ -419,6 +422,7 @@ function EditForm({
           <AdminStageFields
             purchase={purchase}
             values={stageData}
+            contactEmail={staffInfo.user_email}
             onChange={(name, value) =>
               setStageData((prev) => ({ ...prev, [name]: value }))
             }

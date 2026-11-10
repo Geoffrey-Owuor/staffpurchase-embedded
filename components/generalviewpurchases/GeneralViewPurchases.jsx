@@ -235,6 +235,10 @@ export default function GeneralViewPurchases({ id }) {
             <DetailField label="Staff Name" value={purchase.staffName} />
             <DetailField label="Payroll No" value={purchase.payrollNo} />
             <DetailField label="Department" value={purchase.department} />
+            <DetailField
+              label="Contact Email"
+              value={purchase.user_email || "n/a"}
+            />
           </div>
         </div>
 
@@ -480,6 +484,10 @@ export default function GeneralViewPurchases({ id }) {
             <DetailField
               label="Invoicing Approval Date"
               value={formatDateLong(purchase.bi_approval_date)}
+            />
+            <DetailField
+              label="Contact Email"
+              value={purchase.user_email || "n/a"}
             />
           </div>
         </div>

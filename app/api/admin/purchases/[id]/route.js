@@ -18,6 +18,11 @@ import {
   resolveAdminCreditExtension,
 } from "@/lib/creditPeriods";
 import { adminChangeEmailHandler } from "@/lib/Email/adminChangeEmailHandler";
+import {
+  CONTACT_EMAIL_MAX_LENGTH,
+  CONTACT_EMAIL_TOO_LONG_MESSAGE,
+  parseEmail,
+} from "@/lib/emailValidation";
 import { PRICE_CODES, STAFF_OFFER_CODE } from "@/utils/Pricing/priceCodes";
 import { approverColumns, stagesFrom } from "@/utils/Approvals/approvalStages";
 import { REASON_MAX_LENGTH } from "@/utils/Admin/adminConstants";
@@ -42,6 +47,7 @@ const EDITABLE_FIELDS = {
   staffName: { label: "Staff name", required: true, max: 255 },
   payrollNo: { label: "Payroll no", required: true, max: 55 },
   department: { label: "Department", required: true, max: 55 },
+  user_email: { label: "Contact email", type: "email" },
   employee_payment_terms: {
     label: "Payment terms",
     required: true,
@@ -75,7 +81,7 @@ const sameNumber = (a, b) => {
 };
 
 // A submitted field value, normalized and validated (null = empty).
-function readField(key, raw) {
+function readField(key, raw, stored) {
   const spec = EDITABLE_FIELDS[key];
   const text = raw == null ? "" : String(raw).trim();
 
@@ -104,6 +110,16 @@ function readField(key, raw) {
         throw new RouteError(400, `${spec.label} must be a date`);
       }
       return text;
+    case "email": {
+      // An older address left untouched mustn't block saving other fields
+      if (text === String(stored ?? "").trim()) return storedField(key, stored);
+      const email = parseEmail(text);
+      if (!email) throw new RouteError(400, `${spec.label} is not valid`);
+      if (email.length > CONTACT_EMAIL_MAX_LENGTH) {
+        throw new RouteError(400, CONTACT_EMAIL_TOO_LONG_MESSAGE);
+      }
+      return email;
+    }
   }
 
   if (spec.oneOf && !spec.oneOf.includes(text)) {
@@ -299,7 +315,7 @@ export const PUT = requireAuth(
         const changed = {};
         for (const key of Object.keys(EDITABLE_FIELDS)) {
           if (!(key in submitted)) continue;
-          const value = readField(key, submitted[key]);
+          const value = readField(key, submitted[key], before.purchase[key]);
           if (value !== storedField(key, before.purchase[key])) {
             changed[key] = value;
             setClauses.push(`${key} = ?`);

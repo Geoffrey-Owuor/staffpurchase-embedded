@@ -7,6 +7,12 @@ import {
   resolveRequestCreditPeriod,
 } from "@/lib/creditPeriods";
 import { PRICE_CODES } from "@/utils/Pricing/priceCodes";
+import {
+  CONTACT_EMAIL_MAX_LENGTH,
+  CONTACT_EMAIL_TOO_LONG_MESSAGE,
+  INVALID_EMAIL_MESSAGE,
+  parseEmail,
+} from "@/lib/emailValidation";
 
 const parseNumber = (value) => {
   return value === "" || value == null ? null : parseFloat(value);
@@ -49,6 +55,20 @@ export const POST = requireAuth(async (request, { user }) => {
       );
     }
 
+    const contactEmail = parseEmail(staffInfo.user_email);
+    if (!contactEmail) {
+      return Response.json(
+        { success: false, message: INVALID_EMAIL_MESSAGE },
+        { status: 400 },
+      );
+    }
+    if (contactEmail.length > CONTACT_EMAIL_MAX_LENGTH) {
+      return Response.json(
+        { success: false, message: CONTACT_EMAIL_TOO_LONG_MESSAGE },
+        { status: 400 },
+      );
+    }
+
     const purchaseId = await withTransaction(async (connection) => {
       // Re-check Staff Offer prices against the DB before writing anything
       // (throws a 409 StaffOfferError, rolling back, if one has ended).
@@ -70,7 +90,7 @@ export const POST = requireAuth(async (request, { user }) => {
         [
           staffInfo.staffName,
           user.id,
-          user.email,
+          contactEmail,
           staffInfo.payrollNo,
           staffInfo.department,
           paymentInfo.employee_payment_terms,
