@@ -23,6 +23,12 @@ import { useUser } from "@/context/UserContext";
 import MpesaTillNumber from "./MpesaTillNumber";
 import { basePath } from "@/utils/basePath";
 import { isRequesterRole } from "@/utils/routes";
+import {
+  CONTACT_EMAIL_MAX_LENGTH,
+  CONTACT_EMAIL_TOO_LONG_MESSAGE,
+  INVALID_EMAIL_MESSAGE,
+  parseEmail,
+} from "@/lib/emailValidation";
 
 // The initial state for a single product
 const initialProductState = {
@@ -52,6 +58,7 @@ export default function NewPurchase({ approversPurchasing }) {
     staffName: user.name,
     payrollNo: user.payrollNo,
     department: user.department,
+    user_email: user.email,
   }));
 
   // Credit periods offered right now, and the live extended credit window
@@ -183,6 +190,19 @@ export default function NewPurchase({ approversPurchasing }) {
   // Handle submission confirmation
   const handleConfirmSubmit = (e) => {
     e.preventDefault();
+
+    // Stricter than the browser's own type="email" check
+    const contactEmail = parseEmail(staffInfo.user_email);
+    if (!contactEmail) {
+      triggerAlert("error", INVALID_EMAIL_MESSAGE);
+      return;
+    }
+    // The input's maxLength doesn't apply to a long prefilled account email
+    if (contactEmail.length > CONTACT_EMAIL_MAX_LENGTH) {
+      triggerAlert("error", CONTACT_EMAIL_TOO_LONG_MESSAGE);
+      return;
+    }
+
     // Check if one of the products is missing a price (an implicit return)
     const missingPriceProducts = products.filter(
       (product) =>
@@ -279,6 +299,7 @@ export default function NewPurchase({ approversPurchasing }) {
             handleChange={handleStaffChange}
             userRole={user.role}
             approversPurchasing={approversPurchasing}
+            contactEmailMode="new"
           />
 
           {/* New Payment Details Component */}

@@ -474,6 +474,12 @@ before the code that depends on it deploys.
 
 ## Email
 
+- `purchasesinfo.user_email` is the requester's typed, unverified Contact
+  Email for insurance information (older rows hold the account email). It's
+  never a notification recipient: requester notifications use the verified
+  account address from `lib/Email/requesterEmail.js` `getRequesterEmail`.
+  Only the New Purchase form and the admin editor can set it (55 characters
+  at most, the column's size).
 - Every email goes through `sendEmail` in `lib/emailSender.js` (Microsoft
   Graph). Workflow notifications (`lib/Email/userEmailHandler.js`,
   `lib/Email/ApproversEmailHandler.js`) must use `sendNotificationEmail`

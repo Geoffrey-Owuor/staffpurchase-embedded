@@ -8,6 +8,7 @@ export default function BIApprovalSection({
   formData,
   handleChange,
   userRole,
+  contactEmail,
 }) {
   const isReadOnly = userRole !== "bi";
   return (
@@ -150,6 +151,22 @@ export default function BIApprovalSection({
             name="bi_approval_date"
             value={formatDateLong(formData.bi_approval_date)}
             onChange={handleChange}
+            readOnly
+            className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="bi_contact_email"
+            className="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-400"
+          >
+            Contact Email
+          </label>
+          <input
+            type="text"
+            id="bi_contact_email"
+            value={contactEmail || ""}
             readOnly
             className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
           />

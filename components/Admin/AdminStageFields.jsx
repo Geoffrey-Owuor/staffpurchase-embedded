@@ -21,7 +21,12 @@ const labelClass =
 // The data each approval stage recorded, editable by admin. Approval
 // statuses and sign-offs are shown read-only - they only change by
 // reopening (see AdminEditPurchase).
-export default function AdminStageFields({ purchase, values, onChange }) {
+export default function AdminStageFields({
+  purchase,
+  values,
+  contactEmail,
+  onChange,
+}) {
   const handleChange = (e) => onChange(e.target.name, e.target.value);
   const select = (name, options, placeholder = "Select") => (
     <Select
@@ -148,6 +153,18 @@ export default function AdminStageFields({ purchase, values, onChange }) {
             Payment Reference
           </label>
           {textarea("payment_reference")}
+        </div>
+        <div>
+          <label htmlFor="admin-contact_email_copy" className={labelClass}>
+            Contact Email
+          </label>
+          <input
+            id="admin-contact_email_copy"
+            type="text"
+            value={contactEmail}
+            readOnly
+            className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-100 px-2 py-[11px] text-sm text-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          />
         </div>
       </>
     ),

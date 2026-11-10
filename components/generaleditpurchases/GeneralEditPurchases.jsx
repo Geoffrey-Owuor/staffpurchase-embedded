@@ -149,6 +149,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     staffName: purchase.staffName || "",
     payrollNo: purchase.payrollNo || "",
     department: purchase.department || "",
+    user_email: purchase.user_email || "",
   }));
 
   //Payment Information Data (initial state)
@@ -490,6 +491,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
               formData={formData}
               handleChange={handleChange}
               userRole={userRole}
+              contactEmail={purchase.user_email}
             />
           )}
 

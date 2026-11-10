@@ -238,6 +238,12 @@ const PurchasePDFDocument = ({
                   {purchaseData.department || "N/A"}
                 </Text>
               </View>
+              <View style={styles.sectionRow}>
+                <Text style={styles.sectionLabel}>Contact Email</Text>
+                <Text style={styles.sectionValue}>
+                  {purchaseData.user_email || "N/A"}
+                </Text>
+              </View>
             </View>
 
             {/* Payment Details - To the right */}
