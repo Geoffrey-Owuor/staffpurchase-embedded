@@ -69,6 +69,7 @@ export default function AdminStageFields({
           value={values.one_third_rule}
           options={ONE_THIRD_RULE_OPTIONS}
           handleChange={handleChange}
+          required={false}
         />
       </div>
     ),
@@ -93,6 +94,7 @@ export default function AdminStageFields({
             value={values.hr_comments}
             options={HR_COMMENT_OPTIONS}
             handleChange={handleChange}
+            required={false}
           />
         </div>
       </>
@@ -112,6 +114,7 @@ export default function AdminStageFields({
             value={values.purchase_history_comments}
             options={PURCHASE_HISTORY_COMMENT_OPTIONS}
             handleChange={handleChange}
+            required={false}
           />
         </div>
         <div className="md:col-span-2">
