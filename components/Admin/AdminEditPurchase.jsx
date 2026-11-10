@@ -270,6 +270,7 @@ function EditForm({
       invalidatePurchaseQueries(queryClient);
     } catch (err) {
       setError({ message: err.message, conflict: err.status === 409 });
+      triggerAlert("error", err.message);
     } finally {
       setSaving(false);
       setShowConfirm(false);
