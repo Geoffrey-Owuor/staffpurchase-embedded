@@ -18,6 +18,7 @@ export default function PresetCommentField({
   options,
   handleChange,
   readOnly = false,
+  required = true,
   selectPlaceholder = "Select comment",
   textPlaceholder = "Enter your comments",
 }) {
@@ -49,7 +50,7 @@ export default function PresetCommentField({
           htmlFor={id}
           className="block text-sm font-semibold text-gray-700 dark:text-gray-400"
         >
-          {label} <FormAsterisk />
+          {label} {required && <FormAsterisk />}
         </label>
         {!readOnly && (
           <button
@@ -74,7 +75,7 @@ export default function PresetCommentField({
           readOnly={readOnly}
           className={`w-full rounded-xl border border-gray-300 px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none dark:border-gray-700 dark:text-white ${readOnly ? "cursor-not-allowed bg-gray-100 dark:bg-gray-800" : "bg-white dark:bg-gray-950"}`}
           placeholder={textPlaceholder}
-          required
+          required={required}
         />
       ) : (
         <Select
@@ -86,7 +87,7 @@ export default function PresetCommentField({
           placeholder={selectPlaceholder}
           className="w-full"
           disabled={readOnly}
-          required
+          required={required}
         />
       )}
     </>

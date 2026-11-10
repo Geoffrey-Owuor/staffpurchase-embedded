@@ -26,6 +26,7 @@ export const GET = requireAuth(
     p.id,
     DATE_FORMAT(p.createdAt, '%Y-%m-%d %H:%i:%s') AS createdAt,
     p.reference_number, p.staffName, p.payrollNo, p.department,
+    p.user_email AS contactEmail,
     p.employee_payment_terms, p.user_credit_period,
     w.name AS extendedCreditWindow, -- blank unless chosen during an extended credit window
     p.mpesa_code, p.invoicing_location,
