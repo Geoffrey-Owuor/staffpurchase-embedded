@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-// Small, dependency-free chart pieces for the admin Analytics page. Every
+// Small, dependency-free chart pieces for the Analytics page. Every
 // chart here is a single series, so it uses one hue (series slot 1 -
 // #2a78d6 light / #3987e5 dark) with text in the normal text colours, never
 // the series colour. Marks: bars/columns <= 24px thick; bar-list bars are

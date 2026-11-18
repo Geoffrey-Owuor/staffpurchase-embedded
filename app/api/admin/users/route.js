@@ -3,6 +3,7 @@ import { withConnection } from "@/lib/db";
 import { requireAuth } from "@/lib/apiAuth";
 import { MAX_LOGIN_ATTEMPTS } from "@/lib/loginPolicy";
 import { isValidRole } from "@/utils/routes";
+import { isValidPermission } from "@/utils/permissions";
 
 // Status as the admin pages define it (utils/Admin/adminConstants.js).
 // MAX_LOGIN_ATTEMPTS is a code constant, so inlining it is safe.
@@ -40,6 +41,7 @@ export const GET = requireAuth(
       const status = searchParams.get("status") || "";
       const department = searchParams.get("department") || "";
       const staffCheck = searchParams.get("staffCheck") || "";
+      const permission = searchParams.get("permission") || "";
 
       const whereClauses = [];
       const params = [];
@@ -69,6 +71,15 @@ export const GET = requireAuth(
         whereClauses.push(STAFF_CHECK_CLAUSES[staffCheck]);
       }
 
+      // Everyone who has this access: admins hold every permission
+      if (isValidPermission(permission)) {
+        whereClauses.push(
+          `(u.role = 'admin' OR EXISTS (SELECT 1 FROM user_permissions up
+             WHERE up.user_id = u.id AND up.permission = ?))`,
+        );
+        params.push(permission);
+      }
+
       const whereSql =
         whereClauses.length > 0 ? ` WHERE ${whereClauses.join(" AND ")}` : "";
 
@@ -78,7 +89,9 @@ export const GET = requireAuth(
             u.is_active, u.password_attempts, u.created_at,
             u.staff_verified_at IS NOT NULL AS staffVerified,
             ${DUPLICATE_PAYROLL_SQL} AS duplicatePayroll,
-            (SELECT COUNT(*) FROM purchasesinfo p WHERE p.user_id = u.id) AS requestCount
+            (SELECT COUNT(*) FROM purchasesinfo p WHERE p.user_id = u.id) AS requestCount,
+            (SELECT GROUP_CONCAT(up.permission ORDER BY up.permission)
+               FROM user_permissions up WHERE up.user_id = u.id) AS permissionList
          FROM users u${whereSql}
          ORDER BY u.name ASC, u.id ASC
          LIMIT ${pageSize} OFFSET ${offset}`;
@@ -91,7 +104,13 @@ export const GET = requireAuth(
       });
 
       return Response.json({
-        data: rows,
+        // Explicit grants as an array (registered keys only)
+        data: rows.map(({ permissionList, ...row }) => ({
+          ...row,
+          permissions: (permissionList ? permissionList.split(",") : []).filter(
+            isValidPermission,
+          ),
+        })),
         page,
         pageSize,
         total,

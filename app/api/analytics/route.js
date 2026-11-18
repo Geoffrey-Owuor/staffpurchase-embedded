@@ -1,4 +1,5 @@
-// app/api/admin/analytics/route.js - figures for the admin Analytics page.
+// app/api/analytics/route.js - figures for the Analytics page. Admins and
+// anyone granted "analytics.view" (utils/permissions.js) may read it.
 // Request metrics honour ?fromDate&toDate (YYYY-MM-DD); user metrics are
 // always all-time (an account isn't "in" a date range).
 // The count tiles and approval pipeline cover every request submitted in the
@@ -344,5 +345,5 @@ export const GET = requireAuth(
       );
     }
   },
-  { roles: ["admin"] },
+  { permission: "analytics.view" },
 );

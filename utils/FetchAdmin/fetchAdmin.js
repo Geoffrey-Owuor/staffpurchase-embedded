@@ -118,14 +118,6 @@ export function saveAdminCreditPeriods(method, body) {
   return sendJson(`${basePath}/api/admin/credit-periods`, method, body);
 }
 
-// filters: { fromDate, toDate } - see api/admin/analytics
-export function fetchAdminAnalytics(filters = {}) {
-  return getJson(
-    `${basePath}/api/admin/analytics?${toQueryString(filters)}`,
-    "Failed to load analytics",
-  );
-}
-
 // filters: { page, pageSize, search, status, severity } - see api/admin/banners
 export function fetchAdminBanners(filters = {}) {
   return getJson(
@@ -206,4 +198,9 @@ export async function downloadAdminFile(path, fallbackName) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+// Every access area with its holders - see api/admin/access
+export function fetchAdminAccess() {
+  return getJson(`${basePath}/api/admin/access`, "Failed to load access");
 }

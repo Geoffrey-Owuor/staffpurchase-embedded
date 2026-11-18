@@ -5,6 +5,7 @@ import {
   BookOpenCheck,
   ClipboardPen,
   Database,
+  KeyRound,
   Megaphone,
   ScrollText,
   ShieldUser,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { isValidRole } from "@/utils/routes";
+import { hasPermission } from "@/utils/permissions";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
 
 // Every navigable entry, with groups replaced by their pages
@@ -29,7 +31,8 @@ export const navItemContains = (item, key) =>
 // branch on - this hook just builds the shared paths and falls back to
 // /login for a session with no recognized role.
 export function useDashboardRoutes() {
-  const { role } = useUser();
+  const user = useUser();
+  const role = user?.role;
   const router = useRouter();
   const pathname = usePathname();
   const startLoading = useLoadingLineStore((state) => state.startLoading);
@@ -41,7 +44,8 @@ export function useDashboardRoutes() {
   const adminUsersPath = "/dashboard/admin/users";
   const adminAuditLogPath = "/dashboard/admin/audit-log";
   const adminRequestsPath = "/dashboard/admin/requests";
-  const adminAnalyticsPath = "/dashboard/admin/analytics";
+  const adminAccessPath = "/dashboard/admin/access";
+  const analyticsPath = "/dashboard/analytics";
   const adminReferenceDataPath = "/dashboard/admin/reference-data";
   const adminBannersPath = "/dashboard/admin/banners";
   const adminStaffOffersPath = "/dashboard/admin/staff-offers";
@@ -56,6 +60,8 @@ export function useDashboardRoutes() {
   // own layout.js; this only decides what's shown. An entry with `children`
   // is a group (no path of its own): a dropdown in the topbar, a collapsible
   // section in the sidebar/drawer and a flyout in the collapsed sidebar.
+  // Permission-based entries (utils/permissions.js) sit between the role
+  // pages and the admin group, so they're available to admins too.
   const roleNavItems = [
     ...(role === "cc"
       ? [
@@ -67,6 +73,16 @@ export function useDashboardRoutes() {
           },
         ]
       : []),
+    ...(hasPermission(user, "analytics.view")
+      ? [
+          {
+            key: "analytics",
+            path: analyticsPath,
+            label: "Analytics",
+            Icon: BarChart3,
+          },
+        ]
+      : []),
     ...(role === "admin"
       ? [
           {
@@ -75,16 +91,16 @@ export function useDashboardRoutes() {
             Icon: ShieldUser,
             children: [
               {
-                key: "adminAnalytics",
-                path: adminAnalyticsPath,
-                label: "Analytics",
-                Icon: BarChart3,
-              },
-              {
                 key: "adminUsers",
                 path: adminUsersPath,
                 label: "Users",
                 Icon: UsersRound,
+              },
+              {
+                key: "adminAccess",
+                path: adminAccessPath,
+                label: "Access",
+                Icon: KeyRound,
               },
               {
                 key: "adminRequests",

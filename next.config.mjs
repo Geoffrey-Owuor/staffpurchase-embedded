@@ -29,6 +29,9 @@ const oldToNewRedirects = [
   // or hardcoded links still pointing at the old path.
   ["/dashboard/history/:path*", "/dashboard/:path*"],
   ["/dashboard/history", "/dashboard"],
+  // Analytics moved out of the admin tools once it could be granted to
+  // non-admins (utils/permissions.js).
+  ["/dashboard/admin/analytics", "/dashboard/analytics"],
 ].map(([source, destination]) => ({ source, destination, permanent: false }));
 
 const nextConfig = {
