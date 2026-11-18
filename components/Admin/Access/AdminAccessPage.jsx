@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { KeyRound, Loader2, Plus, Search, X } from "lucide-react";
 import StickyPageHeader from "../../Reusables/StickyPageHeader";
+import AccessSkeleton from "../../skeletons/AccessSkeleton";
 import ConfirmationDialog from "../../Reusables/ConfirmationDialog";
 import { triggerAlert } from "@/store/useAlertStore";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -66,7 +67,7 @@ export default function AdminAccessPage() {
       </p>
 
       {isLoading ? (
-        <div className={`${cardClass} h-48 animate-pulse`} aria-busy="true" />
+        <AccessSkeleton />
       ) : isError || !data ? (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
           Failed to load access. Please try refreshing the page.
@@ -155,13 +156,15 @@ function PermissionCard({
               className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                  {holder.name}{" "}
-                  <span className="ml-1 rounded-[9px] border border-gray-200 px-1.5 py-0.5 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-400">
+                {/* Only the name truncates: pills inside an overflow-hidden
+                    line would have their vertical padding clipped */}
+                <p className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <span className="truncate">{holder.name}</span>
+                  <span className="shrink-0 rounded-[9px] border border-gray-200 px-1.5 py-0.5 text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-400">
                     {ROLE_LABELS[holder.role] ?? holder.role}
                   </span>
                   {!holder.is_active && (
-                    <span className="ml-1 rounded-[9px] bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-950 dark:text-red-300">
+                    <span className="shrink-0 rounded-[9px] bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-950 dark:text-red-300">
                       Deactivated
                     </span>
                   )}
