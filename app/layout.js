@@ -6,15 +6,23 @@ import { ThemeProvider } from "next-themes";
 import ThemeShortcut from "@/components/Reusables/ThemeProviders/ThemeShortcut";
 import QueryProvider from "@/components/QueryProvider";
 
+// "optional" rather than the default "swap": the preloaded font arrives
+// within the ~100ms block period on the internal network, so text renders
+// in Geist straight away instead of visibly swapping from the fallback. On
+// a slow first load the page just stays in the (metric-matched) fallback
+// and the next page uses the cached font.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "optional",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   // Only a few small labels use it, so it needn't compete with the first paint
+  // Not preloaded, so it keeps "swap": with "optional" it would usually miss
+  // the block period and stay in the fallback
   preload: false,
 });
 
