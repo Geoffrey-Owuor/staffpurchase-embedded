@@ -9,6 +9,7 @@ import { createPasswordResetLink } from "@/lib/passwordReset";
 import { sendResetEmail } from "@/lib/nodemailer";
 import { isValidRole } from "@/utils/routes";
 import { payrollKey } from "@/lib/staffDirectory";
+import { PERMISSIONS, isValidPermission } from "@/utils/permissions";
 import {
   ROLE_LABELS,
   REASON_MAX_LENGTH,
@@ -34,6 +35,7 @@ const snapshot = (user) => ({
   department: user.department,
   is_active: Boolean(user.is_active),
   password_attempts: user.password_attempts,
+  permissions: user.permissions,
 });
 
 // Actions that cut the user off: these require a reason, can't target the
@@ -43,6 +45,10 @@ const snapshot = (user) => ({
 const REASON_REQUIRED = ["change_role", "deactivate", "reactivate"];
 const NOT_ON_SELF = ["change_role", "deactivate"];
 
+// Access-area grants (utils/permissions.js). They're read from the DB on
+// every check, so they don't end the user's sessions.
+const PERMISSION_ACTIONS = ["grant_permission", "revoke_permission"];
+
 const AUDIT_ACTION = {
   update_profile: "user.update_profile",
   change_role: "user.change_role",
@@ -50,6 +56,8 @@ const AUDIT_ACTION = {
   reactivate: "user.reactivate",
   unlock: "user.unlock",
   send_reset: "user.send_reset",
+  grant_permission: "user.grant_permission",
+  revoke_permission: "user.revoke_permission",
 };
 
 function readProfileField(body, key, label) {
@@ -68,7 +76,16 @@ async function fetchUser(connection, id, { lock = false } = {}) {
      FROM users WHERE id = ?${lock ? " FOR UPDATE" : ""}`,
     [id],
   );
-  return rows[0] ?? null;
+  if (!rows[0]) return null;
+  // Explicit grants only (an admin holds every permission without rows)
+  const [grants] = await connection.execute(
+    `SELECT permission FROM user_permissions WHERE user_id = ? ORDER BY permission`,
+    [id],
+  );
+  return {
+    ...rows[0],
+    permissions: grants.map((g) => g.permission).filter(isValidPermission),
+  };
 }
 
 // Removing someone from an approval role (role change or deactivation) can
@@ -122,6 +139,12 @@ export const PATCH = requireAuth(
       }
       if (NOT_ON_SELF.includes(action) && targetId === admin.id) {
         throw new RouteError(403, "You can't do this to your own account");
+      }
+      if (
+        PERMISSION_ACTIONS.includes(action) &&
+        !isValidPermission(body.permission)
+      ) {
+        throw new RouteError(400, "Unknown permission");
       }
 
       const { message, warning, resetLink, email } = await withTransaction(
@@ -228,8 +251,17 @@ export const PATCH = requireAuth(
                 `UPDATE users SET is_active = 0, session_version = session_version + 1 WHERE id = ?`,
                 [target.id],
               );
-              after = { ...before, is_active: false };
-              message = "Account deactivated. The user has been signed out.";
+              // Grants don't survive deactivation, so reactivating never
+              // silently restores access (they're in before_data if needed)
+              await connection.execute(
+                `DELETE FROM user_permissions WHERE user_id = ?`,
+                [target.id],
+              );
+              after = { ...before, is_active: false, permissions: [] };
+              message =
+                target.permissions.length > 0
+                  ? "Account deactivated and its extra access removed. The user has been signed out."
+                  : "Account deactivated. The user has been signed out.";
               break;
             }
 
@@ -258,6 +290,54 @@ export const PATCH = requireAuth(
               );
               after = { ...before, password_attempts: 0 };
               message = "Account unlocked.";
+              break;
+            }
+
+            case "grant_permission": {
+              const { permission } = body;
+              const label = PERMISSIONS[permission].label;
+              if (target.role === "admin") {
+                throw new RouteError(
+                  400,
+                  "Admins already have access to everything",
+                );
+              }
+              if (!target.is_active) {
+                throw new RouteError(
+                  409,
+                  "Reactivate the account before granting access",
+                );
+              }
+              if (target.permissions.includes(permission)) {
+                throw new RouteError(409, `The user already has ${label}`);
+              }
+              await connection.execute(
+                `INSERT INTO user_permissions (user_id, permission, granted_by) VALUES (?, ?, ?)`,
+                [target.id, permission, admin.id],
+              );
+              after = {
+                ...before,
+                permissions: [...target.permissions, permission].sort(),
+              };
+              message = `${label} access granted. It shows up for the user within a few minutes, or on their next page load.`;
+              break;
+            }
+
+            case "revoke_permission": {
+              const { permission } = body;
+              const label = PERMISSIONS[permission].label;
+              if (!target.permissions.includes(permission)) {
+                throw new RouteError(409, `The user doesn't have ${label}`);
+              }
+              await connection.execute(
+                `DELETE FROM user_permissions WHERE user_id = ? AND permission = ?`,
+                [target.id, permission],
+              );
+              after = {
+                ...before,
+                permissions: target.permissions.filter((p) => p !== permission),
+              };
+              message = `${label} access removed.`;
               break;
             }
 

@@ -5,6 +5,8 @@ import {
   KeyRound,
   Loader2,
   LockOpen,
+  Minus,
+  Plus,
   Save,
   ShieldCheck,
   UserRoundCheck,
@@ -25,6 +27,7 @@ import {
   PROFILE_FIELD_MAX_LENGTH,
 } from "@/utils/Admin/adminConstants";
 import { formatDateLong } from "@/utils/formatDateLong";
+import { PERMISSIONS, PERMISSION_KEYS } from "@/utils/permissions";
 
 const inputClass =
   "w-full rounded-xl border border-gray-200 bg-white px-2 py-[11px] text-sm focus:border-gray-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:disabled:bg-gray-800";
@@ -129,6 +132,7 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
       setPendingConfirm(null);
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
       queryClient.invalidateQueries({ queryKey: ["adminAuditLog"] });
+      queryClient.invalidateQueries({ queryKey: ["adminAccess"] });
     }
   };
 
@@ -138,7 +142,7 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
     if (CONFIRMED.includes(action)) {
       const message =
         action === "deactivate"
-          ? `Deactivate ${user.name}? They'll be signed out everywhere and can't sign in until reactivated.`
+          ? `Deactivate ${user.name}? They'll be signed out everywhere and can't sign in until reactivated.${user.permissions?.length ? " Their extra access is removed too." : ""}`
           : `Change ${user.name}'s role from ${ROLE_LABELS[user.role]} to ${ROLE_LABELS[extra.role]}? They'll be signed out and see the ${ROLE_LABELS[extra.role]} view on their next sign-in.`;
       setPendingConfirm({ action, extra, message });
       return;
@@ -326,6 +330,65 @@ function ManageUserContent({ initialUser, titleId, onClose, onResult }) {
             <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
               Add a reason above to change the role.
             </p>
+          )}
+        </div>
+
+        {/* Extra access areas (utils/permissions.js) */}
+        <div className={sectionClass}>
+          <h4 className="mb-1 font-semibold text-gray-900 dark:text-white">
+            Extra access
+          </h4>
+          <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+            {user.role === "admin"
+              ? "Admins have every area automatically."
+              : !user.is_active
+                ? "Reactivate the account to grant access - deactivation removed any it had."
+                : "Areas opened to this user on top of their role. Kept if the role changes; no sign-out needed."}
+          </p>
+          {user.role !== "admin" && (
+            <ul className="space-y-2">
+              {PERMISSION_KEYS.map((key) => {
+                const granted = user.permissions?.includes(key);
+                const action = granted
+                  ? "revoke_permission"
+                  : "grant_permission";
+                return (
+                  <li
+                    key={key}
+                    className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        {PERMISSIONS[key].label}{" "}
+                        {granted && (
+                          <span className="ml-1 rounded-[9px] bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-950 dark:text-green-300">
+                            Granted
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {PERMISSIONS[key].description}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => request(action, { permission: key })}
+                      disabled={busy || (!granted && !user.is_active)}
+                      className={granted ? neutralButton : primaryButton}
+                    >
+                      {busyAction === action ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : granted ? (
+                        <Minus className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                      {granted ? "Remove" : "Grant"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
 

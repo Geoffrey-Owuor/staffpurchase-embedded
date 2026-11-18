@@ -42,6 +42,8 @@ export const ADMIN_AUDIT_ACTIONS = {
   "user.reactivate": "Account reactivated",
   "user.unlock": "Account unlocked",
   "user.send_reset": "Reset link sent",
+  "user.grant_permission": "Access granted",
+  "user.revoke_permission": "Access removed",
   "purchase.edit": "Request edited",
   "purchase.delete": "Request deleted",
   "purchase.remove_products": "Products removed (Credit Control)",
