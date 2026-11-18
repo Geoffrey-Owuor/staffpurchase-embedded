@@ -14,16 +14,11 @@ import QueryProvider from "@/components/QueryProvider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: "optional",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  // Only a few small labels use it, so it needn't compete with the first paint
-  // Not preloaded, so it keeps "swap": with "optional" it would usually miss
-  // the block period and stay in the fallback
-  preload: false,
 });
 
 export const metadata = {
