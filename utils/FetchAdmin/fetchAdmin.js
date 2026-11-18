@@ -199,3 +199,8 @@ export async function downloadAdminFile(path, fallbackName) {
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+// Every access area with its holders - see api/admin/access
+export function fetchAdminAccess() {
+  return getJson(`${basePath}/api/admin/access`, "Failed to load access");
+}

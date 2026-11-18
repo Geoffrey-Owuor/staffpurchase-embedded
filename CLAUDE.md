@@ -104,7 +104,7 @@ MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
 ["admin"] })`). Users page: `components/Admin/AdminUsersTable.jsx` +
   `ManageUserModal.jsx` -> `PATCH /api/admin/users/[id]` with an `action`
   (`update_profile`, `change_role`, `deactivate`, `reactivate`, `unlock`,
-  `send_reset`). Guardrails are server-side: role change/deactivation can't
+  `send_reset`, `grant_permission`, `revoke_permission`). Guardrails are server-side: role change/deactivation can't
   target yourself (so the acting admin always remains), and role change/
   deactivate/reactivate need a reason. Removing the last active user of an
   approval role is allowed but returns a `warning`. Admins never see or set
@@ -141,8 +141,28 @@ MAX_LOGIN_ATTEMPTS` (`lib/loginPolicy.js` `isLockedOut`); a password reset
   admin only; for admin, `approvalStatus` means the overall outcome
   (declined anywhere / BI-approved / in progress). Staff use
   `/api/staffpurchaseshistory`.
-- **Admin analytics**: `/dashboard/admin/analytics` (the `/dashboard/admin`
-  landing page) <- `GET /api/admin/analytics?fromDate&toDate&status`. The
+- **Permissions** (`db/migrations/2026-11-18_user_permissions.sql`):
+  per-user access areas on top of a role, registered in
+  `utils/permissions.js` (`PERMISSIONS`; currently `analytics.view`).
+  Admins hold every permission implicitly (no rows). Checked live against
+  `user_permissions` on every request (`lib/permissions.js`
+  `userHasPermission`/`getUserPermissions`), never from the JWT, so grants
+  and revokes need no sign-out: gate a page's `layout.js` with
+  `userHasPermission` and its API with `requireAuth(handler, { permission })`.
+  The dashboard `layout.js` puts the effective list on the UserContext
+  user (`permissions`) for the nav (`hasPermission(user, key)`), and
+  `/api/check-session` returns it so `useAuthSync` calls `router.refresh()`
+  when it changes. Managed in `ManageUserModal` (Extra access) and at
+  `/dashboard/admin/access` (`components/Admin/Access/`,
+  `GET /api/admin/access`); both write through the users PATCH actions
+  `grant_permission`/`revoke_permission` (audited). Grants survive a role
+  change; deactivation deletes them. The Users page has a "Has access"
+  filter (includes admins). New access area = registry key + those gates +
+  a nav entry; no schema change.
+- **Analytics**: `/dashboard/analytics` (top-level nav entry for anyone with
+  `analytics.view`; `/dashboard/admin/analytics` redirects there, and
+  `/dashboard/admin` lands on Users) <-
+  `GET /api/analytics?fromDate&toDate&status`. The
   count tiles and approval pipeline cover requests _submitted_ in the range;
   the value tile, monthly charts, Volume & value and Products follow
   `status` (`approved` default / `inProgress` / `declined` / `all`,

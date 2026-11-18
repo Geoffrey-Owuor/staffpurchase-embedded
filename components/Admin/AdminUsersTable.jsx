@@ -16,6 +16,7 @@ import {
 } from "@/utils/Admin/adminConstants";
 import { formatDateLong } from "@/utils/formatDateLong";
 import { useDepartments } from "@/hooks/useReferenceData";
+import { PERMISSIONS, PERMISSION_OPTIONS } from "@/utils/permissions";
 
 const BASE_FILTER_FIELDS = [
   {
@@ -44,6 +45,13 @@ const BASE_FILTER_FIELDS = [
     label: "Staff record",
     placeholder: "Staff record",
     options: STAFF_CHECK_OPTIONS,
+  },
+  {
+    key: "permission",
+    type: "select",
+    label: "Has access",
+    placeholder: "Has access",
+    options: PERMISSION_OPTIONS,
   },
 ];
 
@@ -116,6 +124,29 @@ export default function AdminUsersTable() {
       key: "staffCheck",
       label: "Staff record",
       render: (u) => <StaffCheckBadges user={u} />,
+    },
+    {
+      key: "access",
+      label: "Extra access",
+      render: (u) =>
+        u.role === "admin" ? (
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            All (admin)
+          </span>
+        ) : u.permissions?.length ? (
+          <span className="flex flex-wrap gap-1">
+            {u.permissions.map((key) => (
+              <span
+                key={key}
+                className="rounded-[9px] border border-gray-200 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-gray-700 dark:border-gray-700 dark:text-gray-300"
+              >
+                {PERMISSIONS[key].label}
+              </span>
+            ))}
+          </span>
+        ) : (
+          "-"
+        ),
     },
     {
       key: "requestCount",
