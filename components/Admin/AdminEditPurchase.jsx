@@ -572,7 +572,11 @@ function AdminRequestHistory({ id }) {
         Admin history
       </h3>
       {isLoading ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <ul className="space-y-2.5" aria-busy="true" aria-label="Loading history">
+          {["w-3/4", "w-2/3", "w-1/2"].map((width) => (
+            <li key={width} className={`details-shimmer h-4 rounded-md ${width}`} />
+          ))}
+        </ul>
       ) : entries.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No admin changes to this request yet.
