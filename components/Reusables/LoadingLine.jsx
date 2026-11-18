@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLoadingLineStore } from "@/store/useLoadingLineStore";
@@ -32,8 +32,12 @@ const LoadingLine = () => {
   const startLoading = useLoadingLineStore((state) => state.startLoading);
   const stopLoading = useLoadingLineStore((state) => state.stopLoading);
   const pathname = usePathname();
+  // The browser pathname (with basePath) of the page currently shown, so
+  // popstate can tell a real back/forward from a same-page hash change
+  const shownPathRef = useRef(null);
 
   useEffect(() => {
+    shownPathRef.current = window.location.pathname;
     stopLoading();
   }, [pathname, stopLoading]);
 
@@ -43,7 +47,11 @@ const LoadingLine = () => {
     const handleClick = (event) => {
       if (isInternalPageNavigation(event)) startLoading();
     };
-    const handlePopState = () => startLoading();
+    // Same-page anchors (e.g. the landing page's #features) fire popstate
+    // too, but the pathname never changes, so nothing would stop the line.
+    const handlePopState = () => {
+      if (window.location.pathname !== shownPathRef.current) startLoading();
+    };
 
     document.addEventListener("click", handleClick, true);
     window.addEventListener("popstate", handlePopState);
