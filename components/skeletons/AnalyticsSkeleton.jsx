@@ -1,5 +1,5 @@
-// Loading state for the admin Analytics page - mirrors its layout
-// (components/Admin/Analytics/AdminAnalyticsPage.jsx): section titles,
+// Loading state for the Analytics page - mirrors its layout
+// (components/Analytics/AnalyticsPage.jsx): section titles,
 // stat tiles, monthly column cards and bar-list cards, in the same grids,
 // so nothing jumps when the data arrives.
 

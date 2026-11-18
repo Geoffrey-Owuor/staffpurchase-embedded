@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Analytics is the admin landing view.
+// Users is the admin landing view (Analytics moved to /dashboard/analytics).
 export default function AdminIndexPage() {
-  redirect("/dashboard/admin/analytics");
+  redirect("/dashboard/admin/users");
 }

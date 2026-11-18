@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getCurrentUser } from "@/app/lib/auth";
 import { isSessionCurrent } from "@/lib/sessionCheck";
 import { isStaffAllowed } from "@/lib/staffDirectory";
+import { getUserPermissions } from "@/lib/permissions";
 
 //Api to check if a valid session cookie still exists (and that the account
 //behind it hasn't been deactivated or had its sessions ended since)
@@ -19,8 +20,13 @@ export async function GET(_req) {
       (await isSessionCurrent(user)) &&
       (await isStaffAllowed(user.id, user.payrollNo))
     ) {
-      //Session is valid
-      return Response.json({ loggedIn: true, userId: user.id });
+      //Session is valid. permissions lets useAuthSync refresh the nav after
+      //an admin grants or revokes access (no sign-out needed for those).
+      return Response.json({
+        loggedIn: true,
+        userId: user.id,
+        permissions: await getUserPermissions(user),
+      });
     } else {
       //Session is invalid
       if (user?.valid) (await cookies()).delete("session_token");
