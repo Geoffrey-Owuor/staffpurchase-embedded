@@ -2,8 +2,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart3 } from "lucide-react";
-import Select from "../../Reusables/Select";
-import AnalyticsSkeleton from "../../skeletons/AnalyticsSkeleton";
+import Select from "../Reusables/Select";
+import AnalyticsSkeleton from "../skeletons/AnalyticsSkeleton";
 import {
   BarList,
   ChartCard,
@@ -13,10 +13,10 @@ import {
   formatKsh,
   formatKshFull,
 } from "./Charts";
-import { fetchAdminAnalytics } from "@/utils/FetchAdmin/fetchAdmin";
+import { fetchAnalytics } from "@/utils/FetchAnalytics/fetchAnalytics";
 import { ROLE_LABELS } from "@/utils/Admin/adminConstants";
 import { PRICE_CODE_LABELS } from "@/utils/Pricing/priceCodes";
-import StickyPageHeader from "../../Reusables/StickyPageHeader";
+import StickyPageHeader from "../Reusables/StickyPageHeader";
 
 const RANGE_OPTIONS = [
   { value: "30d", label: "Last 30 days" },
@@ -89,7 +89,7 @@ const rowsBy = (rows, metric, labelFor = (label) => label) =>
     amount: row.value,
   }));
 
-export default function AdminAnalyticsPage() {
+export default function AnalyticsPage() {
   const [range, setRange] = useState("12m");
   const [status, setStatus] = useState("approved");
   const filters = useMemo(
@@ -98,8 +98,8 @@ export default function AdminAnalyticsPage() {
   );
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["adminAnalytics", filters],
-    queryFn: () => fetchAdminAnalytics(filters),
+    queryKey: ["analytics", filters],
+    queryFn: () => fetchAnalytics(filters),
   });
 
   const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label;

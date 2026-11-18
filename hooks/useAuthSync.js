@@ -47,8 +47,19 @@ export function useAuthSync(user) {
       try {
         const response = await fetch(`${basePath}/api/check-session`);
         if (!response.ok) return; // a server error isn't a verdict
-        const { loggedIn } = await response.json();
-        if (loggedIn === false) window.location.href = `${basePath}/login`;
+        const { loggedIn, permissions } = await response.json();
+        if (loggedIn === false) {
+          window.location.href = `${basePath}/login`;
+          return;
+        }
+        // An admin granted/revoked an access area: re-render the dashboard
+        // layout so the nav picks it up (pages re-check on their own).
+        if (
+          Array.isArray(permissions) &&
+          permissions.join() !== (user.permissions ?? []).join()
+        ) {
+          router.refresh();
+        }
       } catch {
         // offline - try again next time
       }
