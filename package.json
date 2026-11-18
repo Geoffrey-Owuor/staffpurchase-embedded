@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@azure/msal-node": "^5.1.5",
+    "@azure/msal-node": "^7.2.2",
     "@react-pdf/renderer": "^4.3.0",
     "@tanstack/react-query": "^5.100.8",
     "bcryptjs": "^3.0.2",
@@ -18,9 +18,8 @@
     "jose": "^6.0.12",
     "lucide-react": "^0.503.0",
     "mysql2": "^3.14.1",
-    "next": "^15.5.15",
+    "next": "^15.5.29",
     "next-themes": "^0.4.6",
-    "nodemailer": "^8.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "uuid": "^11.1.0",
@@ -31,5 +30,13 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.23"
+    },
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }
