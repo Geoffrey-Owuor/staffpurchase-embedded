@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { KeyRound, Loader2, Plus, Search, X } from "lucide-react";
 import StickyPageHeader from "../../Reusables/StickyPageHeader";
+import AccessSkeleton from "../../skeletons/AccessSkeleton";
 import ConfirmationDialog from "../../Reusables/ConfirmationDialog";
 import { triggerAlert } from "@/store/useAlertStore";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -66,7 +67,7 @@ export default function AdminAccessPage() {
       </p>
 
       {isLoading ? (
-        <div className={`${cardClass} h-48 animate-pulse`} aria-busy="true" />
+        <AccessSkeleton />
       ) : isError || !data ? (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
           Failed to load access. Please try refreshing the page.

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import PromoDetailSkeleton from "../../skeletons/PromoDetailSkeleton";
 import {
   ArrowLeft,
   CalendarClock,
@@ -95,9 +96,7 @@ export default function StaffOfferPromoPage({ id }) {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        </div>
+        <PromoDetailSkeleton />
       ) : isError || !promo ? (
         <p className="py-10 text-center text-sm text-red-500">
           Failed to load this promo. It may not exist.
