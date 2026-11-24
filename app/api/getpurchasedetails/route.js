@@ -1,4 +1,5 @@
 import { getAuthToken } from "@/utils/tokenManager";
+import { getErpConfig } from "@/lib/serverConfig";
 import { requireAuth } from "@/lib/apiAuth";
 import { unstable_cache } from "next/cache";
 import { withConnection } from "@/lib/db";
@@ -12,8 +13,8 @@ import {
 // Set a timeout constant for resilience (e.g., 15 seconds)
 const API_TIMEOUT = 15000;
 
-// Each lookup is 3 Erp calls; during peaks many users look up at once from
-// every PM2 worker. Cap concurrent calls per worker so the remote ERP
+// Each lookup is 3 ERP calls; during peaks many users look up at once from
+// every PM2 worker. Cap concurrent calls per worker so the ERP price service
 // (and our uplink) isn't flooded - extra calls queue briefly instead.
 const erpLimit = createLimiter(6);
 
@@ -33,37 +34,36 @@ async function fetchErpPrice(productCode, priceCode, formattedDate) {
   if (!token) {
     // Auth endpoint is down (tokenManager logs it) - don't send 3 doomed
     // requests that would each wait out the full timeout.
-    throw new TransientPriceError("Erp auth token unavailable");
+    throw new TransientPriceError("ERP auth token unavailable");
   }
+  // Already validated by getAuthToken (no token without a complete config).
+  const erp = getErpConfig();
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
   try {
-    const res = await fetch(
-      "https://erp.example.com/report/api/getapi",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          APICODE: "PRICE_API_CODE",
-          M_USER_ID: "ERP_USER",
-          M_LANG_CODE: "ENG",
-          M_COMP_CODE: "COMPANY",
-          filter: {
-            P_DT: formattedDate,
-            P_PL_CODE: `%${priceCode}%`, // Should be PL code
-            P_INCLUSIVE: "I",
-            P_ITEM_CODE: productCode,
-            P_COMP_CODE: "COMPANY",
-          },
-        }),
-        signal: controller.signal, // Attaches the timeout controller
+    const res = await fetch(erp.priceUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        APICODE: erp.priceApiCode,
+        M_USER_ID: erp.userId,
+        M_LANG_CODE: erp.langCode,
+        M_COMP_CODE: erp.companyCode,
+        filter: {
+          P_DT: formattedDate,
+          P_PL_CODE: `%${priceCode}%`, // Should be PL code
+          P_INCLUSIVE: "I",
+          P_ITEM_CODE: productCode,
+          P_COMP_CODE: erp.itemCompanyCode,
+        },
+      }),
+      signal: controller.signal, // Attaches the timeout controller
+    });
 
     if (!res.ok) {
       throw new TransientPriceError(
@@ -100,10 +100,10 @@ async function fetchErpPrice(productCode, priceCode, formattedDate) {
   }
 }
 
-// Fetches a single Erp price list code for a product code, cached per
-// (productCode, priceCode, date) since Erp prices are date-scoped via
+// Fetches a single ERP price list code for a product code, cached per
+// (productCode, priceCode, date) since ERP prices are date-scoped via
 // P_DT. Caching matters here because the client now debounce-fetches as the
-// user types, multiplying request volume against the remote ERP.
+// user types, multiplying request volume against the ERP price service.
 // The limiter wraps only the upstream call, so cache hits never queue.
 const getCachedErpPrice = unstable_cache(
   (productCode, priceCode, formattedDate) =>
@@ -113,7 +113,7 @@ const getCachedErpPrice = unstable_cache(
 );
 
 // unstable_cache doesn't merge concurrent misses, so several users looking
-// up the same (uncached) code at once would each hit Erp. Share one
+// up the same (uncached) code at once would each hit the ERP. Share one
 // in-flight promise per key within this worker instead.
 const inFlight = new Map();
 
@@ -165,9 +165,9 @@ export const POST = requireAuth(async (request) => {
   }
 
   try {
-    // Staff Offers are looked up alongside Erp (uncached, see
+    // Staff Offers are looked up alongside ERP (uncached, see
     // lib/staffOffers.js). A failed lookup only drops the offer from the
-    // comparison - it never blocks the Erp prices.
+    // comparison - it never blocks the ERP prices.
     const staffOfferPromise = withConnection((connection) =>
       getActiveStaffOffer(connection, productCode),
     ).catch((error) => {
@@ -206,7 +206,7 @@ export const POST = requireAuth(async (request) => {
       }
     }
 
-    // Erp is still required (it supplies the item name the discount
+    // The ERP is still required (it supplies the item name the discount
     // policy depends on): a Staff Offer alone doesn't make a code priceable.
     const anySuccess = Object.values(prices).some((p) => p != null);
 

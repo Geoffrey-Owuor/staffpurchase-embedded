@@ -1,11 +1,11 @@
 import { PRICE_CODES } from "./priceCodes";
 
 // Picks the cheapest effective price among the fetched prices (the three
-// Erp prices plus an active Staff Offer, when there is one).
+// ERP prices plus an active Staff Offer, when there is one).
 //
 // TRADE is the only basis discount policies apply to; STAFFOFFER (already
 // discounted), RTLRRP and ONLINE are always taken at 0% discount. A price of null/undefined/0/negative is
-// treated as "unavailable" (e.g. the Erp fetch failed for that code and
+// treated as "unavailable" (e.g. the ERP fetch failed for that code and
 // fell back to 0.00) and is excluded from the comparison so a failed fetch
 // can never accidentally "win" as the cheapest option.
 //

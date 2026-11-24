@@ -140,7 +140,7 @@ export const OFFER_UPLOAD_PRICE_HEADER = "Offer price (KES)";
 export const OFFER_UPLOAD_RULES = [
   `One product per row: "${OFFER_UPLOAD_CODE_HEADER}" and "${OFFER_UPLOAD_PRICE_HEADER}" on the first sheet, headers in row 1.`,
   "The offer price is the FINAL price staff pay - no discount is applied on top. Positive, at most 2 decimals.",
-  "Product codes are the Erp item codes, without spaces. Keep the column formatted as Text so leading zeros stay.",
+  "Product codes are the ERP item codes, without spaces. Keep the column formatted as Text so leading zeros stay.",
   "Each code may appear only once in the file, and not already be active in the promo you're adding to.",
   "The promo sets the period - the file has no dates.",
   `Up to ${OFFER_UPLOAD_MAX_ROWS.toLocaleString("en-KE")} products per file. Empty rows and extra columns are ignored.`,

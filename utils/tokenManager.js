@@ -1,44 +1,6 @@
-// "use server";
-// let cachedToken = null;
-// let tokenExpiry = null;
+import "server-only";
+import { getErpConfig, MissingConfigError } from "@/lib/serverConfig";
 
-// export async function getAuthToken() {
-//   //If the token exists and it has not expired, return it
-//   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
-//     return cachedToken;
-//   }
-
-//   try {
-//     //Otherwise request a new one
-//     const res = await fetch(
-//       "https://erp.example.com/auth/api/login",
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           "X-tenanttype": "TENANT",
-//         },
-//         body: JSON.stringify({
-//           apiKey: process.env.ERP_API_KEY,
-//         }),
-//       },
-//     );
-
-//     if (!res.ok) throw new Error("Failed to fetch auth token");
-
-//     const data = await res.json();
-//     //Save token and compute expiry
-//     cachedToken = data.token;
-//     tokenExpiry = Date.now() + 14 * 60 * 1000; //14 minutes delay (1 minute buffer)
-
-//     return cachedToken;
-//   } catch (error) {
-//     console.error("A network error occured:", error);
-//     return null;
-//   }
-// }
-
-"use server";
 let cachedToken = null;
 let tokenExpiry = null;
 let tokenRefreshPromise = null;
@@ -69,20 +31,16 @@ export async function getAuthToken() {
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
     try {
-      const res = await fetch(
-        "https://erp.example.com/auth/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-tenanttype": "TENANT",
-          },
-          body: JSON.stringify({
-            apiKey: process.env.ERP_API_KEY,
-          }),
-          signal: controller.signal, // Apply the timeout signal
+      const { authUrl, apiKey, tenantType } = getErpConfig();
+      const res = await fetch(authUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-tenanttype": tenantType,
         },
-      );
+        body: JSON.stringify({ apiKey }),
+        signal: controller.signal, // Apply the timeout signal
+      });
 
       // Clear timeout if the request finished successfully
       clearTimeout(timeoutId);
@@ -100,7 +58,9 @@ export async function getAuthToken() {
       // Clear timeout if an error occurred before completion
       clearTimeout(timeoutId);
 
-      if (error.name === "AbortError") {
+      if (error instanceof MissingConfigError) {
+        console.error(error.message);
+      } else if (error.name === "AbortError") {
         console.error(
           `Auth token API request timed out after ${API_TIMEOUT / 1000}s.`,
         );

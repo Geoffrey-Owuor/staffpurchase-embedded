@@ -17,6 +17,7 @@ import { useSidebarStore } from "@/store/useSidebarStore";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { navItemContains } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useNavGroupOpen, useNavMenu } from "./useNavMenu";
+import { useSupportEmail } from "@/context/SupportEmailContext";
 
 const rowClass = (active) =>
   `flex w-full cursor-default items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors ${
@@ -237,6 +238,7 @@ const LeftSidebar = ({
   const setSidebarOpen = useSidebarStore((state) => state.setSidebarOpen);
   const setShowTopbar = useSidebarStore((state) => state.setShowTopbar);
   const [navRef, navFadeStyle] = useScrollFade();
+  const supportEmail = useSupportEmail();
   return (
     <div
       className={`custom:flex fixed top-0 bottom-0 left-0 z-50 hidden flex-col transition-all duration-200 ${
@@ -350,14 +352,16 @@ const LeftSidebar = ({
             <Link2 className="h-4 w-4 shrink-0" />
             <RowLabel sidebarOpen={sidebarOpen}>Hotpoint Website</RowLabel>
           </a>
-          <a
-            href="mailto:user@example.com"
-            title={sidebarOpen ? undefined : "Help & Support"}
-            className={`${utilityClass} text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800`}
-          >
-            <MessageCircleQuestion className="h-4 w-4 shrink-0" />
-            <RowLabel sidebarOpen={sidebarOpen}>Help & Support</RowLabel>
-          </a>
+          {supportEmail && (
+            <a
+              href={`mailto:${supportEmail}`}
+              title={sidebarOpen ? undefined : "Help & Support"}
+              className={`${utilityClass} text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800`}
+            >
+              <MessageCircleQuestion className="h-4 w-4 shrink-0" />
+              <RowLabel sidebarOpen={sidebarOpen}>Help & Support</RowLabel>
+            </a>
+          )}
 
           <UserMenu />
         </div>

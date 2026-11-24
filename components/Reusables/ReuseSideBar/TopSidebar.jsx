@@ -14,6 +14,7 @@ import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useSidebarStore } from "@/store/useSidebarStore";
 import { navItemContains } from "@/utils/HandleActionClicks/useDashboardRoutes";
 import { useNavMenu } from "./useNavMenu";
+import { useSupportEmail } from "@/context/SupportEmailContext";
 
 const tabClass = (active) =>
   `flex cursor-default items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
@@ -254,6 +255,7 @@ const TopSidebar = ({
   const [isScrolled, setIsScrolled] = useState(false);
 
   const setShowTopbar = useSidebarStore((state) => state.setShowTopbar);
+  const supportEmail = useSupportEmail();
 
   const toggleTopbarView = () => {
     setShowTopbar(false);
@@ -348,14 +350,16 @@ const TopSidebar = ({
             <Link2 className="h-4 w-4 shrink-0" />
           </a>
 
-          <a
-            href="mailto:user@example.com"
-            title="Help & Support"
-            aria-label="Help & Support"
-            className="flex items-center rounded-xl p-2 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
-          >
-            <MessageCircleQuestion className="h-4 w-4 shrink-0" />
-          </a>
+          {supportEmail && (
+            <a
+              href={`mailto:${supportEmail}`}
+              title="Help & Support"
+              aria-label="Help & Support"
+              className="flex items-center rounded-xl p-2 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
+            >
+              <MessageCircleQuestion className="h-4 w-4 shrink-0" />
+            </a>
+          )}
 
           {/* User Menu */}
           <div className="pl-2">

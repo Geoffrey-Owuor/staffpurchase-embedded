@@ -20,6 +20,7 @@ import Link from "next/link";
 import { lockPageScroll } from "@/utils/scrollLock";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { useNavGroupOpen } from "../ReuseSideBar/useNavMenu";
+import { useSupportEmail } from "@/context/SupportEmailContext";
 
 const navItemClass =
   "flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-base font-semibold";
@@ -96,6 +97,7 @@ function DrawerNavGroup({ group, isPathActive, onNavigate }) {
 export default function MobileHeader() {
   // --- State and logic for Mobile Sidebar ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const supportEmail = useSupportEmail();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -252,14 +254,16 @@ export default function MobileHeader() {
               <span className="short:hidden">Hotpoint Website</span>
               <span className="short:inline hidden">Website</span>
             </a>
-            <a
-              href="mailto:user@example.com"
-              className="short:px-2 short:py-1.5 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
-            >
-              <MessageCircleQuestion className="h-5 w-5 shrink-0" />
-              <span className="short:hidden">Help & Support</span>
-              <span className="short:inline hidden">Help</span>
-            </a>
+            {supportEmail && (
+              <a
+                href={`mailto:${supportEmail}`}
+                className="short:px-2 short:py-1.5 flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-800"
+              >
+                <MessageCircleQuestion className="h-5 w-5 shrink-0" />
+                <span className="short:hidden">Help & Support</span>
+                <span className="short:inline hidden">Help</span>
+              </a>
+            )}
           </div>
 
           <div className="ml-1">

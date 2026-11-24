@@ -3,8 +3,10 @@
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 
 import { AuthPagesLogo } from "@/components/Reusables/AppLogos";
+import { useSupportEmail } from "@/context/SupportEmailContext";
 
 export default function UnauthorizedPage() {
+  const supportEmail = useSupportEmail();
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-950">
       <div className="absolute top-3.5 left-4 z-50">
@@ -31,15 +33,17 @@ export default function UnauthorizedPage() {
         <div className="flex flex-col space-y-4"></div>
       </div>
 
-      <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>Need help? Contact our support team</p>
-        <a
-          href="mailto:user@example.com"
-          className="text-blue-600 hover:underline dark:text-blue-400"
-        >
-          user@example.com
-        </a>
-      </div>
+      {supportEmail && (
+        <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p>Need help? Contact our support team</p>
+          <a
+            href={`mailto:${supportEmail}`}
+            className="text-blue-600 hover:underline dark:text-blue-400"
+          >
+            {supportEmail}
+          </a>
+        </div>
+      )}
     </div>
   );
 }

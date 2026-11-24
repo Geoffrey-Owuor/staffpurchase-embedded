@@ -2,8 +2,10 @@
 import { ShoppingBag, ArrowUpRight, Mail } from "lucide-react";
 import Link from "next/link";
 import { basePath } from "@/utils/basePath";
+import { getSupportEmail } from "@/lib/serverConfig";
 
 export default function Footer() {
+  const supportEmail = getSupportEmail();
   return (
     <footer className="relative py-16 text-gray-700 dark:text-white">
       {/* Top hairline accent */}
@@ -71,13 +73,15 @@ export default function Footer() {
             <p className="mb-4 text-gray-600 dark:text-gray-400">
               Have questions? Our team is here to help.
             </p>
-            <a
-              href="mailto:user@example.com"
-              className="inline-flex items-center gap-2 font-medium text-red-600 transition hover:text-red-500 dark:text-red-400 dark:hover:text-red-300"
-            >
-              <Mail className="h-4 w-4" />
-              user@example.com
-            </a>
+            {supportEmail && (
+              <a
+                href={`mailto:${supportEmail}`}
+                className="inline-flex items-center gap-2 font-medium text-red-600 transition hover:text-red-500 dark:text-red-400 dark:hover:text-red-300"
+              >
+                <Mail className="h-4 w-4" />
+                {supportEmail}
+              </a>
+            )}
           </div>
         </div>
 

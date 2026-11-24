@@ -68,7 +68,7 @@ export default function NewPurchase({ approversPurchasing }) {
 
   const [products, setProducts] = useState(() => [{ ...initialProductState }]);
 
-  // Tracks which product rows currently have an in-progress Erp price
+  // Tracks which product rows currently have an in-progress ERP price
   // fetch, so submission can be blocked until every fetch settles.
   const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
   const handleFetchStatusChange = (index, isFetching) => {

@@ -421,7 +421,7 @@ before the code that depends on it deploys.
 
 ## Pricing & Staff Offers
 
-- `getpurchasedetails` fetches TRADE/RTLRRP/ONLINE from Erp
+- `getpurchasedetails` fetches TRADE/RTLRRP/ONLINE from ERP
   (`ERP_PRICE_CODES`) plus the active Staff Offer for the product code
   (one per code, regardless of item status or payment terms) from the
   `staff_offer_prices` table
@@ -515,12 +515,22 @@ before the code that depends on it deploys.
   sends at most 2 at a time per PM2 worker (Exchange caps ~4 concurrent
   requests per mailbox). Other 4xx fail immediately. A timed-out attempt may
   still have been delivered, so a retry can rarely duplicate an email.
-- Erp price lookups (`getpurchasedetails`) cache only real answers (a price
+- ERP price lookups (`getpurchasedetails`) cache only real answers (a price
   or "not on this list"); timeouts/network/5xx/no-token are thrown inside
   `unstable_cache` so they aren't cached. Concurrent identical lookups share
-  one in-flight call, Erp calls are capped at 6 per worker
+  one in-flight call, ERP calls are capped at 6 per worker
   (`utils/createLimiter.js`), and `utils/tokenManager.js` fails fast for 15s
-  after a failed Erp login.
+  after a failed ERP login.
+- **Deployment values stay out of the repo** (it's public). ERP URLs,
+  credentials and request parameters (`ERP_*`) and `SUPPORT_EMAIL` are
+  server-only env vars read through `lib/serverConfig.js` (`server-only`;
+  `getErpConfig()` throws `MissingConfigError` naming what's unset).
+  Client components get the support address from `useSupportEmail()`
+  (`context/SupportEmailContext.js`, provided by the root layout) and hide
+  the link when it's empty. Static pages (landing, login, register...) are
+  prerendered, so they bake in the `SUPPORT_EMAIL` present at `npm run
+  build`; dynamic ones read it per request. Never hard-code hosts, IPs, ports, company
+  emails or the ERP vendor's name - say "ERP" / "price service".
 - `sendEmail` wraps every email (notifications and auth) with
   `withNoReplyNotice` (`utils/EmailTemplates/noReplyNotice.js`): a slim
   "automated, don't reply" line at the top (after a hidden subject preheader

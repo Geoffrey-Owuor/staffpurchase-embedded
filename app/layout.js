@@ -5,6 +5,8 @@ import AlertLayer from "@/components/Reusables/Alerts/AlertLayer";
 import { ThemeProvider } from "next-themes";
 import ThemeShortcut from "@/components/Reusables/ThemeProviders/ThemeShortcut";
 import QueryProvider from "@/components/QueryProvider";
+import { SupportEmailProvider } from "@/context/SupportEmailContext";
+import { getSupportEmail } from "@/lib/serverConfig";
 
 // "optional" rather than the default "swap": the preloaded font arrives
 // within the ~100ms block period on the internal network, so text renders
@@ -47,7 +49,9 @@ export default function RootLayout({ children }) {
           <ThemeShortcut />
           <LoadingLine />
           <AlertLayer />
-          <QueryProvider>{children}</QueryProvider>
+          <SupportEmailProvider email={getSupportEmail()}>
+            <QueryProvider>{children}</QueryProvider>
+          </SupportEmailProvider>
         </ThemeProvider>
       </body>
     </html>

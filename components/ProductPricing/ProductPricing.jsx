@@ -35,7 +35,7 @@ const toStoredPrice = (value) => {
   return parsed > 0 ? parsed : null;
 };
 
-// The fetched Erp prices plus the Staff Offer, when there is one.
+// The fetched ERP prices plus the Staff Offer, when there is one.
 const withStaffOffer = (prices, staffOffer) => ({
   ...prices,
   [STAFF_OFFER_CODE]: staffOffer?.price ?? null,

@@ -1,4 +1,4 @@
-// Per-process concurrency limiter for outbound calls (Graph, Erp). Bursts
+// Per-process concurrency limiter for outbound calls (Graph, ERP). Bursts
 // of submissions otherwise fire every request at once from every PM2
 // worker, which is what saturates the uplink / upstream during peaks.
 // `limit(fn)` runs fn as soon as fewer than `maxConcurrent` are active,

@@ -7,7 +7,7 @@ const DEBOUNCE_MS = 600;
 
 const EMPTY_PRICES = { TRADE: null, RTLRRP: null, ONLINE: null };
 
-// Fetches TRADE/RTLRRP/ONLINE Erp prices for a product code, debounced,
+// Fetches TRADE/RTLRRP/ONLINE ERP prices for a product code, debounced,
 // plus the active Staff Offer for it (`staffOffer`: {id, price} or null).
 // `enabled` gates the debounced auto-fetch only — pass false to hydrate a
 // field (e.g. an edit page loading stored values) without triggering a
@@ -67,7 +67,7 @@ export function useErpPrices({ productCode, enabled }) {
       lastFetchedCodeRef.current = code;
     } catch (err) {
       if (err.name === "AbortError") return;
-      console.error("Error fetching Erp prices", err);
+      console.error("Error fetching ERP prices", err);
       setStatus("error");
       setErrorMessage("Network or server error. Please try again.");
     }

@@ -1,7 +1,7 @@
 // Single source of truth for price codes used across the pricing fetch,
 // selection, and display logic.
 
-// Price lists fetched from Erp, one request each.
+// Price lists fetched from ERP, one request each.
 export const ERP_PRICE_CODES = ["TRADE", "RTLRRP", "ONLINE"];
 
 // DB-managed staff promo price (staff_offer_prices), already discounted.

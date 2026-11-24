@@ -197,7 +197,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     );
   };
 
-  // Tracks which product rows currently have an in-progress Erp price
+  // Tracks which product rows currently have an in-progress ERP price
   // fetch, so submission can be blocked until every fetch settles.
   const [fetchingIndices, setFetchingIndices] = useState(() => new Set());
   const handleFetchStatusChange = (index, isFetching) => {
@@ -247,7 +247,7 @@ function PurchaseForm({ purchase, userRole, name, id }) {
     setProducts(updatedProducts);
   };
 
-  //Setting fetched product data (data fetched from Erp Api)
+  //Setting fetched product data (data fetched from ERP API)
   const setProductData = (index, updater) => {
     setProducts((currentProducts) =>
       currentProducts.map((product, i) => {
